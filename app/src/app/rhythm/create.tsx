@@ -17,18 +17,22 @@ const INTENSITIES: {
   {
     value: "whisper",
     label: "Whisper",
-    description: "Silent notification, short vibration",
+    description: "A gentle buzz — glance at your phone when you feel it",
   },
   {
     value: "nudge",
     label: "Nudge",
-    description: "Notification with a short sound",
+    description: "A quick chime to pull you back, easy to catch",
   },
-  { value: "pulse", label: "Pulse", description: "Sound + full-screen alert" },
+  {
+    value: "pulse",
+    label: "Pulse",
+    description: "Takes over your screen — hard to miss, hard to ignore",
+  },
   {
     value: "call",
     label: "Call",
-    description: "Persistent sound until dismissed",
+    description: "Won't stop until you deal with it — for when it matters",
   },
 ];
 

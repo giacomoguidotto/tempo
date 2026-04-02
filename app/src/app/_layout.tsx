@@ -46,19 +46,19 @@ export default function RootLayout() {
         <Stack.Screen
           name="rhythm/create"
           options={{
-            presentation: "formSheet",
+            presentation: "modal",
             gestureEnabled: true,
-            sheetGrabberVisible: false,
-            sheetCornerRadius: 24,
+            animation: "slide_from_bottom",
+            gestureDirection: "vertical",
           }}
         />
         <Stack.Screen
           name="rhythm/[id]"
           options={{
-            presentation: "formSheet",
+            presentation: "modal",
             gestureEnabled: true,
-            sheetGrabberVisible: false,
-            sheetCornerRadius: 24,
+            animation: "slide_from_bottom",
+            gestureDirection: "vertical",
           }}
         />
         <Stack.Screen
