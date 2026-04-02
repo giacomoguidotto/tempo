@@ -2,13 +2,13 @@
 
 @theme {
   /* Warm Analog — Light */
-  --color-background: #F7F3EE;
-  --color-surface: #FFFFFF;
-  --color-border: #E8E2DA;
-  --color-foreground: #2A2420;
-  --color-secondary: #9C8E80;
-  --color-muted: #C4BAB0;
-  --color-accent: #C06730;
+  --color-background: #f7f3ee;
+  --color-surface: #ffffff;
+  --color-border: #e8e2da;
+  --color-foreground: #2a2420;
+  --color-secondary: #9c8e80;
+  --color-muted: #c4bab0;
+  --color-accent: #c06730;
   --color-accent-glow: rgba(192, 103, 48, 0.3);
 
   /* Typography */
@@ -21,13 +21,13 @@
 
 @media (prefers-color-scheme: dark) {
   @theme {
-    --color-background: #1A1714;
-    --color-surface: #2A2420;
-    --color-border: #3D352E;
-    --color-foreground: #EDE6DA;
-    --color-secondary: #7A6F63;
-    --color-muted: #4A433C;
-    --color-accent: #C06730;
+    --color-background: #1a1714;
+    --color-surface: #2a2420;
+    --color-border: #3d352e;
+    --color-foreground: #ede6da;
+    --color-secondary: #7a6f63;
+    --color-muted: #4a433c;
+    --color-accent: #c06730;
     --color-accent-glow: rgba(192, 103, 48, 0.4);
   }
 }

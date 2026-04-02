@@ -1,5 +1,5 @@
-import { View, Text, Pressable } from "react-native";
 import { router } from "expo-router";
+import { Pressable, Text, View } from "react-native";
 
 export default function AlarmScreen() {
   return (
@@ -9,7 +9,7 @@ export default function AlarmScreen() {
         className="mt-8 rounded-full bg-accent px-8 py-4"
         onPress={() => router.back()}
       >
-        <Text className="font-mono text-sm tracking-widest text-background uppercase">
+        <Text className="font-mono text-background text-sm uppercase tracking-widest">
           Dismiss
         </Text>
       </Pressable>

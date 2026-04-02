@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Clock, CalendarDays, Settings } from "lucide-react-native";
+import { CalendarDays, Clock, Settings } from "lucide-react-native";
 
 export default function TabLayout() {
   return (

@@ -1,7 +1,9 @@
 {
   "name": "tempo",
   "private": true,
-  "workspaces": ["app"],
+  "workspaces": [
+    "app"
+  ],
   "scripts": {
     "lint": "turbo run lint",
     "format": "turbo run format",

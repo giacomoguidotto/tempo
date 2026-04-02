@@ -30,10 +30,6 @@
         "RECEIVE_BOOT_COMPLETED"
       ]
     },
-    "plugins": [
-      "expo-router",
-      "expo-font",
-      "expo-sqlite"
-    ]
+    "plugins": ["expo-router", "expo-font", "expo-sqlite"]
   }
 }

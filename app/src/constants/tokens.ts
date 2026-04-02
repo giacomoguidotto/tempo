@@ -27,7 +27,12 @@ export const fonts = {
 } as const;
 
 export const intensity = {
-  whisper: { label: "Whisper", vibration: "short", sound: false, fullScreen: false },
+  whisper: {
+    label: "Whisper",
+    vibration: "short",
+    sound: false,
+    fullScreen: false,
+  },
   nudge: { label: "Nudge", vibration: "short", sound: true, fullScreen: false },
   pulse: { label: "Pulse", vibration: "short", sound: true, fullScreen: true },
   call: { label: "Call", vibration: "long", sound: true, fullScreen: true },

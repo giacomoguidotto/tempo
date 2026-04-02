@@ -13,10 +13,7 @@ export default function RootLayout() {
           name="rhythm/create"
           options={{ presentation: "modal" }}
         />
-        <Stack.Screen
-          name="rhythm/[id]"
-          options={{ presentation: "modal" }}
-        />
+        <Stack.Screen name="rhythm/[id]" options={{ presentation: "modal" }} />
         <Stack.Screen
           name="alarm"
           options={{
