@@ -15,8 +15,11 @@
   --color-accent-glow: rgba(192, 103, 48, 0.3);
 
   /* Typography */
-  --font-display: "Fraunces";
-  --font-mono: "IBM Plex Mono";
+  --font-display: "Fraunces_800ExtraBold";
+  --font-display-semi: "Fraunces_600SemiBold";
+  --font-display-regular: "Fraunces_400Regular";
+  --font-mono: "IBMPlexMono_400Regular";
+  --font-mono-medium: "IBMPlexMono_500Medium";
 
   /* Spacing */
   --spacing-screen-x: 28px;
