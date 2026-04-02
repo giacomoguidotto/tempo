@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
+import { toggleRhythm } from "@/features/rhythm/operations";
 import { rhythmsAtom } from "@/features/rhythm/store/atoms";
 
 export default function RhythmsScreen() {
@@ -16,6 +17,7 @@ export default function RhythmsScreen() {
   const nextAlarm = activeRhythms.length > 0 ? "25:00" : "--:--";
 
   function handleToggle(id: string, enabled: boolean) {
+    toggleRhythm(id, enabled);
     setRhythms((prev) =>
       prev.map((r) =>
         r.id === id ? { ...r, enabled, updatedAt: new Date().toISOString() } : r

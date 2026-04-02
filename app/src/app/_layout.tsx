@@ -14,8 +14,10 @@ import { Stack } from "expo-router";
 import { hideAsync, preventAutoHideAsync } from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { runMigrations } from "@/lib/migrate";
 
 preventAutoHideAsync();
+runMigrations();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
