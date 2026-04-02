@@ -1,8 +1,11 @@
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
+import { useCallback, useRef } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CreateRhythmSheet } from "@/features/rhythm/components/create-rhythm-sheet";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
 import { toggleRhythm } from "@/features/rhythm/operations";
@@ -12,6 +15,7 @@ export default function RhythmsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [rhythms, setRhythms] = useAtom(rhythmsAtom);
+  const sheetRef = useRef<BottomSheetModal>(null);
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
   const nextAlarm = activeRhythms.length > 0 ? "25:00" : "--:--";
@@ -24,6 +28,10 @@ export default function RhythmsScreen() {
       )
     );
   }
+
+  const handleOpenCreate = useCallback(() => {
+    sheetRef.current?.present();
+  }, []);
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
@@ -100,7 +108,7 @@ export default function RhythmsScreen() {
       {/* FAB */}
       <Pressable
         className="absolute right-7 bottom-24 h-14 w-14 items-center justify-center rounded-full bg-accent"
-        onPress={() => router.push("/rhythm/create")}
+        onPress={handleOpenCreate}
         style={{
           shadowColor: "#C06730",
           shadowOffset: { width: 0, height: 4 },
@@ -111,6 +119,8 @@ export default function RhythmsScreen() {
       >
         <Plus color="#EDE6DA" size={24} strokeWidth={2} />
       </Pressable>
+
+      <CreateRhythmSheet ref={sheetRef} />
     </View>
   );
 }

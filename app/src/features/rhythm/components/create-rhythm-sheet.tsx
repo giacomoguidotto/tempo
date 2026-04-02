@@ -1,11 +1,15 @@
-import { useRouter } from "expo-router";
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import { useSetAtom } from "jotai";
-import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { forwardRef, type Ref, useCallback, useState } from "react";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { createRhythm, getAllRhythms } from "@/features/rhythm/operations";
-import type { IntensityLevel } from "@/features/rhythm/schemas";
-import { rhythmsAtom } from "@/features/rhythm/store/atoms";
+import { createRhythm, getAllRhythms } from "../operations";
+import type { IntensityLevel } from "../schemas";
+import { rhythmsAtom } from "../store/atoms";
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const INTERVALS = [5, 10, 15, 20, 25, 30, 45, 60, 90, 120];
@@ -36,8 +40,22 @@ const INTENSITIES: {
   },
 ];
 
-export default function CreateRhythmScreen() {
-  const router = useRouter();
+const INPUT_STYLE = {
+  fontFamily: "IBMPlexMono_400Regular",
+  fontSize: 16,
+  color: "#EDE6DA",
+  backgroundColor: "#2A2420",
+  borderColor: "#3D352E",
+  borderWidth: 1,
+  borderRadius: 12,
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+} as const;
+
+export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
+  _props: Record<string, never>,
+  ref: Ref<BottomSheetModal>
+) {
   const insets = useSafeAreaInsets();
   const setRhythms = useSetAtom(rhythmsAtom);
 
@@ -65,7 +83,17 @@ export default function CreateRhythmScreen() {
       enabled: true,
     });
     setRhythms(getAllRhythms());
-    router.back();
+    resetForm();
+    (ref as React.RefObject<BottomSheetModal>).current?.dismiss();
+  }
+
+  function resetForm() {
+    setName("");
+    setSelectedDays([1, 2, 3, 4, 5]);
+    setStartTime("09:00");
+    setEndTime("17:00");
+    setInterval(25);
+    setIntensity("nudge");
   }
 
   function toggleDay(day: number) {
@@ -74,13 +102,29 @@ export default function CreateRhythmScreen() {
     );
   }
 
-  return (
-    <View className="flex-1 bg-background">
-      {/* Drag handle */}
-      <View className="items-center pt-3 pb-1">
-        <View className="h-1 w-10 rounded-full bg-border" />
-      </View>
+  const renderBackdrop = useCallback(
+    // biome-ignore lint/suspicious/noExplicitAny: bottom sheet backdrop typing
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.6}
+      />
+    ),
+    []
+  );
 
+  return (
+    <BottomSheetModal
+      backdropComponent={renderBackdrop}
+      backgroundStyle={{ backgroundColor: "#1A1714" }}
+      enableDynamicSizing={false}
+      enablePanDownToClose
+      handleIndicatorStyle={{ backgroundColor: "#3D352E", width: 40 }}
+      ref={ref}
+      snapPoints={["90%"]}
+    >
       {/* Header */}
       <View className="items-center px-7 py-3">
         <Text
@@ -91,25 +135,18 @@ export default function CreateRhythmScreen() {
         </Text>
       </View>
 
-      <ScrollView className="flex-1 px-7" showsVerticalScrollIndicator={false}>
+      <BottomSheetScrollView
+        contentContainerStyle={{ paddingHorizontal: 28, paddingBottom: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Name */}
-        <View className="gap-2 py-4">
+        <View style={{ gap: 8, paddingVertical: 16 }}>
           <Label>Name</Label>
           <TextInput
             onChangeText={setName}
             placeholder="e.g. Deep Work"
             placeholderTextColor="#4A433C"
-            style={{
-              fontFamily: "Fraunces_400Regular",
-              fontSize: 16,
-              color: "#EDE6DA",
-              backgroundColor: "#2A2420",
-              borderColor: "#3D352E",
-              borderWidth: 1,
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
+            style={{ ...INPUT_STYLE, fontFamily: "Fraunces_400Regular" }}
             value={name}
           />
         </View>
@@ -141,46 +178,24 @@ export default function CreateRhythmScreen() {
         </View>
 
         {/* Time Range */}
-        <View className="flex-row gap-4 py-4">
-          <View className="flex-1 gap-2">
+        <View style={{ flexDirection: "row", gap: 16, paddingVertical: 16 }}>
+          <View style={{ flex: 1, gap: 8 }}>
             <Label>From</Label>
             <TextInput
               onChangeText={setStartTime}
               placeholder="09:00"
               placeholderTextColor="#4A433C"
-              style={{
-                fontFamily: "IBMPlexMono_400Regular",
-                fontSize: 16,
-                color: "#EDE6DA",
-                backgroundColor: "#2A2420",
-                borderColor: "#3D352E",
-                borderWidth: 1,
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                textAlign: "center",
-              }}
+              style={{ ...INPUT_STYLE, textAlign: "center" }}
               value={startTime}
             />
           </View>
-          <View className="flex-1 gap-2">
+          <View style={{ flex: 1, gap: 8 }}>
             <Label>Until</Label>
             <TextInput
               onChangeText={setEndTime}
               placeholder="17:00"
               placeholderTextColor="#4A433C"
-              style={{
-                fontFamily: "IBMPlexMono_400Regular",
-                fontSize: 16,
-                color: "#EDE6DA",
-                backgroundColor: "#2A2420",
-                borderColor: "#3D352E",
-                borderWidth: 1,
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                textAlign: "center",
-              }}
+              style={{ ...INPUT_STYLE, textAlign: "center" }}
               value={endTime}
             />
           </View>
@@ -239,7 +254,7 @@ export default function CreateRhythmScreen() {
             </Text>
           )}
         </View>
-      </ScrollView>
+      </BottomSheetScrollView>
 
       {/* Bottom save button */}
       <View
@@ -259,9 +274,9 @@ export default function CreateRhythmScreen() {
           </Text>
         </Pressable>
       </View>
-    </View>
+    </BottomSheetModal>
   );
-}
+});
 
 function Label({ children }: { children: string }) {
   return (
