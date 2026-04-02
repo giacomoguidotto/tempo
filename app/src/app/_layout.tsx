@@ -45,9 +45,22 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="rhythm/create"
-          options={{ presentation: "modal" }}
+          options={{
+            presentation: "formSheet",
+            gestureEnabled: true,
+            sheetGrabberVisible: false,
+            sheetCornerRadius: 24,
+          }}
         />
-        <Stack.Screen name="rhythm/[id]" options={{ presentation: "modal" }} />
+        <Stack.Screen
+          name="rhythm/[id]"
+          options={{
+            presentation: "formSheet",
+            gestureEnabled: true,
+            sheetGrabberVisible: false,
+            sheetCornerRadius: 24,
+          }}
+        />
         <Stack.Screen
           name="alarm"
           options={{

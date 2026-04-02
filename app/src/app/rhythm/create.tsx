@@ -1,6 +1,5 @@
 import { useRouter } from "expo-router";
 import { useSetAtom } from "jotai";
-import { X } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,11 +9,27 @@ import { rhythmsAtom } from "@/features/rhythm/store/atoms";
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const INTERVALS = [5, 10, 15, 20, 25, 30, 45, 60, 90, 120];
-const INTENSITIES: { value: IntensityLevel; label: string }[] = [
-  { value: "whisper", label: "Whisper" },
-  { value: "nudge", label: "Nudge" },
-  { value: "pulse", label: "Pulse" },
-  { value: "call", label: "Call" },
+const INTENSITIES: {
+  value: IntensityLevel;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "whisper",
+    label: "Whisper",
+    description: "Silent notification, short vibration",
+  },
+  {
+    value: "nudge",
+    label: "Nudge",
+    description: "Notification with a short sound",
+  },
+  { value: "pulse", label: "Pulse", description: "Sound + full-screen alert" },
+  {
+    value: "call",
+    label: "Call",
+    description: "Persistent sound until dismissed",
+  },
 ];
 
 export default function CreateRhythmScreen() {
@@ -29,8 +44,11 @@ export default function CreateRhythmScreen() {
   const [interval, setInterval] = useState(25);
   const [intensity, setIntensity] = useState<IntensityLevel>("nudge");
 
+  const canSave = name.trim().length > 0 && selectedDays.length > 0;
+  const selectedIntensity = INTENSITIES.find((i) => i.value === intensity);
+
   function handleSave() {
-    if (!name.trim()) {
+    if (!canSave) {
       return;
     }
     createRhythm({
@@ -53,26 +71,20 @@ export default function CreateRhythmScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-background">
+      {/* Drag handle */}
+      <View className="items-center pt-3 pb-1">
+        <View className="h-1 w-10 rounded-full bg-border" />
+      </View>
+
       {/* Header */}
-      <View className="flex-row items-center justify-between px-7 py-4">
-        <Pressable onPress={() => router.back()}>
-          <X color="#7A6F63" size={24} />
-        </Pressable>
+      <View className="items-center px-7 py-3">
         <Text
           className="text-foreground text-lg"
           style={{ fontFamily: "Fraunces_600SemiBold" }}
         >
           New Rhythm
         </Text>
-        <Pressable onPress={handleSave}>
-          <Text
-            className="text-accent text-sm"
-            style={{ fontFamily: "IBMPlexMono_500Medium" }}
-          >
-            Save
-          </Text>
-        </Pressable>
       </View>
 
       <ScrollView className="flex-1 px-7" showsVerticalScrollIndicator={false}>
@@ -194,7 +206,7 @@ export default function CreateRhythmScreen() {
         </View>
 
         {/* Intensity */}
-        <View className="gap-2 py-4 pb-12">
+        <View className="gap-2 py-4">
           <Label>Intensity</Label>
           <View className="flex-row gap-2">
             {INTENSITIES.map(({ value, label }) => (
@@ -214,8 +226,35 @@ export default function CreateRhythmScreen() {
               </Pressable>
             ))}
           </View>
+          {selectedIntensity && (
+            <Text
+              className="pt-1 text-[11px] text-secondary"
+              style={{ fontFamily: "IBMPlexMono_400Regular" }}
+            >
+              {selectedIntensity.description}
+            </Text>
+          )}
         </View>
       </ScrollView>
+
+      {/* Bottom save button */}
+      <View
+        className="px-7 pt-3"
+        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+      >
+        <Pressable
+          className={`items-center rounded-2xl py-4 ${canSave ? "bg-accent" : "bg-border"}`}
+          disabled={!canSave}
+          onPress={handleSave}
+        >
+          <Text
+            className="text-foreground text-sm uppercase tracking-[2px]"
+            style={{ fontFamily: "IBMPlexMono_500Medium" }}
+          >
+            Create Rhythm
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
