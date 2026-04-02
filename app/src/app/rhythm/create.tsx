@@ -80,11 +80,20 @@ export default function CreateRhythmScreen() {
         <View className="gap-2 py-4">
           <Label>Name</Label>
           <TextInput
-            className="rounded-xl border border-border bg-surface px-4 py-3 text-base text-foreground"
             onChangeText={setName}
             placeholder="e.g. Deep Work"
             placeholderTextColor="#4A433C"
-            style={{ fontFamily: "Fraunces_400Regular" }}
+            style={{
+              fontFamily: "Fraunces_400Regular",
+              fontSize: 16,
+              color: "#EDE6DA",
+              backgroundColor: "#2A2420",
+              borderColor: "#3D352E",
+              borderWidth: 1,
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
             value={name}
           />
         </View>
@@ -120,22 +129,42 @@ export default function CreateRhythmScreen() {
           <View className="flex-1 gap-2">
             <Label>From</Label>
             <TextInput
-              className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-base text-foreground"
               onChangeText={setStartTime}
               placeholder="09:00"
               placeholderTextColor="#4A433C"
-              style={{ fontFamily: "IBMPlexMono_400Regular" }}
+              style={{
+                fontFamily: "IBMPlexMono_400Regular",
+                fontSize: 16,
+                color: "#EDE6DA",
+                backgroundColor: "#2A2420",
+                borderColor: "#3D352E",
+                borderWidth: 1,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                textAlign: "center",
+              }}
               value={startTime}
             />
           </View>
           <View className="flex-1 gap-2">
             <Label>Until</Label>
             <TextInput
-              className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-base text-foreground"
               onChangeText={setEndTime}
               placeholder="17:00"
               placeholderTextColor="#4A433C"
-              style={{ fontFamily: "IBMPlexMono_400Regular" }}
+              style={{
+                fontFamily: "IBMPlexMono_400Regular",
+                fontSize: 16,
+                color: "#EDE6DA",
+                backgroundColor: "#2A2420",
+                borderColor: "#3D352E",
+                borderWidth: 1,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                textAlign: "center",
+              }}
               value={endTime}
             />
           </View>
