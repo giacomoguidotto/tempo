@@ -2,3 +2,10 @@
 node = "latest"
 bun = "latest"
 java = "17"
+
+[env]
+ANDROID_HOME = "{{ env.HOME }}/Library/Android/sdk"
+_.path = [
+  "{{ env.HOME }}/Library/Android/sdk/platform-tools",
+  "{{ env.HOME }}/Library/Android/sdk/emulator",
+]
