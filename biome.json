@@ -14,7 +14,8 @@
       "!build",
       "!android",
       "!ios",
-      "!**/global.css"
+      "!**/global.css",
+      "!**/app.json"
     ]
   },
   "overrides": [
