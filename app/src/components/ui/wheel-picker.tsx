@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -187,17 +188,26 @@ export function DurationPickerModal({
       transparent
       visible={visible}
     >
-      <Pressable
-        onPress={onClose}
+      <View
         style={{
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "rgba(0, 0, 0, 0.6)",
         }}
       >
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.6)",
+            }}
+          />
+        </TouchableWithoutFeedback>
         <View
-          onStartShouldSetResponder={() => true}
           style={{
             backgroundColor: "#1A1714",
             borderRadius: 20,
@@ -271,7 +281,7 @@ export function DurationPickerModal({
             </Pressable>
           </View>
         </View>
-      </Pressable>
+      </View>
     </Modal>
   );
 }
