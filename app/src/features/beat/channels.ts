@@ -14,7 +14,7 @@ export async function createNotificationChannels() {
     description: "Silent notifications with vibration only",
     importance: AndroidImportance.LOW,
     vibration: true,
-    vibrationPattern: [0, 100],
+    vibrationPattern: [100, 100],
     sound: undefined,
   });
 
@@ -24,7 +24,7 @@ export async function createNotificationChannels() {
     description: "Notifications with a short sound",
     importance: AndroidImportance.HIGH,
     vibration: true,
-    vibrationPattern: [0, 100],
+    vibrationPattern: [100, 100],
     sound: "default",
   });
 
@@ -34,7 +34,7 @@ export async function createNotificationChannels() {
     description: "Full-screen alerts with sound",
     importance: AndroidImportance.HIGH,
     vibration: true,
-    vibrationPattern: [0, 200],
+    vibrationPattern: [200, 200],
     sound: "default",
   });
 
@@ -44,7 +44,7 @@ export async function createNotificationChannels() {
     description: "Persistent alerts until dismissed",
     importance: AndroidImportance.HIGH,
     vibration: true,
-    vibrationPattern: [0, 500, 200, 500],
+    vibrationPattern: [500, 500, 200, 500],
     sound: "default",
   });
 }
