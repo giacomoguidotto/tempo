@@ -15,6 +15,7 @@ import {
 import { scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
 import { createRhythm, getAllRhythms } from "../operations";
+import { randomPreset } from "../presets";
 import type { IntensityLevel } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
 
@@ -66,12 +67,13 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const setRhythms = useSetAtom(rhythmsAtom);
   const [sliderActive, setSliderActive] = useState(false);
 
-  const [name, setName] = useState("");
-  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("17:00");
-  const [interval, setInterval] = useState(25);
-  const [intensity, setIntensity] = useState<IntensityLevel>("nudge");
+  const [preset] = useState(() => randomPreset());
+  const [name, setName] = useState(preset.name);
+  const [selectedDays, setSelectedDays] = useState<number[]>(preset.days);
+  const [startTime, setStartTime] = useState(preset.startTime);
+  const [endTime, setEndTime] = useState(preset.endTime);
+  const [interval, setInterval] = useState(preset.intervalMinutes);
+  const [intensity, setIntensity] = useState<IntensityLevel>(preset.intensity);
   const [showTimePicker, setShowTimePicker] = useState<"start" | "end" | null>(
     null
   );
@@ -104,12 +106,13 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   }
 
   function resetForm() {
-    setName("");
-    setSelectedDays([1, 2, 3, 4, 5]);
-    setStartTime("09:00");
-    setEndTime("17:00");
-    setInterval(25);
-    setIntensity("nudge");
+    const next = randomPreset();
+    setName(next.name);
+    setSelectedDays(next.days);
+    setStartTime(next.startTime);
+    setEndTime(next.endTime);
+    setInterval(next.intervalMinutes);
+    setIntensity(next.intensity);
   }
 
   function toggleDay(day: number) {
