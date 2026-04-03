@@ -32,10 +32,19 @@ export function RhythmCard({
   const remaining = totalBeats - beatsToday;
   const nextBeat = computeNextBeat(rhythm);
 
-  // How many ticks fit in each half (left = done, right = remaining)
-  const halfMax = Math.floor(MAX_TICKS / 2);
-  const doneTicks = Math.min(beatsToday, halfMax);
-  const remainTicks = Math.min(remaining, MAX_TICKS - halfMax - 1);
+  // Show all ticks if they fit, otherwise stack overflow at edges
+  const fits = totalBeats <= MAX_TICKS;
+  let doneTicks: number;
+  let remainTicks: number;
+  if (fits) {
+    doneTicks = beatsToday;
+    remainTicks = remaining;
+  } else {
+    // Always show MAX_TICKS total — split proportionally, favoring done
+    const halfMax = Math.floor(MAX_TICKS / 2);
+    doneTicks = Math.min(beatsToday, halfMax);
+    remainTicks = Math.min(remaining, MAX_TICKS - doneTicks);
+  }
   const doneOverflow = beatsToday - doneTicks;
   const remainOverflow = remaining - remainTicks;
 
