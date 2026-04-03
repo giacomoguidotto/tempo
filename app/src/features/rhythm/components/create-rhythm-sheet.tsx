@@ -3,10 +3,13 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSetAtom } from "jotai";
 import { forwardRef, type Ref, useCallback, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { RangeSlider } from "@/components/ui/range-slider";
+import { Slider } from "@/components/ui/slider";
 import { scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
 import { createRhythm, getAllRhythms } from "../operations";
@@ -14,7 +17,7 @@ import type { IntensityLevel } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
-const INTERVALS = [5, 10, 15, 20, 25, 30, 45, 60, 90, 120];
+const INTERVAL_PRESETS = [5, 15, 25, 30, 45, 60, 90];
 const INTENSITIES: {
   value: IntensityLevel;
   label: string;
@@ -42,17 +45,16 @@ const INTENSITIES: {
   },
 ];
 
-const INPUT_STYLE = {
-  fontFamily: "IBMPlexMono_400Regular",
-  fontSize: 16,
-  color: "#EDE6DA",
-  backgroundColor: "#2A2420",
-  borderColor: "#3D352E",
-  borderWidth: 1,
-  borderRadius: 12,
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-} as const;
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTime(m: number): string {
+  const h = Math.floor(m / 60);
+  const min = m % 60;
+  return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
 
 export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   _props: Record<string, never>,
@@ -67,6 +69,9 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const [endTime, setEndTime] = useState("17:00");
   const [interval, setInterval] = useState(25);
   const [intensity, setIntensity] = useState<IntensityLevel>("nudge");
+  const [showTimePicker, setShowTimePicker] = useState<"start" | "end" | null>(
+    null
+  );
 
   const canSave = name.trim().length > 0 && selectedDays.length > 0;
   const selectedIntensity = INTENSITIES.find((i) => i.value === intensity);
@@ -109,6 +114,27 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     );
   }
 
+  function handleTimeRangeChange(low: number, high: number) {
+    setStartTime(minutesToTime(low));
+    setEndTime(minutesToTime(high));
+  }
+
+  function handleTimePickerChange(
+    which: "start" | "end",
+    date: Date | undefined
+  ) {
+    setShowTimePicker(null);
+    if (!date) {
+      return;
+    }
+    const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+    if (which === "start") {
+      setStartTime(time);
+    } else {
+      setEndTime(time);
+    }
+  }
+
   const renderBackdrop = useCallback(
     // biome-ignore lint/suspicious/noExplicitAny: bottom sheet backdrop typing
     (props: any) => (
@@ -132,7 +158,6 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       ref={ref}
       snapPoints={["90%"]}
     >
-      {/* Header */}
       <View className="items-center px-7 py-3">
         <Text
           className="text-foreground text-lg"
@@ -147,21 +172,28 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         showsVerticalScrollIndicator={false}
       >
         {/* Name */}
-        <View style={{ gap: 8, paddingVertical: 16 }}>
+        <View style={{ paddingVertical: 16, gap: 6 }}>
           <Label>Name</Label>
           <TextInput
             onChangeText={setName}
             placeholder="e.g. Deep Work"
             placeholderTextColor="#4A433C"
-            style={{ ...INPUT_STYLE, fontFamily: "Fraunces_400Regular" }}
+            style={{
+              fontFamily: "Fraunces_400Regular",
+              fontSize: 20,
+              color: "#EDE6DA",
+              borderBottomWidth: 1.5,
+              borderBottomColor: "#2A2420",
+              paddingBottom: 6,
+            }}
             value={name}
           />
         </View>
 
         {/* Days */}
-        <View className="gap-2 py-4">
+        <View style={{ paddingVertical: 16, gap: 10 }}>
           <Label>Days</Label>
-          <View className="flex-row gap-2">
+          <View className="flex-row justify-between">
             {DAYS.map((label, i) => (
               <Pressable
                 className={`h-10 w-10 items-center justify-center rounded-full ${
@@ -182,70 +214,143 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
               </Pressable>
             ))}
           </View>
+          <Divider />
         </View>
 
         {/* Time Range */}
-        <View style={{ flexDirection: "row", gap: 16, paddingVertical: 16 }}>
-          <View style={{ flex: 1, gap: 8 }}>
-            <Label>From</Label>
-            <TextInput
-              onChangeText={setStartTime}
-              placeholder="09:00"
-              placeholderTextColor="#4A433C"
-              style={{ ...INPUT_STYLE, textAlign: "center" }}
-              value={startTime}
-            />
+        <View style={{ paddingVertical: 16, gap: 16 }}>
+          <View className="flex-row justify-between">
+            <View style={{ gap: 4 }}>
+              <Label>From</Label>
+              <Pressable onPress={() => setShowTimePicker("start")}>
+                <Text
+                  style={{
+                    fontFamily: "IBMPlexMono_500Medium",
+                    fontSize: 32,
+                    color: "#EDE6DA",
+                    letterSpacing: 2,
+                    borderBottomWidth: 1.5,
+                    borderBottomColor: "#3D352E",
+                    paddingBottom: 4,
+                  }}
+                >
+                  {startTime}
+                </Text>
+              </Pressable>
+            </View>
+            <View style={{ gap: 4, alignItems: "flex-end" }}>
+              <Label>To</Label>
+              <Pressable onPress={() => setShowTimePicker("end")}>
+                <Text
+                  style={{
+                    fontFamily: "IBMPlexMono_500Medium",
+                    fontSize: 32,
+                    color: "#EDE6DA",
+                    letterSpacing: 2,
+                    borderBottomWidth: 1.5,
+                    borderBottomColor: "#3D352E",
+                    paddingBottom: 4,
+                  }}
+                >
+                  {endTime}
+                </Text>
+              </Pressable>
+            </View>
           </View>
-          <View style={{ flex: 1, gap: 8 }}>
-            <Label>Until</Label>
-            <TextInput
-              onChangeText={setEndTime}
-              placeholder="17:00"
-              placeholderTextColor="#4A433C"
-              style={{ ...INPUT_STYLE, textAlign: "center" }}
-              value={endTime}
-            />
-          </View>
+          <RangeSlider
+            max={1440}
+            min={0}
+            onValuesChange={handleTimeRangeChange}
+            step={60}
+            valueHigh={timeToMinutes(endTime)}
+            valueLow={timeToMinutes(startTime)}
+          />
+          <Divider />
         </View>
 
         {/* Interval */}
-        <View className="gap-2 py-4">
-          <Label>Interval</Label>
-          <View className="flex-row flex-wrap gap-2">
-            {INTERVALS.map((mins) => (
+        <View style={{ paddingVertical: 16, gap: 12 }}>
+          <Label>Every</Label>
+          <Text
+            style={{
+              fontFamily: "IBMPlexMono_500Medium",
+              fontSize: 32,
+              color: "#EDE6DA",
+              letterSpacing: 2,
+              borderBottomWidth: 1.5,
+              borderBottomColor: "#3D352E",
+              paddingBottom: 4,
+              alignSelf: "flex-start",
+            }}
+          >
+            {interval} min
+          </Text>
+          <View className="flex-row flex-wrap gap-[6px]">
+            {INTERVAL_PRESETS.map((mins) => (
               <Pressable
-                className={`rounded-xl px-4 py-2 ${
-                  interval === mins ? "bg-accent" : "border border-border"
-                }`}
                 key={mins}
                 onPress={() => setInterval(mins)}
+                style={{
+                  paddingVertical: 5,
+                  paddingHorizontal: 12,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: interval === mins ? "#C06730" : "#2A2420",
+                  backgroundColor:
+                    interval === mins
+                      ? "rgba(192, 103, 48, 0.15)"
+                      : "transparent",
+                }}
               >
                 <Text
-                  className={`text-sm ${interval === mins ? "text-foreground" : "text-secondary"}`}
-                  style={{ fontFamily: "IBMPlexMono_400Regular" }}
+                  style={{
+                    fontFamily: "IBMPlexMono_400Regular",
+                    fontSize: 11,
+                    color: interval === mins ? "#C06730" : "#4A433C",
+                  }}
                 >
-                  {mins}m
+                  {mins}
                 </Text>
               </Pressable>
             ))}
           </View>
+          <Slider
+            max={120}
+            min={1}
+            onValueChange={setInterval}
+            snapPoints={INTERVAL_PRESETS}
+            value={interval}
+          />
+          <Divider />
         </View>
 
         {/* Intensity */}
-        <View className="gap-2 py-4">
+        <View style={{ paddingVertical: 16, gap: 10 }}>
           <Label>Intensity</Label>
           <View className="flex-row gap-2">
             {INTENSITIES.map(({ value, label }) => (
               <Pressable
-                className={`flex-1 items-center rounded-xl py-3 ${
-                  intensity === value ? "bg-accent" : "border border-border"
-                }`}
                 key={value}
                 onPress={() => setIntensity(value)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: intensity === value ? "#C06730" : "#2A2420",
+                  backgroundColor:
+                    intensity === value
+                      ? "rgba(192, 103, 48, 0.15)"
+                      : "transparent",
+                  alignItems: "center",
+                }}
               >
                 <Text
-                  className={`text-xs ${intensity === value ? "text-foreground" : "text-secondary"}`}
-                  style={{ fontFamily: "IBMPlexMono_500Medium" }}
+                  style={{
+                    fontFamily: "IBMPlexMono_500Medium",
+                    fontSize: 11,
+                    color: intensity === value ? "#C06730" : "#4A433C",
+                  }}
                 >
                   {label}
                 </Text>
@@ -263,7 +368,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         </View>
       </BottomSheetScrollView>
 
-      {/* Bottom save button */}
+      {/* Save button */}
       <View
         className="px-7 pt-3"
         style={{ paddingBottom: Math.max(insets.bottom, 16) }}
@@ -281,6 +386,23 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
           </Text>
         </Pressable>
       </View>
+
+      {/* Time Picker Dialog */}
+      {showTimePicker && (
+        <DateTimePicker
+          is24Hour
+          minuteInterval={15}
+          mode="time"
+          onChange={(_e, date) => handleTimePickerChange(showTimePicker, date)}
+          value={(() => {
+            const t = showTimePicker === "start" ? startTime : endTime;
+            const [h, m] = t.split(":").map(Number);
+            const d = new Date();
+            d.setHours(h, m, 0, 0);
+            return d;
+          })()}
+        />
+      )}
     </BottomSheetModal>
   );
 });
@@ -288,10 +410,21 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
 function Label({ children }: { children: string }) {
   return (
     <Text
-      className="text-[10px] text-secondary uppercase tracking-[2px]"
-      style={{ fontFamily: "IBMPlexMono_400Regular" }}
+      style={{
+        fontFamily: "IBMPlexMono_400Regular",
+        fontSize: 10,
+        letterSpacing: 2,
+        color: "#7A6F63",
+        textTransform: "uppercase",
+      }}
     >
       {children}
     </Text>
+  );
+}
+
+function Divider() {
+  return (
+    <View style={{ height: 1, backgroundColor: "#2A2420", marginTop: 8 }} />
   );
 }
