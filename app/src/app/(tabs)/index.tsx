@@ -119,7 +119,7 @@ export default function RhythmsScreen() {
         </Text>
       </View>
       <View className="items-center gap-5 pt-7 pb-6">
-        <VuMeter active={hasUpcomingAlarms} />
+        <VuMeter active={activeRhythms.length > 0} moving={hasUpcomingAlarms} />
         <View className="items-center gap-1">
           <Text
             className="text-[40px] text-foreground tracking-[4px]"

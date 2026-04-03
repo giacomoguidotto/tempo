@@ -101,10 +101,16 @@ function AnimatedBar({
   );
 }
 
-export function VuMeter({ active = true }: { active?: boolean }) {
+export function VuMeter({
+  active = true,
+  moving = true,
+}: {
+  active?: boolean;
+  moving?: boolean;
+}) {
   const phase = useSharedValue(0);
   const pausedAt = useSharedValue(0);
-  const speed = useSharedValue(active ? 1 : 0);
+  const speed = useSharedValue(moving ? 1 : 0);
   const progress = useSharedValue(active ? 1 : 0);
 
   // Phase always runs
@@ -119,12 +125,16 @@ export function VuMeter({ active = true }: { active?: boolean }) {
     );
   }, [phase]);
 
-  // On toggle: snapshot phase, ramp speed + visuals together
+  // Translation speed — stops/starts smoothly
   useEffect(() => {
     pausedAt.value = phase.value;
-    speed.value = withTiming(active ? 1 : 0, { duration: TRANSITION_MS });
+    speed.value = withTiming(moving ? 1 : 0, { duration: TRANSITION_MS });
+  }, [moving, pausedAt, phase, speed]);
+
+  // Height/color/opacity — shrinks when no rhythms active
+  useEffect(() => {
     progress.value = withTiming(active ? 1 : 0, { duration: TRANSITION_MS });
-  }, [active, pausedAt, phase, speed, progress]);
+  }, [active, progress]);
 
   return (
     <View
