@@ -20,7 +20,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/metro.config.js", "**/plugins/*.js"],
+      "includes": ["**/metro.config.js", "**/plugins/*.js", "app/index.js"],
       "assist": { "enabled": false },
       "linter": { "enabled": false },
       "formatter": { "enabled": false }

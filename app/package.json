@@ -2,7 +2,7 @@
   "name": "tempo-app",
   "version": "0.1.0",
   "private": true,
-  "main": "expo-router/entry",
+  "main": "./index.js",
   "type": "commonjs",
   "scripts": {
     "start": "expo start",
