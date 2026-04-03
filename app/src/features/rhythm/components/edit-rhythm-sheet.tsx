@@ -432,7 +432,11 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
           is24Hour
           minuteInterval={15}
           mode="time"
-          onChange={(_e, date) => handleTimePickerChange(showTimePicker, date)}
+          onChange={(_e, date) => {
+            if (showTimePicker) {
+              handleTimePickerChange(showTimePicker, date);
+            }
+          }}
           value={(() => {
             const t = showTimePicker === "start" ? startTime : endTime;
             const [h, m] = t.split(":").map(Number);
@@ -448,7 +452,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         <DateTimePicker
           is24Hour
           minuteInterval={5}
-          mode="countdown"
+          mode="time"
           onChange={(_e, date) => {
             setShowIntervalPicker(false);
             if (date) {
