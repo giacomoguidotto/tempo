@@ -3,7 +3,6 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSetAtom } from "jotai";
 import { Trash2 } from "lucide-react-native";
 import {
@@ -17,7 +16,10 @@ import {
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RangeSlider } from "@/components/ui/range-slider";
-import { DurationPickerModal } from "@/components/ui/wheel-picker";
+import {
+  DurationPickerModal,
+  TimePickerModal,
+} from "@/components/ui/wheel-picker";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { deleteRhythm, getAllRhythms, updateRhythm } from "../operations";
 import type { IntensityLevel, Rhythm } from "../schemas";
@@ -142,22 +144,6 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   function handleTimeRangeChange(low: number, high: number) {
     setStartTime(minutesToTime(low));
     setEndTime(minutesToTime(high));
-  }
-
-  function handleTimePickerChange(
-    which: "start" | "end",
-    date: Date | undefined
-  ) {
-    setShowTimePicker(null);
-    if (!date) {
-      return;
-    }
-    const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-    if (which === "start") {
-      setStartTime(time);
-    } else {
-      setEndTime(time);
-    }
   }
 
   const renderBackdrop = useCallback(
@@ -422,22 +408,17 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
 
       {/* Time Picker Dialog */}
       {showTimePicker && (
-        <DateTimePicker
-          is24Hour
-          minuteInterval={1}
-          mode="time"
-          onChange={(_e, date) => {
-            if (showTimePicker) {
-              handleTimePickerChange(showTimePicker, date);
+        <TimePickerModal
+          onClose={() => setShowTimePicker(null)}
+          onConfirm={(time) => {
+            if (showTimePicker === "start") {
+              setStartTime(time);
+            } else {
+              setEndTime(time);
             }
           }}
-          value={(() => {
-            const t = showTimePicker === "start" ? startTime : endTime;
-            const [h, m] = t.split(":").map(Number);
-            const d = new Date();
-            d.setHours(h, m, 0, 0);
-            return d;
-          })()}
+          value={showTimePicker === "start" ? startTime : endTime}
+          visible
         />
       )}
 

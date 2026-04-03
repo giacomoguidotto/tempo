@@ -18,6 +18,7 @@
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo/vector-icons": "^15.1.1",
     "@gorhom/bottom-sheet": "^5.1.4",
+    "@quidone/react-native-wheel-picker": "^1.6.1",
     "@notifee/react-native": "^9.1.8",
     "@react-native-community/datetimepicker": "^8.4.1",
     "drizzle-orm": "^0.45.2",
