@@ -1,8 +1,8 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
-  FlatList,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  ScrollView,
   Text,
   View,
 } from "react-native";
@@ -18,67 +18,72 @@ interface WheelColumnProps {
 }
 
 function WheelColumn({ items, selectedValue, onChange }: WheelColumnProps) {
-  const listRef = useRef<FlatList>(null);
-  const selectedIndex = items.findIndex((i) => i.value === selectedValue);
-  const paddedItems = [
-    { label: "", value: -1 },
-    ...items,
-    { label: "", value: -2 },
-  ];
+  const scrollRef = useRef<ScrollView>(null);
+  const selectedIndex = Math.max(
+    0,
+    items.findIndex((i) => i.value === selectedValue)
+  );
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      y: selectedIndex * ITEM_HEIGHT,
+      animated: false,
+    });
+  }, [selectedIndex]);
 
   const handleMomentumEnd = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
       const index = Math.round(y / ITEM_HEIGHT);
       const clamped = Math.max(0, Math.min(index, items.length - 1));
-      onChange(items[clamped].value);
+      if (items[clamped].value !== selectedValue) {
+        onChange(items[clamped].value);
+      }
     },
-    [items, onChange]
+    [items, onChange, selectedValue]
   );
 
   return (
     <View style={{ height: PICKER_HEIGHT, flex: 1, overflow: "hidden" }}>
-      <FlatList
-        contentOffset={{ x: 0, y: Math.max(0, selectedIndex) * ITEM_HEIGHT }}
-        data={paddedItems}
+      <ScrollView
         decelerationRate="fast"
-        getItemLayout={(_data, index) => ({
-          length: ITEM_HEIGHT,
-          offset: ITEM_HEIGHT * index,
-          index,
-        })}
-        keyExtractor={(item, i) => `${item.value}-${i}`}
+        nestedScrollEnabled
         onMomentumScrollEnd={handleMomentumEnd}
-        ref={listRef}
-        renderItem={({ item, index }) => {
-          const realIndex = index - 1;
-          const isSelected = realIndex === selectedIndex;
-          const isEmpty = item.value < 0;
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={ITEM_HEIGHT}
+      >
+        {/* Top padding (1 empty slot) */}
+        <View style={{ height: ITEM_HEIGHT }} />
+
+        {items.map((item, i) => {
+          const isSelected = i === selectedIndex;
           return (
             <View
+              key={item.value}
               style={{
                 height: ITEM_HEIGHT,
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              {!isEmpty && (
-                <Text
-                  style={{
-                    fontFamily: "IBMPlexMono_500Medium",
-                    fontSize: isSelected ? 24 : 18,
-                    color: isSelected ? "#EDE6DA" : "#4A433C",
-                  }}
-                >
-                  {item.label}
-                </Text>
-              )}
+              <Text
+                style={{
+                  fontFamily: "IBMPlexMono_500Medium",
+                  fontSize: isSelected ? 24 : 18,
+                  color: isSelected ? "#EDE6DA" : "#4A433C",
+                }}
+              >
+                {item.label}
+              </Text>
             </View>
           );
-        }}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_HEIGHT}
-      />
+        })}
+
+        {/* Bottom padding (1 empty slot) */}
+        <View style={{ height: ITEM_HEIGHT }} />
+      </ScrollView>
+
       {/* Selection indicator lines */}
       <View
         pointerEvents="none"
