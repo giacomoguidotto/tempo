@@ -1,12 +1,9 @@
 import { useRef, useState } from "react";
-import {
-  type GestureResponderEvent,
-  type LayoutChangeEvent,
-  View,
-} from "react-native";
+import { type GestureResponderEvent, View } from "react-native";
 
 const THUMB_SIZE = 24;
 const TRACK_HEIGHT = 2;
+const HIT_SLOP = 12;
 
 interface RangeSliderProps {
   max: number;
@@ -25,7 +22,8 @@ export function RangeSlider({
   valueHigh,
   onValuesChange,
 }: RangeSliderProps) {
-  const trackLayout = useRef({ x: 0, width: 0 });
+  const viewRef = useRef<View>(null);
+  const layoutRef = useRef({ x: 0, width: 0 });
   const [dragging, setDragging] = useState<"low" | "high" | null>(null);
 
   const lowFrac = (valueLow - min) / (max - min);
@@ -36,17 +34,20 @@ export function RangeSlider({
   }
 
   function fracFromEvent(e: GestureResponderEvent): number {
-    const x = e.nativeEvent.pageX - trackLayout.current.x;
-    return Math.max(0, Math.min(1, x / trackLayout.current.width));
+    const x = e.nativeEvent.pageX - layoutRef.current.x;
+    return Math.max(0, Math.min(1, x / layoutRef.current.width));
   }
 
-  function handleLayout(e: LayoutChangeEvent) {
-    e.target.measureInWindow((x, _y, width) => {
-      trackLayout.current = { x, width };
+  function measure() {
+    viewRef.current?.measureInWindow((x, _y, width) => {
+      if (width > 0) {
+        layoutRef.current = { x, width };
+      }
     });
   }
 
-  function handleStart(e: GestureResponderEvent) {
+  function handleGrant(e: GestureResponderEvent) {
+    measure();
     const frac = fracFromEvent(e);
     const distToLow = Math.abs(frac - lowFrac);
     const distToHigh = Math.abs(frac - highFrac);
@@ -62,27 +63,25 @@ export function RangeSlider({
     const snapped = snap(raw);
 
     if (dragging === "low") {
-      const clamped = Math.min(snapped, valueHigh - step);
-      onValuesChange(Math.max(min, clamped), valueHigh);
+      const clamped = Math.max(min, Math.min(snapped, valueHigh - step));
+      onValuesChange(clamped, valueHigh);
     } else {
-      const clamped = Math.max(snapped, valueLow + step);
-      onValuesChange(valueLow, Math.min(max, clamped));
+      const clamped = Math.min(max, Math.max(snapped, valueLow + step));
+      onValuesChange(valueLow, clamped);
     }
-  }
-
-  function handleEnd() {
-    setDragging(null);
   }
 
   return (
     <View
-      onLayout={handleLayout}
+      onLayout={measure}
       onMoveShouldSetResponder={() => true}
-      onResponderGrant={handleStart}
+      onResponderGrant={handleGrant}
       onResponderMove={handleMove}
-      onResponderRelease={handleEnd}
+      onResponderRelease={() => setDragging(null)}
+      onResponderTerminationRequest={() => false}
       onStartShouldSetResponder={() => true}
-      style={{ height: 44, justifyContent: "center" }}
+      ref={viewRef}
+      style={{ height: THUMB_SIZE + HIT_SLOP * 2, justifyContent: "center" }}
     >
       <View
         style={{
@@ -105,6 +104,7 @@ export function RangeSlider({
         }}
       />
       <View
+        pointerEvents="none"
         style={{
           position: "absolute",
           left: `${lowFrac * 100}%`,
@@ -116,6 +116,7 @@ export function RangeSlider({
         }}
       />
       <View
+        pointerEvents="none"
         style={{
           position: "absolute",
           left: `${highFrac * 100}%`,
