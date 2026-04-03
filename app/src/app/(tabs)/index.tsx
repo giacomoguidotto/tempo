@@ -9,6 +9,7 @@ import DraggableFlatList, {
 } from "react-native-draggable-flatlist";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
+import { requestAlarmPermissions } from "@/features/beat/permissions";
 import { CreateRhythmSheet } from "@/features/rhythm/components/create-rhythm-sheet";
 import {
   EditRhythmSheet,
@@ -43,7 +44,13 @@ export default function RhythmsScreen() {
   const activeRhythms = rhythms.filter((r) => r.enabled);
   const nextAlarm = computeNextAlarm(activeRhythms);
 
-  function handleToggle(id: string, enabled: boolean) {
+  async function handleToggle(id: string, enabled: boolean) {
+    if (enabled) {
+      const granted = await requestAlarmPermissions();
+      if (!granted) {
+        return;
+      }
+    }
     toggleRhythm(id, enabled);
     const updated = rhythms.map((r) =>
       r.id === id ? { ...r, enabled, updatedAt: new Date().toISOString() } : r

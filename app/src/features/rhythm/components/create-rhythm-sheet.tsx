@@ -8,6 +8,7 @@ import { forwardRef, type Ref, useCallback, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleRhythm } from "@/features/beat/engine";
+import { requestAlarmPermissions } from "@/features/beat/permissions";
 import { createRhythm, getAllRhythms } from "../operations";
 import type { IntensityLevel } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
@@ -70,8 +71,12 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const canSave = name.trim().length > 0 && selectedDays.length > 0;
   const selectedIntensity = INTENSITIES.find((i) => i.value === intensity);
 
-  function handleSave() {
+  async function handleSave() {
     if (!canSave) {
+      return;
+    }
+    const granted = await requestAlarmPermissions();
+    if (!granted) {
       return;
     }
     const created = createRhythm({
