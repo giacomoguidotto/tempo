@@ -1,4 +1,4 @@
-import { WheelPicker } from "@quidone/react-native-wheel-picker";
+import WheelPicker from "@quidone/react-native-wheel-picker";
 import { useEffect, useState } from "react";
 import {
   Modal,
