@@ -2,76 +2,120 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import Animated, {
   cancelAnimation,
+  Easing,
+  type SharedValue,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withRepeat,
-  withSequence,
   withTiming,
 } from "react-native-reanimated";
 
-const BAR_HEIGHTS = [28, 44, 62, 80, 100, 112, 100, 80, 62, 44, 28];
-const BAR_OPACITIES = [0.3, 0.4, 0.5, 0.65, 0.8, 1, 0.8, 0.65, 0.5, 0.4, 0.3];
-const IDLE_SCALE = 0.3;
+const VISIBLE = 11;
+const TOTAL = VISIBLE * 3;
+const BAR_W = 4;
+const GAP = 4;
+const STEP = BAR_W + GAP;
+const VISIBLE_W = VISIBLE * STEP - GAP;
+const CENTER = VISIBLE_W / 2;
+const MAX_HEIGHT = 100;
+const MIN_HEIGHT = 20;
+const IDLE_SCALE = 0.25;
+const CYCLE_DURATION = 12_000;
 
 function AnimatedBar({
   active,
-  height,
   index,
-  opacity,
+  phase,
 }: {
   active: boolean;
-  height: number;
   index: number;
-  opacity: number;
+  phase: SharedValue<number>;
 }) {
-  const scale = useSharedValue(active ? 1 : IDLE_SCALE);
+  const idleScale = useSharedValue(active ? 1 : IDLE_SCALE);
 
   useEffect(() => {
-    if (active) {
-      const center = (BAR_HEIGHTS.length - 1) / 2;
-      const distFromCenter = Math.abs(index - center);
-      const delay = distFromCenter * 100;
-      scale.value = withDelay(
-        delay,
-        withRepeat(
-          withSequence(
-            withTiming(0.6, { duration: 800 }),
-            withTiming(1, { duration: 800 })
-          ),
-          -1,
-          true
-        )
-      );
-    } else {
-      cancelAnimation(scale);
-      scale.value = withTiming(IDLE_SCALE, { duration: 600 });
-    }
-  }, [active, index, scale]);
+    idleScale.value = withTiming(active ? 1 : IDLE_SCALE, { duration: 600 });
+  }, [active, idleScale]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    height: height * scale.value,
-    opacity: active ? opacity : opacity * 0.4,
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    "worklet";
+    const totalW = TOTAL * STEP;
+    const rawX = index * STEP - phase.value * STEP;
+    const wrappedX = ((rawX % totalW) + totalW) % totalW;
+    const screenX = wrappedX - ((TOTAL - VISIBLE) / 2) * STEP;
+
+    const isVisible = screenX >= -STEP && screenX <= VISIBLE_W + STEP;
+
+    if (!isVisible) {
+      return { height: 0, opacity: 0, transform: [{ translateX: 0 }] };
+    }
+
+    // Distance from center, normalized 0..1
+    const barCenter = screenX + BAR_W / 2;
+    const dist = Math.min(Math.abs(barCenter - CENTER) / CENTER, 1);
+    const factor = (Math.cos(dist * Math.PI) + 1) / 2;
+
+    const height = MIN_HEIGHT + (MAX_HEIGHT - MIN_HEIGHT) * factor;
+    const opacity = 0.2 + 0.8 * factor;
+
+    return {
+      height: height * idleScale.value,
+      opacity: active ? opacity : 0.12 + 0.18 * factor,
+      transform: [{ translateX: screenX - index * STEP }],
+    };
+  });
 
   return (
-    <Animated.View className="w-1 rounded-sm bg-accent" style={animatedStyle} />
+    <Animated.View
+      className="absolute w-1 rounded-sm bg-accent"
+      style={[{ bottom: 0, left: index * STEP }, animatedStyle]}
+    />
   );
 }
 
 export function VuMeter({ active = true }: { active?: boolean }) {
+  const phase = useSharedValue(0);
+
+  useEffect(() => {
+    if (active) {
+      phase.value = 0;
+      phase.value = withRepeat(
+        withTiming(TOTAL, {
+          duration: CYCLE_DURATION,
+          easing: Easing.linear,
+        }),
+        -1,
+        false
+      );
+    } else {
+      cancelAnimation(phase);
+    }
+  }, [active, phase]);
+
   return (
-    <View className="h-[120px] flex-row items-end justify-center gap-[3px] pb-2">
-      {BAR_HEIGHTS.map((height, i) => (
-        <AnimatedBar
-          active={active}
-          height={height}
-          index={i}
-          // biome-ignore lint/suspicious/noArrayIndexKey: static bar list
-          key={i}
-          opacity={BAR_OPACITIES[i]}
-        />
-      ))}
+    <View
+      className="items-center justify-end"
+      style={{ height: MAX_HEIGHT + 8 }}
+    >
+      <View
+        style={{
+          width: VISIBLE_W,
+          height: MAX_HEIGHT,
+          position: "relative",
+          overflow: "hidden",
+          alignItems: "flex-end",
+        }}
+      >
+        {Array.from({ length: TOTAL }).map((_, i) => (
+          <AnimatedBar
+            active={active}
+            index={i}
+            // biome-ignore lint/suspicious/noArrayIndexKey: static bar list
+            key={i}
+            phase={phase}
+          />
+        ))}
+      </View>
     </View>
   );
 }
