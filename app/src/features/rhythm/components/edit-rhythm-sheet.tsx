@@ -85,8 +85,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   const [showTimePicker, setShowTimePicker] = useState<"start" | "end" | null>(
     null
   );
-  const [editingInterval, setEditingInterval] = useState(false);
-  const [intervalDraft, setIntervalDraft] = useState("");
+  const [showIntervalPicker, setShowIntervalPicker] = useState(false);
 
   useImperativeHandle(ref, () => ({
     open(rhythm: Rhythm) {
@@ -296,80 +295,22 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         {/* Interval */}
         <View style={{ paddingVertical: 16, gap: 12 }}>
           <Label>Every</Label>
-          {editingInterval ? (
-            <View
+          <Pressable onPress={() => setShowIntervalPicker(true)}>
+            <Text
               style={{
-                flexDirection: "row",
-                alignItems: "baseline",
+                fontFamily: "IBMPlexMono_500Medium",
+                fontSize: 32,
+                color: "#EDE6DA",
+                letterSpacing: 2,
+                borderBottomWidth: 1.5,
+                borderBottomColor: "#3D352E",
+                paddingBottom: 4,
                 alignSelf: "flex-start",
               }}
             >
-              <TextInput
-                autoFocus
-                keyboardType="number-pad"
-                onBlur={() => {
-                  const parsed = Number.parseInt(intervalDraft, 10);
-                  if (parsed >= 1 && parsed <= 1440) {
-                    setInterval(parsed);
-                  }
-                  setEditingInterval(false);
-                }}
-                onChangeText={setIntervalDraft}
-                onSubmitEditing={() => {
-                  const parsed = Number.parseInt(intervalDraft, 10);
-                  if (parsed >= 1 && parsed <= 1440) {
-                    setInterval(parsed);
-                  }
-                  setEditingInterval(false);
-                }}
-                selectTextOnFocus
-                style={{
-                  fontFamily: "IBMPlexMono_500Medium",
-                  fontSize: 32,
-                  color: "#EDE6DA",
-                  letterSpacing: 2,
-                  borderBottomWidth: 1.5,
-                  borderBottomColor: "#C06730",
-                  paddingBottom: 4,
-                  minWidth: 60,
-                }}
-                value={intervalDraft}
-              />
-              <Text
-                style={{
-                  fontFamily: "IBMPlexMono_500Medium",
-                  fontSize: 32,
-                  color: "#7A6F63",
-                  letterSpacing: 2,
-                  marginLeft: 8,
-                }}
-              >
-                min
-              </Text>
-            </View>
-          ) : (
-            <Pressable
-              onPress={() => {
-                setIntervalDraft(String(interval));
-                setEditingInterval(true);
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: "IBMPlexMono_500Medium",
-                  fontSize: 32,
-                  color: "#EDE6DA",
-                  letterSpacing: 2,
-                  borderBottomWidth: 1.5,
-                  borderBottomColor: "#3D352E",
-                  paddingBottom: 4,
-                  alignSelf: "flex-start",
-                }}
-              >
-                {interval} min
-              </Text>
-            </Pressable>
-          )}
+              {interval} min
+            </Text>
+          </Pressable>
           <View className="flex-row flex-wrap gap-[6px]">
             {INTERVAL_PRESETS.map((mins) => (
               <Pressable
@@ -490,6 +431,29 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
             const [h, m] = t.split(":").map(Number);
             const d = new Date();
             d.setHours(h, m, 0, 0);
+            return d;
+          })()}
+        />
+      )}
+
+      {/* Interval Picker Dialog */}
+      {showIntervalPicker && (
+        <DateTimePicker
+          is24Hour
+          minuteInterval={5}
+          mode="countdown"
+          onChange={(_e, date) => {
+            setShowIntervalPicker(false);
+            if (date) {
+              const totalMins = date.getHours() * 60 + date.getMinutes();
+              if (totalMins >= 1) {
+                setInterval(totalMins);
+              }
+            }
+          }}
+          value={(() => {
+            const d = new Date();
+            d.setHours(Math.floor(interval / 60), interval % 60, 0, 0);
             return d;
           })()}
         />
