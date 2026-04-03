@@ -4,7 +4,14 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useSetAtom } from "jotai";
-import { forwardRef, type Ref, useCallback, useState } from "react";
+import {
+  forwardRef,
+  type Ref,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RangeSlider } from "@/components/ui/range-slider";
@@ -59,12 +66,17 @@ function minutesToTime(m: number): string {
   return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 }
 
+export interface CreateRhythmSheetHandle {
+  present: () => void;
+}
+
 export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   _props: Record<string, never>,
-  ref: Ref<BottomSheetModal>
+  ref: Ref<CreateRhythmSheetHandle>
 ) {
   const insets = useSafeAreaInsets();
   const setRhythms = useSetAtom(rhythmsAtom);
+  const sheetRef = useRef<BottomSheetModal>(null);
   const [sliderActive, setSliderActive] = useState(false);
 
   const [name, setName] = useState("");
@@ -77,6 +89,13 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     null
   );
   const [showDurationWheel, setShowDurationWheel] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    present() {
+      resetForm();
+      sheetRef.current?.present();
+    },
+  }));
 
   const canSave = name.trim().length > 0 && selectedDays.length > 0;
   const selectedIntensity = INTENSITIES.find((i) => i.value === intensity);
@@ -101,7 +120,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     scheduleRhythm(created);
     setRhythms(getAllRhythms());
     resetForm();
-    (ref as React.RefObject<BottomSheetModal>).current?.dismiss();
+    sheetRef.current?.dismiss();
   }
 
   function resetForm() {
@@ -147,12 +166,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       enableHandlePanningGesture={!sliderActive}
       enablePanDownToClose={!sliderActive}
       handleIndicatorStyle={{ backgroundColor: "#3D352E", width: 40 }}
-      onChange={(index) => {
-        if (index === 0) {
-          resetForm();
-        }
-      }}
-      ref={ref}
+      ref={sheetRef}
       snapPoints={["90%"]}
     >
       <View className="items-center px-7 py-3">

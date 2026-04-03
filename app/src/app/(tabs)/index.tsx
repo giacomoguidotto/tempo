@@ -1,4 +1,3 @@
-import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
 import { useCallback, useEffect, useRef } from "react";
@@ -10,7 +9,10 @@ import DraggableFlatList, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
-import { CreateRhythmSheet } from "@/features/rhythm/components/create-rhythm-sheet";
+import {
+  CreateRhythmSheet,
+  type CreateRhythmSheetHandle,
+} from "@/features/rhythm/components/create-rhythm-sheet";
 import {
   EditRhythmSheet,
   type EditRhythmSheetHandle,
@@ -29,7 +31,7 @@ import { rhythmsAtom } from "@/features/rhythm/store/atoms";
 export default function RhythmsScreen() {
   const insets = useSafeAreaInsets();
   const [rhythms, setRhythms] = useAtom(rhythmsAtom);
-  const createSheetRef = useRef<BottomSheetModal>(null);
+  const createSheetRef = useRef<CreateRhythmSheetHandle>(null);
   const editSheetRef = useRef<EditRhythmSheetHandle>(null);
 
   useEffect(() => {
