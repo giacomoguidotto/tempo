@@ -5,6 +5,7 @@ import { RectButton, Swipeable } from "react-native-gesture-handler";
 import type { Rhythm } from "../schemas";
 
 const MAX_VISIBLE_BEATS = 8;
+const DELETE_ANIM_DURATION = 250;
 
 interface RhythmCardProps {
   onDelete: (id: string) => void;
@@ -20,6 +21,9 @@ export function RhythmCard({
   onDelete,
 }: RhythmCardProps) {
   const swipeableRef = useRef<Swipeable>(null);
+  const heightAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+
   const beatsToday = 0; // TODO: derive from beat log
   const totalBeats = Math.floor(
     minutesBetween(rhythm.startTime, rhythm.endTime) / rhythm.intervalMinutes
@@ -29,7 +33,20 @@ export function RhythmCard({
 
   function handleDelete() {
     swipeableRef.current?.close();
-    onDelete(rhythm.id);
+    Animated.parallel([
+      Animated.timing(heightAnim, {
+        toValue: 0,
+        duration: DELETE_ANIM_DURATION,
+        useNativeDriver: false,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: DELETE_ANIM_DURATION,
+        useNativeDriver: false,
+      }),
+    ]).start(() => {
+      onDelete(rhythm.id);
+    });
   }
 
   function renderRightActions(
@@ -46,94 +63,109 @@ export function RhythmCard({
       <RectButton
         onPress={handleDelete}
         style={{
-          backgroundColor: "#8B2500",
+          backgroundColor: "#3D2E28",
           justifyContent: "center",
           alignItems: "center",
-          width: 80,
+          width: 72,
           borderRadius: 14,
           marginLeft: 8,
         }}
       >
         <Animated.View style={{ transform: [{ scale }] }}>
-          <Trash2 color="#EDE6DA" size={22} />
+          <Trash2 color="#9C6F63" size={20} />
         </Animated.View>
       </RectButton>
     );
   }
 
   return (
-    <Swipeable
-      friction={2}
-      overshootRight={false}
-      ref={swipeableRef}
-      renderRightActions={renderRightActions}
-      rightThreshold={40}
+    <Animated.View
+      style={{
+        opacity: opacityAnim,
+        maxHeight: heightAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 200],
+        }),
+        marginBottom: heightAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 10],
+        }),
+        overflow: "hidden",
+      }}
     >
-      <Pressable
-        className={`gap-3 rounded-[14px] px-5 py-[18px] ${
-          rhythm.enabled
-            ? "border border-border bg-surface"
-            : "border border-border"
-        }`}
-        onPress={() => onPress(rhythm.id)}
+      <Swipeable
+        friction={2}
+        overshootRight={false}
+        ref={swipeableRef}
+        renderRightActions={renderRightActions}
+        rightThreshold={40}
       >
-        <View className="flex-row items-center justify-between">
-          <View className="mr-3 flex-1 gap-[3px]">
+        <Pressable
+          className={`gap-3 rounded-[14px] px-5 py-[18px] ${
+            rhythm.enabled
+              ? "border border-border bg-surface"
+              : "border border-border"
+          }`}
+          onPress={() => onPress(rhythm.id)}
+        >
+          <View className="flex-row items-center justify-between">
+            <View className="mr-3 flex-1 gap-[3px]">
+              <Text
+                className={`text-lg ${rhythm.enabled ? "text-foreground" : "text-secondary"}`}
+                style={{ fontFamily: "Fraunces_600SemiBold" }}
+              >
+                {rhythm.name}
+              </Text>
+              <Text
+                className="text-[10px] text-secondary uppercase tracking-[1.5px]"
+                style={{ fontFamily: "IBMPlexMono_400Regular" }}
+              >
+                EVERY {rhythm.intervalMinutes} MIN ·{" "}
+                {nextBeat && rhythm.enabled ? `NEXT ${nextBeat}` : "PAUSED"}
+              </Text>
+            </View>
+            <Switch
+              onValueChange={(value) => onToggle(rhythm.id, value)}
+              thumbColor={rhythm.enabled ? "#EDE6DA" : "#4A433C"}
+              trackColor={{ false: "#2A2420", true: "#C06730" }}
+              value={rhythm.enabled}
+            />
+          </View>
+
+          <View className="flex-row items-center gap-1">
+            {Array.from({ length: visibleBeats }).map((_, i) => {
+              const filled = i < beatsToday;
+              const muted = !filled && rhythm.enabled;
+              let color = "bg-border";
+              if (filled) {
+                color = "bg-accent";
+              } else if (muted) {
+                color = "bg-accent/25";
+              }
+              return (
+                // biome-ignore lint/suspicious/noArrayIndexKey: static beat indicators
+                <View className={`h-[3px] w-5 rounded-sm ${color}`} key={i} />
+              );
+            })}
+            {totalBeats > MAX_VISIBLE_BEATS && (
+              <Text
+                className="text-[8px] text-muted"
+                style={{ fontFamily: "IBMPlexMono_400Regular" }}
+              >
+                +{totalBeats - MAX_VISIBLE_BEATS}
+              </Text>
+            )}
+            <View className="flex-1" />
             <Text
-              className={`text-lg ${rhythm.enabled ? "text-foreground" : "text-secondary"}`}
-              style={{ fontFamily: "Fraunces_600SemiBold" }}
-            >
-              {rhythm.name}
-            </Text>
-            <Text
-              className="text-[10px] text-secondary uppercase tracking-[1.5px]"
+              className="text-[10px] text-secondary"
               style={{ fontFamily: "IBMPlexMono_400Regular" }}
             >
-              EVERY {rhythm.intervalMinutes} MIN ·{" "}
-              {nextBeat && rhythm.enabled ? `NEXT ${nextBeat}` : "PAUSED"}
+              {beatsToday}/{totalBeats} today
             </Text>
           </View>
-          <Switch
-            onValueChange={(value) => onToggle(rhythm.id, value)}
-            thumbColor={rhythm.enabled ? "#EDE6DA" : "#4A433C"}
-            trackColor={{ false: "#2A2420", true: "#C06730" }}
-            value={rhythm.enabled}
-          />
-        </View>
-
-        <View className="flex-row items-center gap-1">
-          {Array.from({ length: visibleBeats }).map((_, i) => {
-            const filled = i < beatsToday;
-            const muted = !filled && rhythm.enabled;
-            let color = "bg-border";
-            if (filled) {
-              color = "bg-accent";
-            } else if (muted) {
-              color = "bg-accent/25";
-            }
-            return (
-              // biome-ignore lint/suspicious/noArrayIndexKey: static beat indicators
-              <View className={`h-[3px] w-5 rounded-sm ${color}`} key={i} />
-            );
-          })}
-          {totalBeats > MAX_VISIBLE_BEATS && (
-            <Text
-              className="text-[8px] text-muted"
-              style={{ fontFamily: "IBMPlexMono_400Regular" }}
-            >
-              +{totalBeats - MAX_VISIBLE_BEATS}
-            </Text>
-          )}
-          <View className="flex-1" />
-          <Text
-            className="text-[10px] text-secondary"
-            style={{ fontFamily: "IBMPlexMono_400Regular" }}
-          >
-            {beatsToday}/{totalBeats} today
-          </Text>
-        </View>
-      </Pressable>
-    </Swipeable>
+        </Pressable>
+      </Swipeable>
+    </Animated.View>
   );
 }
 

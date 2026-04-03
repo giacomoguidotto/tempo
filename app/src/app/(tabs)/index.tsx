@@ -93,7 +93,7 @@ export default function RhythmsScreen() {
         </View>
 
         {/* Rhythm Cards */}
-        <View className="gap-[10px] px-7">
+        <View className="px-7">
           {rhythms.length === 0 ? (
             <View className="items-center gap-3 py-12">
               <Text
