@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Modal,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -154,5 +156,121 @@ export function DurationPicker({ value, onChange }: DurationPickerProps) {
         selectedValue={roundedMinutes}
       />
     </View>
+  );
+}
+
+interface DurationPickerModalProps {
+  onClose: () => void;
+  onConfirm: (totalMinutes: number) => void;
+  value: number;
+  visible: boolean;
+}
+
+export function DurationPickerModal({
+  visible,
+  value,
+  onConfirm,
+  onClose,
+}: DurationPickerModalProps) {
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    if (visible) {
+      setDraft(value);
+    }
+  }, [visible, value]);
+
+  return (
+    <Modal
+      animationType="fade"
+      onRequestClose={onClose}
+      transparent
+      visible={visible}
+    >
+      <Pressable
+        onPress={onClose}
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.6)",
+        }}
+      >
+        <Pressable
+          style={{
+            backgroundColor: "#1A1714",
+            borderRadius: 20,
+            paddingTop: 20,
+            paddingBottom: 12,
+            paddingHorizontal: 16,
+            width: 280,
+            borderWidth: 1,
+            borderColor: "#2A2420",
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "IBMPlexMono_400Regular",
+              fontSize: 10,
+              letterSpacing: 2,
+              color: "#7A6F63",
+              textTransform: "uppercase",
+              textAlign: "center",
+              marginBottom: 8,
+            }}
+          >
+            Interval
+          </Text>
+
+          <DurationPicker onChange={setDraft} value={draft} />
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              gap: 16,
+              marginTop: 16,
+              paddingHorizontal: 4,
+            }}
+          >
+            <Pressable
+              onPress={onClose}
+              style={{ paddingVertical: 8, paddingHorizontal: 12 }}
+            >
+              <Text
+                style={{
+                  fontFamily: "IBMPlexMono_500Medium",
+                  fontSize: 13,
+                  color: "#7A6F63",
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                Cancel
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                onConfirm(Math.max(1, draft));
+                onClose();
+              }}
+              style={{ paddingVertical: 8, paddingHorizontal: 12 }}
+            >
+              <Text
+                style={{
+                  fontFamily: "IBMPlexMono_500Medium",
+                  fontSize: 13,
+                  color: "#C06730",
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                OK
+              </Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }

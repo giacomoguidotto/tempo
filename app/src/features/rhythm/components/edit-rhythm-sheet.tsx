@@ -17,7 +17,7 @@ import {
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RangeSlider } from "@/components/ui/range-slider";
-import { DurationPicker } from "@/components/ui/wheel-picker";
+import { DurationPickerModal } from "@/components/ui/wheel-picker";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { deleteRhythm, getAllRhythms, updateRhythm } from "../operations";
 import type { IntensityLevel, Rhythm } from "../schemas";
@@ -300,7 +300,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         {/* Interval */}
         <View style={{ paddingVertical: 16, gap: 12 }}>
           <Label>Every</Label>
-          <Pressable onPress={() => setShowDurationWheel((v) => !v)}>
+          <Pressable onPress={() => setShowDurationWheel(true)}>
             <Text
               style={{
                 fontFamily: "IBMPlexMono_500Medium",
@@ -308,7 +308,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
                 color: "#EDE6DA",
                 letterSpacing: 2,
                 borderBottomWidth: 1.5,
-                borderBottomColor: showDurationWheel ? "#C06730" : "#3D352E",
+                borderBottomColor: "#3D352E",
                 paddingBottom: 4,
                 alignSelf: "flex-start",
               }}
@@ -348,12 +348,6 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
               </Pressable>
             ))}
           </View>
-          {showDurationWheel && (
-            <DurationPicker
-              onChange={(v) => setInterval(Math.max(1, v))}
-              value={interval}
-            />
-          )}
           <Divider />
         </View>
 
@@ -446,6 +440,13 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
           })()}
         />
       )}
+
+      <DurationPickerModal
+        onClose={() => setShowDurationWheel(false)}
+        onConfirm={setInterval}
+        value={interval}
+        visible={showDurationWheel}
+      />
     </BottomSheetModal>
   );
 });
