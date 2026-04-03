@@ -54,7 +54,7 @@ export default function RhythmsScreen() {
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 80 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -125,7 +125,7 @@ export default function RhythmsScreen() {
 
       {/* FAB */}
       <Pressable
-        className="absolute right-7 bottom-24 h-14 w-14 items-center justify-center rounded-full bg-accent"
+        className="absolute right-7 bottom-4 h-14 w-14 items-center justify-center rounded-full bg-accent"
         onPress={handleOpenCreate}
         style={{
           shadowColor: "#C06730",
