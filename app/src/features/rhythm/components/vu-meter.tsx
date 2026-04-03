@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import { View } from "react-native";
 import Animated, {
-  Easing,
   interpolateColor,
   type SharedValue,
   useAnimatedStyle,
+  useFrameCallback,
   useSharedValue,
-  withRepeat,
   withTiming,
 } from "react-native-reanimated";
 
@@ -20,7 +19,9 @@ const CENTER = VISIBLE_W / 2;
 const MAX_HEIGHT = 110;
 const MIN_HEIGHT = 22;
 const IDLE_SCALE = 0.25;
-const CYCLE_DURATION = 12_000;
+
+// How many "steps" per second the phase advances
+const SPEED = TOTAL / 12; // full cycle in 12 seconds
 
 const COLOR_IDLE = "rgba(192, 103, 48, 0.15)";
 const COLOR_DIM = "#3D2E22";
@@ -37,23 +38,16 @@ function toScreenX(index: number, phaseVal: number): number {
 
 function AnimatedBar({
   index,
-  phase,
-  pausedAt,
-  speed,
+  position,
   progress,
 }: {
   index: number;
-  phase: SharedValue<number>;
-  pausedAt: SharedValue<number>;
-  speed: SharedValue<number>;
+  position: SharedValue<number>;
   progress: SharedValue<number>;
 }) {
   const animatedStyle = useAnimatedStyle(() => {
     "worklet";
-    // Delta since last snapshot, wrapped to [0, TOTAL)
-    const delta = (((phase.value - pausedAt.value) % TOTAL) + TOTAL) % TOTAL;
-    const effectivePhase = pausedAt.value + delta * speed.value;
-    const x = toScreenX(index, effectivePhase);
+    const x = toScreenX(index, position.value);
 
     const isVisible = x >= -STEP && x <= VISIBLE_W + STEP;
     if (!isVisible) {
@@ -108,30 +102,27 @@ export function VuMeter({
   active?: boolean;
   moving?: boolean;
 }) {
-  const phase = useSharedValue(0);
-  const pausedAt = useSharedValue(0);
-  const speed = useSharedValue(moving ? 1 : 0);
+  // Position accumulates on the UI thread — no JS/UI sync issues
+  const position = useSharedValue(0);
+  const velocity = useSharedValue(moving ? 1 : 0);
   const progress = useSharedValue(active ? 1 : 0);
 
-  // Phase always runs
-  useEffect(() => {
-    phase.value = withRepeat(
-      withTiming(TOTAL, {
-        duration: CYCLE_DURATION,
-        easing: Easing.linear,
-      }),
-      -1,
-      false
-    );
-  }, [phase]);
+  // Frame callback: advance position by velocity each frame
+  useFrameCallback((info) => {
+    "worklet";
+    if (info.timeSincePreviousFrame === null) {
+      return;
+    }
+    const dt = info.timeSincePreviousFrame / 1000; // seconds
+    position.value = (position.value + SPEED * velocity.value * dt) % TOTAL;
+  });
 
-  // Translation speed — stops/starts smoothly
+  // Smoothly ramp velocity for start/stop
   useEffect(() => {
-    pausedAt.value = phase.value;
-    speed.value = withTiming(moving ? 1 : 0, { duration: TRANSITION_MS });
-  }, [moving, pausedAt, phase, speed]);
+    velocity.value = withTiming(moving ? 1 : 0, { duration: TRANSITION_MS });
+  }, [moving, velocity]);
 
-  // Height/color/opacity — shrinks when no rhythms active
+  // Height/color/opacity
   useEffect(() => {
     progress.value = withTiming(active ? 1 : 0, { duration: TRANSITION_MS });
   }, [active, progress]);
@@ -154,10 +145,8 @@ export function VuMeter({
             index={i}
             // biome-ignore lint/suspicious/noArrayIndexKey: static bar list
             key={i}
-            pausedAt={pausedAt}
-            phase={phase}
+            position={position}
             progress={progress}
-            speed={speed}
           />
         ))}
       </View>
