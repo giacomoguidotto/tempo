@@ -1,6 +1,8 @@
 import { Pressable, Switch, Text, View } from "react-native";
 import type { Rhythm } from "../schemas";
 
+const MAX_VISIBLE_BEATS = 8;
+
 interface RhythmCardProps {
   onPress: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
@@ -12,6 +14,7 @@ export function RhythmCard({ rhythm, onToggle, onPress }: RhythmCardProps) {
   const totalBeats = Math.floor(
     minutesBetween(rhythm.startTime, rhythm.endTime) / rhythm.intervalMinutes
   );
+  const visibleBeats = Math.min(totalBeats, MAX_VISIBLE_BEATS);
 
   return (
     <Pressable
@@ -46,7 +49,7 @@ export function RhythmCard({ rhythm, onToggle, onPress }: RhythmCardProps) {
       </View>
 
       <View className="flex-row items-center gap-1">
-        {Array.from({ length: totalBeats }).map((_, i) => {
+        {Array.from({ length: visibleBeats }).map((_, i) => {
           const filled = i < beatsToday;
           const muted = !filled && rhythm.enabled;
           let color = "bg-border";
@@ -57,9 +60,17 @@ export function RhythmCard({ rhythm, onToggle, onPress }: RhythmCardProps) {
           }
           return (
             // biome-ignore lint/suspicious/noArrayIndexKey: static beat indicators
-            <View className={`h-[3px] w-6 rounded-sm ${color}`} key={i} />
+            <View className={`h-[3px] w-5 rounded-sm ${color}`} key={i} />
           );
         })}
+        {totalBeats > MAX_VISIBLE_BEATS && (
+          <Text
+            className="text-[8px] text-muted"
+            style={{ fontFamily: "IBMPlexMono_400Regular" }}
+          >
+            +{totalBeats - MAX_VISIBLE_BEATS}
+          </Text>
+        )}
         <View className="flex-1" />
         <Text
           className="text-[10px] text-secondary"

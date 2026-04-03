@@ -1,28 +1,32 @@
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
 import { useCallback, useEffect, useRef } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateRhythmSheet } from "@/features/rhythm/components/create-rhythm-sheet";
+import {
+  EditRhythmSheet,
+  type EditRhythmSheetHandle,
+} from "@/features/rhythm/components/edit-rhythm-sheet";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
 import { getAllRhythms, toggleRhythm } from "@/features/rhythm/operations";
+import type { Rhythm } from "@/features/rhythm/schemas";
 import { rhythmsAtom } from "@/features/rhythm/store/atoms";
 
 export default function RhythmsScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const [rhythms, setRhythms] = useAtom(rhythmsAtom);
-  const sheetRef = useRef<BottomSheetModal>(null);
+  const createSheetRef = useRef<BottomSheetModal>(null);
+  const editSheetRef = useRef<EditRhythmSheetHandle>(null);
 
   useEffect(() => {
     setRhythms(getAllRhythms());
   }, [setRhythms]);
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
-  const nextAlarm = activeRhythms.length > 0 ? "25:00" : "--:--";
+  const nextAlarm = computeNextAlarm(activeRhythms);
 
   function handleToggle(id: string, enabled: boolean) {
     toggleRhythm(id, enabled);
@@ -34,7 +38,7 @@ export default function RhythmsScreen() {
   }
 
   const handleOpenCreate = useCallback(() => {
-    sheetRef.current?.present();
+    createSheetRef.current?.present();
   }, []);
 
   return (
@@ -100,7 +104,7 @@ export default function RhythmsScreen() {
             rhythms.map((rhythm) => (
               <RhythmCard
                 key={rhythm.id}
-                onPress={(id) => router.push(`/rhythm/${id}`)}
+                onPress={() => editSheetRef.current?.open(rhythm)}
                 onToggle={handleToggle}
                 rhythm={rhythm}
               />
@@ -124,7 +128,45 @@ export default function RhythmsScreen() {
         <Plus color="#EDE6DA" size={24} strokeWidth={2} />
       </Pressable>
 
-      <CreateRhythmSheet ref={sheetRef} />
+      <CreateRhythmSheet ref={createSheetRef} />
+      <EditRhythmSheet ref={editSheetRef} />
     </View>
   );
+}
+
+function computeNextAlarm(activeRhythms: Rhythm[]): string {
+  if (activeRhythms.length === 0) {
+    return "--:--";
+  }
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const currentDay = now.getDay();
+  let soonest = Number.POSITIVE_INFINITY;
+
+  for (const rhythm of activeRhythms) {
+    if (!rhythm.days.includes(currentDay)) {
+      continue;
+    }
+
+    const [sh, sm] = rhythm.startTime.split(":").map(Number);
+    const [eh, em] = rhythm.endTime.split(":").map(Number);
+    const startMin = sh * 60 + sm;
+    const endMin = eh * 60 + em;
+
+    for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
+      const diff = t - currentMinutes;
+      if (diff > 0 && diff < soonest) {
+        soonest = diff;
+      }
+    }
+  }
+
+  if (soonest === Number.POSITIVE_INFINITY) {
+    return "--:--";
+  }
+
+  const h = Math.floor(soonest / 60);
+  const m = soonest % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
