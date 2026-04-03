@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { View } from "react-native";
 import Animated, {
   Easing,
@@ -27,7 +27,7 @@ const COLOR_DIM = "#3D2E22";
 const COLOR_BRIGHT = "#C06730";
 const TRANSITION_MS = 1500;
 
-function computeScreenX(index: number, phaseVal: number): number {
+function toScreenX(index: number, phaseVal: number): number {
   "worklet";
   const totalW = TOTAL * STEP;
   const rawX = index * STEP - phaseVal * STEP;
@@ -36,50 +36,26 @@ function computeScreenX(index: number, phaseVal: number): number {
 }
 
 function AnimatedBar({
-  active,
   index,
   phase,
+  pausedAt,
   speed,
+  progress,
 }: {
-  active: boolean;
   index: number;
   phase: SharedValue<number>;
+  pausedAt: SharedValue<number>;
   speed: SharedValue<number>;
+  progress: SharedValue<number>;
 }) {
-  const idleScale = useSharedValue(active ? 1 : IDLE_SCALE);
-  const activeProgress = useSharedValue(active ? 1 : 0);
-  const frozenPhase = useSharedValue(phase.value);
-
-  const prevActive = useRef(active);
-
-  useEffect(() => {
-    if (!active && prevActive.current) {
-      // Capture the current phase when deactivating
-      frozenPhase.value = phase.value;
-    }
-    prevActive.current = active;
-
-    idleScale.value = withTiming(active ? 1 : IDLE_SCALE, {
-      duration: TRANSITION_MS,
-    });
-    activeProgress.value = withTiming(active ? 1 : 0, {
-      duration: TRANSITION_MS,
-    });
-  }, [active, idleScale, activeProgress, frozenPhase, phase]);
-
   const animatedStyle = useAnimatedStyle(() => {
     "worklet";
-    // Blend between live phase and frozen phase based on speed
-    const liveX = computeScreenX(index, phase.value);
-    const frozenX = computeScreenX(index, frozenPhase.value);
-    const screenX = frozenX + (liveX - frozenX) * speed.value;
+    // Delta since last snapshot, wrapped to [0, TOTAL)
+    const delta = (((phase.value - pausedAt.value) % TOTAL) + TOTAL) % TOTAL;
+    const effectivePhase = pausedAt.value + delta * speed.value;
+    const x = toScreenX(index, effectivePhase);
 
-    // Handle wrapping discontinuity — if the difference is too large, use live
-    const diff = Math.abs(liveX - frozenX);
-    const finalX = diff > VISIBLE_W ? liveX : screenX;
-
-    const isVisible = finalX >= -STEP && finalX <= VISIBLE_W + STEP;
-
+    const isVisible = x >= -STEP && x <= VISIBLE_W + STEP;
     if (!isVisible) {
       return {
         height: 0,
@@ -89,29 +65,31 @@ function AnimatedBar({
       };
     }
 
-    const barCenter = finalX + BAR_W / 2;
+    const barCenter = x + BAR_W / 2;
     const dist = Math.min(Math.abs(barCenter - CENTER) / CENTER, 1);
     const factor = (Math.cos(dist * Math.PI) + 1) / 2;
 
-    const height = MIN_HEIGHT + (MAX_HEIGHT - MIN_HEIGHT) * factor;
-    const opacity = 0.25 + 0.75 * factor;
+    const scale = IDLE_SCALE + (1 - IDLE_SCALE) * progress.value;
+    const height = (MIN_HEIGHT + (MAX_HEIGHT - MIN_HEIGHT) * factor) * scale;
+    const activeOpacity = 0.25 + 0.75 * factor;
+    const opacity = progress.value * activeOpacity + (1 - progress.value) * 0.5;
+
     const activeColor = interpolateColor(
       factor,
       [0, 1],
       [COLOR_DIM, COLOR_BRIGHT]
     );
     const color = interpolateColor(
-      activeProgress.value,
+      progress.value,
       [0, 1],
       [COLOR_IDLE, activeColor]
     );
 
     return {
-      height: height * idleScale.value,
-      opacity:
-        activeProgress.value * opacity + (1 - activeProgress.value) * 0.5,
+      height,
+      opacity,
       backgroundColor: color,
-      transform: [{ translateX: finalX - index * STEP }],
+      transform: [{ translateX: x - index * STEP }],
     };
   });
 
@@ -125,7 +103,9 @@ function AnimatedBar({
 
 export function VuMeter({ active = true }: { active?: boolean }) {
   const phase = useSharedValue(0);
+  const pausedAt = useSharedValue(0);
   const speed = useSharedValue(active ? 1 : 0);
+  const progress = useSharedValue(active ? 1 : 0);
 
   // Phase always runs
   useEffect(() => {
@@ -139,10 +119,12 @@ export function VuMeter({ active = true }: { active?: boolean }) {
     );
   }, [phase]);
 
-  // Speed ramps up/down with same duration as other transitions
+  // On toggle: snapshot phase, ramp speed + visuals together
   useEffect(() => {
+    pausedAt.value = phase.value;
     speed.value = withTiming(active ? 1 : 0, { duration: TRANSITION_MS });
-  }, [active, speed]);
+    progress.value = withTiming(active ? 1 : 0, { duration: TRANSITION_MS });
+  }, [active, pausedAt, phase, speed, progress]);
 
   return (
     <View
@@ -159,11 +141,12 @@ export function VuMeter({ active = true }: { active?: boolean }) {
       >
         {Array.from({ length: TOTAL }).map((_, i) => (
           <AnimatedBar
-            active={active}
             index={i}
             // biome-ignore lint/suspicious/noArrayIndexKey: static bar list
             key={i}
+            pausedAt={pausedAt}
             phase={phase}
+            progress={progress}
             speed={speed}
           />
         ))}
