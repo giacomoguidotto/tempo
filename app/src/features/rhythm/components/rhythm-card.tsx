@@ -5,10 +5,14 @@ import { RectButton, Swipeable } from "react-native-gesture-handler";
 import type { Rhythm } from "../schemas";
 
 const DELETE_ANIM_DURATION = 250;
-const HALF = 4;
-const TICK_W = 16;
+const DISPLAY_TICKS = 10;
+const TICK_W = 14;
 const TICK_H = 3;
 const TICK_GAP = 3;
+
+const COLOR_DONE = "#C06730";
+const COLOR_DIM = "rgba(192, 103, 48, 0.2)";
+const COLOR_OFF = "#3D352E";
 
 interface RhythmCardProps {
   onDelete: (id: string) => void;
@@ -27,25 +31,9 @@ export function RhythmCard({
   const heightAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
-  const beatsToday = computeBeatsElapsed(rhythm);
-  const totalBeats = computeTotalBeats(rhythm);
-  const remaining = totalBeats - beatsToday;
+  const { done, total, currentProgress } = computeProgress(rhythm);
   const nextBeat = computeNextBeat(rhythm);
-
-  // If total fits in 8 ticks, show them all. Otherwise split at midpoint:
-  // done fills left half (up to 4), remaining fills right half (up to 4),
-  // overflow stacks as numbers at edges.
-  let doneTicks: number;
-  let remainTicks: number;
-  if (totalBeats <= HALF * 2) {
-    doneTicks = beatsToday;
-    remainTicks = remaining;
-  } else {
-    doneTicks = Math.min(beatsToday, HALF);
-    remainTicks = Math.min(remaining, HALF);
-  }
-  const doneOverflow = beatsToday - doneTicks;
-  const remainOverflow = remaining - remainTicks;
+  const numTicks = Math.min(total, DISPLAY_TICKS);
 
   function handleDelete() {
     swipeableRef.current?.close();
@@ -92,6 +80,31 @@ export function RhythmCard({
         </Animated.View>
       </RectButton>
     );
+  }
+
+  // Map tick index to progress state
+  function tickColor(i: number): string {
+    if (!rhythm.enabled) {
+      return COLOR_OFF;
+    }
+
+    // Scale tick index to beat space
+    const beatPos = total <= DISPLAY_TICKS ? i : (i / DISPLAY_TICKS) * total;
+
+    if (beatPos < done) {
+      return COLOR_DONE;
+    }
+
+    if (beatPos < done + 1 && currentProgress > 0) {
+      // This tick represents the in-progress beat — interpolate
+      const t = currentProgress;
+      const r = Math.round(61 + (192 - 61) * t);
+      const g = Math.round(46 + (103 - 46) * t);
+      const b = Math.round(34 + (48 - 34) * t);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    return COLOR_DIM;
   }
 
   return (
@@ -148,60 +161,25 @@ export function RhythmCard({
             />
           </View>
 
-          {/* Progress bar: done | center marker | remaining */}
           <View className="flex-row items-center">
-            {/* Done ticks — left side */}
-            {doneOverflow > 0 && (
-              <Text
-                className="mr-1 text-[8px] text-accent"
-                style={{ fontFamily: "IBMPlexMono_400Regular" }}
-              >
-                {doneOverflow}+
-              </Text>
-            )}
-            {Array.from({ length: doneTicks }).map((_, i) => (
+            {Array.from({ length: numTicks }).map((_, i) => (
               <View
-                key={`done-${String(i)}`}
+                key={`t-${String(i)}`}
                 style={{
                   width: TICK_W,
                   height: TICK_H,
                   borderRadius: 1.5,
-                  backgroundColor: "#C06730",
-                  marginRight: TICK_GAP,
+                  backgroundColor: tickColor(i),
+                  marginRight: i < numTicks - 1 ? TICK_GAP : 0,
                 }}
               />
             ))}
-
-            {/* Remaining ticks — right side */}
-            {Array.from({ length: remainTicks }).map((_, i) => (
-              <View
-                key={`remain-${String(i)}`}
-                style={{
-                  width: TICK_W,
-                  height: TICK_H,
-                  borderRadius: 1.5,
-                  backgroundColor: rhythm.enabled
-                    ? "rgba(192, 103, 48, 0.25)"
-                    : "#3D352E",
-                  marginLeft: i === 0 ? 0 : TICK_GAP,
-                }}
-              />
-            ))}
-            {remainOverflow > 0 && (
-              <Text
-                className="ml-1 text-[8px] text-muted"
-                style={{ fontFamily: "IBMPlexMono_400Regular" }}
-              >
-                +{remainOverflow}
-              </Text>
-            )}
-
             <View className="flex-1" />
             <Text
               className="text-[10px] text-secondary"
               style={{ fontFamily: "IBMPlexMono_400Regular" }}
             >
-              {beatsToday}/{totalBeats}
+              {done}/{total}
             </Text>
           </View>
         </Pressable>
@@ -216,16 +194,18 @@ function minutesBetween(start: string, end: string): number {
   return eh * 60 + em - (sh * 60 + sm);
 }
 
-function computeTotalBeats(rhythm: Rhythm): number {
-  return Math.floor(
+function computeProgress(rhythm: Rhythm): {
+  done: number;
+  total: number;
+  currentProgress: number;
+} {
+  const total = Math.floor(
     minutesBetween(rhythm.startTime, rhythm.endTime) / rhythm.intervalMinutes
   );
-}
 
-function computeBeatsElapsed(rhythm: Rhythm): number {
   const now = new Date();
   if (!rhythm.days.includes(now.getDay())) {
-    return 0;
+    return { done: 0, total, currentProgress: 0 };
   }
 
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -235,18 +215,25 @@ function computeBeatsElapsed(rhythm: Rhythm): number {
   const endMin = eh * 60 + em;
 
   if (currentMinutes < startMin) {
-    return 0;
+    return { done: 0, total, currentProgress: 0 };
   }
 
-  let count = 0;
+  let done = 0;
+  let lastBeatAt = startMin;
   for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
     if (t <= currentMinutes) {
-      count++;
+      done++;
+      lastBeatAt = t;
     } else {
       break;
     }
   }
-  return count;
+
+  // How far into the current interval (0..1)
+  const elapsed = currentMinutes - lastBeatAt;
+  const currentProgress = Math.min(elapsed / rhythm.intervalMinutes, 1);
+
+  return { done, total, currentProgress };
 }
 
 function computeNextBeat(rhythm: Rhythm): string | null {
