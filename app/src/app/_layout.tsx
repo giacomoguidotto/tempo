@@ -19,7 +19,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { runMigrations } from "@/lib/migrate";
 
 preventAutoHideAsync();
-runMigrations();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -29,6 +28,10 @@ export default function RootLayout() {
     IBMPlexMono_400Regular,
     IBMPlexMono_500Medium,
   });
+
+  useEffect(() => {
+    runMigrations();
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded) {
