@@ -32,11 +32,18 @@ export function RhythmCard({
   const remaining = totalBeats - beatsToday;
   const nextBeat = computeNextBeat(rhythm);
 
-  // Fixed 8-tick bar with midpoint at tick 4.
-  // Done fills left half (up to 4), remaining fills right half (up to 4).
-  // Overflow stacks as numbers at edges.
-  const doneTicks = Math.min(beatsToday, HALF);
-  const remainTicks = Math.min(remaining, HALF);
+  // If total fits in 8 ticks, show them all. Otherwise split at midpoint:
+  // done fills left half (up to 4), remaining fills right half (up to 4),
+  // overflow stacks as numbers at edges.
+  let doneTicks: number;
+  let remainTicks: number;
+  if (totalBeats <= HALF * 2) {
+    doneTicks = beatsToday;
+    remainTicks = remaining;
+  } else {
+    doneTicks = Math.min(beatsToday, HALF);
+    remainTicks = Math.min(remaining, HALF);
+  }
   const doneOverflow = beatsToday - doneTicks;
   const remainOverflow = remaining - remainTicks;
 
