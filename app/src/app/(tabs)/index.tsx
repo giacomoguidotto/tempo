@@ -2,13 +2,13 @@ import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateRhythmSheet } from "@/features/rhythm/components/create-rhythm-sheet";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
-import { toggleRhythm } from "@/features/rhythm/operations";
+import { getAllRhythms, toggleRhythm } from "@/features/rhythm/operations";
 import { rhythmsAtom } from "@/features/rhythm/store/atoms";
 
 export default function RhythmsScreen() {
@@ -16,6 +16,10 @@ export default function RhythmsScreen() {
   const router = useRouter();
   const [rhythms, setRhythms] = useAtom(rhythmsAtom);
   const sheetRef = useRef<BottomSheetModal>(null);
+
+  useEffect(() => {
+    setRhythms(getAllRhythms());
+  }, [setRhythms]);
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
   const nextAlarm = activeRhythms.length > 0 ? "25:00" : "--:--";
