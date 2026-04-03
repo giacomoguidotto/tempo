@@ -5,7 +5,7 @@ import { RectButton, Swipeable } from "react-native-gesture-handler";
 import type { Rhythm } from "../schemas";
 
 const DELETE_ANIM_DURATION = 250;
-const MAX_TICKS = 9;
+const HALF = 4;
 const TICK_W = 16;
 const TICK_H = 3;
 const TICK_GAP = 3;
@@ -32,19 +32,11 @@ export function RhythmCard({
   const remaining = totalBeats - beatsToday;
   const nextBeat = computeNextBeat(rhythm);
 
-  // Show all ticks if they fit, otherwise stack overflow at edges
-  const fits = totalBeats <= MAX_TICKS;
-  let doneTicks: number;
-  let remainTicks: number;
-  if (fits) {
-    doneTicks = beatsToday;
-    remainTicks = remaining;
-  } else {
-    // Always show MAX_TICKS total — split proportionally, favoring done
-    const halfMax = Math.floor(MAX_TICKS / 2);
-    doneTicks = Math.min(beatsToday, halfMax);
-    remainTicks = Math.min(remaining, MAX_TICKS - doneTicks);
-  }
+  // Fixed 8-tick bar with midpoint at tick 4.
+  // Done fills left half (up to 4), remaining fills right half (up to 4).
+  // Overflow stacks as numbers at edges.
+  const doneTicks = Math.min(beatsToday, HALF);
+  const remainTicks = Math.min(remaining, HALF);
   const doneOverflow = beatsToday - doneTicks;
   const remainOverflow = remaining - remainTicks;
 
