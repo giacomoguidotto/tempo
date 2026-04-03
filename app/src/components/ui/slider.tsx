@@ -1,13 +1,11 @@
-import { useCallback, useRef } from "react";
-import { View } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
+import { useCallback, useRef, useState } from "react";
+import {
+  type GestureResponderEvent,
+  type LayoutChangeEvent,
+  View,
+} from "react-native";
 
-const THUMB_SIZE = 22;
+const THUMB_SIZE = 24;
 const TRACK_HEIGHT = 2;
 
 interface SliderProps {
@@ -25,9 +23,9 @@ export function Slider({
   snapPoints,
   onValueChange,
 }: SliderProps) {
-  const trackWidth = useRef(0);
+  const trackLayout = useRef({ x: 0, width: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const frac = (value - min) / (max - min);
-  const offset = useSharedValue(0);
 
   const snap = useCallback(
     (rawValue: number) => {
@@ -48,34 +46,36 @@ export function Slider({
     [snapPoints]
   );
 
-  const gesture = Gesture.Pan()
-    .onUpdate((e) => {
-      offset.value = e.translationX;
-    })
-    .onEnd(() => {
-      const w = trackWidth.current;
-      if (w === 0) {
-        return;
-      }
-      const newFrac = Math.max(0, Math.min(1, frac + offset.value / w));
-      const raw = min + newFrac * (max - min);
-      const snapped = snap(raw);
-      offset.value = 0;
-      runOnJS(onValueChange)(snapped);
-    });
+  function fracFromEvent(e: GestureResponderEvent): number {
+    const x = e.nativeEvent.pageX - trackLayout.current.x;
+    return Math.max(0, Math.min(1, x / trackLayout.current.width));
+  }
 
-  const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: offset.value }],
-  }));
+  function handleLayout(e: LayoutChangeEvent) {
+    e.target.measureInWindow((x, _y, width) => {
+      trackLayout.current = { x, width };
+    });
+  }
+
+  function handleMove(e: GestureResponderEvent) {
+    const f = fracFromEvent(e);
+    const raw = min + f * (max - min);
+    onValueChange(snap(raw));
+  }
 
   return (
     <View
-      onLayout={(e) => {
-        trackWidth.current = e.nativeEvent.layout.width;
+      onLayout={handleLayout}
+      onMoveShouldSetResponder={() => true}
+      onResponderGrant={(e) => {
+        setIsDragging(true);
+        handleMove(e);
       }}
-      style={{ height: 40, justifyContent: "center" }}
+      onResponderMove={handleMove}
+      onResponderRelease={() => setIsDragging(false)}
+      onStartShouldSetResponder={() => true}
+      style={{ height: 44, justifyContent: "center" }}
     >
-      {/* Track background */}
       <View
         style={{
           position: "absolute",
@@ -86,7 +86,6 @@ export function Slider({
           backgroundColor: "#2A2420",
         }}
       />
-      {/* Filled portion */}
       <View
         style={{
           position: "absolute",
@@ -97,23 +96,17 @@ export function Slider({
           backgroundColor: "#C06730",
         }}
       />
-      {/* Thumb */}
-      <GestureDetector gesture={gesture}>
-        <Animated.View
-          style={[
-            {
-              position: "absolute",
-              left: `${frac * 100}%`,
-              marginLeft: -THUMB_SIZE / 2,
-              width: THUMB_SIZE,
-              height: THUMB_SIZE,
-              borderRadius: THUMB_SIZE / 2,
-              backgroundColor: "#EDE6DA",
-            },
-            thumbStyle,
-          ]}
-        />
-      </GestureDetector>
+      <View
+        style={{
+          position: "absolute",
+          left: `${frac * 100}%`,
+          marginLeft: -THUMB_SIZE / 2,
+          width: THUMB_SIZE,
+          height: THUMB_SIZE,
+          borderRadius: THUMB_SIZE / 2,
+          backgroundColor: isDragging ? "#FFFFFF" : "#EDE6DA",
+        }}
+      />
     </View>
   );
 }

@@ -1,13 +1,11 @@
-import { useCallback, useRef } from "react";
-import { View } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
+import { useRef, useState } from "react";
+import {
+  type GestureResponderEvent,
+  type LayoutChangeEvent,
+  View,
+} from "react-native";
 
-const THUMB_SIZE = 22;
+const THUMB_SIZE = 24;
 const TRACK_HEIGHT = 2;
 
 interface RangeSliderProps {
@@ -27,85 +25,65 @@ export function RangeSlider({
   valueHigh,
   onValuesChange,
 }: RangeSliderProps) {
-  const trackWidth = useRef(0);
+  const trackLayout = useRef({ x: 0, width: 0 });
+  const [dragging, setDragging] = useState<"low" | "high" | null>(null);
+
   const lowFrac = (valueLow - min) / (max - min);
   const highFrac = (valueHigh - min) / (max - min);
 
-  const lowOffset = useSharedValue(0);
-  const highOffset = useSharedValue(0);
+  function snap(raw: number): number {
+    return Math.round(raw / step) * step;
+  }
 
-  const snap = useCallback(
-    (frac: number) => {
-      const raw = min + frac * (max - min);
-      return Math.round(raw / step) * step;
-    },
-    [min, max, step]
-  );
+  function fracFromEvent(e: GestureResponderEvent): number {
+    const x = e.nativeEvent.pageX - trackLayout.current.x;
+    return Math.max(0, Math.min(1, x / trackLayout.current.width));
+  }
 
-  const emitChange = useCallback(
-    (newLow: number, newHigh: number) => {
-      onValuesChange(
-        Math.max(min, Math.min(newLow, newHigh - step)),
-        Math.min(max, Math.max(newHigh, newLow + step))
-      );
-    },
-    [min, max, step, onValuesChange]
-  );
-
-  const lowGesture = Gesture.Pan()
-    .onUpdate((e) => {
-      lowOffset.value = e.translationX;
-    })
-    .onEnd(() => {
-      const w = trackWidth.current;
-      if (w === 0) {
-        return;
-      }
-      const newFrac = Math.max(0, Math.min(1, lowFrac + lowOffset.value / w));
-      const snapped = snap(newFrac);
-      lowOffset.value = 0;
-      runOnJS(emitChange)(snapped, valueHigh);
+  function handleLayout(e: LayoutChangeEvent) {
+    e.target.measureInWindow((x, _y, width) => {
+      trackLayout.current = { x, width };
     });
+  }
 
-  const highGesture = Gesture.Pan()
-    .onUpdate((e) => {
-      highOffset.value = e.translationX;
-    })
-    .onEnd(() => {
-      const w = trackWidth.current;
-      if (w === 0) {
-        return;
-      }
-      const newFrac = Math.max(0, Math.min(1, highFrac + highOffset.value / w));
-      const snapped = snap(newFrac);
-      highOffset.value = 0;
-      runOnJS(emitChange)(valueLow, snapped);
-    });
+  function handleStart(e: GestureResponderEvent) {
+    const frac = fracFromEvent(e);
+    const distToLow = Math.abs(frac - lowFrac);
+    const distToHigh = Math.abs(frac - highFrac);
+    setDragging(distToLow <= distToHigh ? "low" : "high");
+  }
 
-  const lowThumbStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: lowOffset.value,
-      },
-    ],
-  }));
+  function handleMove(e: GestureResponderEvent) {
+    if (!dragging) {
+      return;
+    }
+    const frac = fracFromEvent(e);
+    const raw = min + frac * (max - min);
+    const snapped = snap(raw);
 
-  const highThumbStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: highOffset.value,
-      },
-    ],
-  }));
+    if (dragging === "low") {
+      const clamped = Math.min(snapped, valueHigh - step);
+      onValuesChange(Math.max(min, clamped), valueHigh);
+    } else {
+      const clamped = Math.max(snapped, valueLow + step);
+      onValuesChange(valueLow, Math.min(max, clamped));
+    }
+  }
+
+  function handleEnd() {
+    setDragging(null);
+  }
 
   return (
     <View
-      onLayout={(e) => {
-        trackWidth.current = e.nativeEvent.layout.width;
-      }}
-      style={{ height: 40, justifyContent: "center" }}
+      onLayout={handleLayout}
+      onMoveShouldSetResponder={() => true}
+      onResponderGrant={handleStart}
+      onResponderMove={handleMove}
+      onResponderRelease={handleEnd}
+      onStartShouldSetResponder={() => true}
+      style={{ height: 44, justifyContent: "center" }}
     >
-      {/* Track background */}
       <View
         style={{
           position: "absolute",
@@ -116,7 +94,6 @@ export function RangeSlider({
           backgroundColor: "#2A2420",
         }}
       />
-      {/* Active range */}
       <View
         style={{
           position: "absolute",
@@ -127,40 +104,28 @@ export function RangeSlider({
           backgroundColor: "#C06730",
         }}
       />
-      {/* Low thumb */}
-      <GestureDetector gesture={lowGesture}>
-        <Animated.View
-          style={[
-            {
-              position: "absolute",
-              left: `${lowFrac * 100}%`,
-              marginLeft: -THUMB_SIZE / 2,
-              width: THUMB_SIZE,
-              height: THUMB_SIZE,
-              borderRadius: THUMB_SIZE / 2,
-              backgroundColor: "#EDE6DA",
-            },
-            lowThumbStyle,
-          ]}
-        />
-      </GestureDetector>
-      {/* High thumb */}
-      <GestureDetector gesture={highGesture}>
-        <Animated.View
-          style={[
-            {
-              position: "absolute",
-              left: `${highFrac * 100}%`,
-              marginLeft: -THUMB_SIZE / 2,
-              width: THUMB_SIZE,
-              height: THUMB_SIZE,
-              borderRadius: THUMB_SIZE / 2,
-              backgroundColor: "#EDE6DA",
-            },
-            highThumbStyle,
-          ]}
-        />
-      </GestureDetector>
+      <View
+        style={{
+          position: "absolute",
+          left: `${lowFrac * 100}%`,
+          marginLeft: -THUMB_SIZE / 2,
+          width: THUMB_SIZE,
+          height: THUMB_SIZE,
+          borderRadius: THUMB_SIZE / 2,
+          backgroundColor: dragging === "low" ? "#FFFFFF" : "#EDE6DA",
+        }}
+      />
+      <View
+        style={{
+          position: "absolute",
+          left: `${highFrac * 100}%`,
+          marginLeft: -THUMB_SIZE / 2,
+          width: THUMB_SIZE,
+          height: THUMB_SIZE,
+          borderRadius: THUMB_SIZE / 2,
+          backgroundColor: dragging === "high" ? "#FFFFFF" : "#EDE6DA",
+        }}
+      />
     </View>
   );
 }
