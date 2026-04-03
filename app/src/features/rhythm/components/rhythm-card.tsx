@@ -35,7 +35,8 @@ export function RhythmCard({
   const heightAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
-  const { done, total, currentProgress } = computeProgress(rhythm);
+  const { done, total, currentProgress, allDoneForToday } =
+    computeProgress(rhythm);
   const nextBeat = computeNextBeat(rhythm);
   const numTicks = Math.min(total, DISPLAY_TICKS);
 
@@ -153,7 +154,7 @@ export function RhythmCard({
                 style={{ fontFamily: "IBMPlexMono_400Regular" }}
               >
                 EVERY {rhythm.intervalMinutes} MIN ·{" "}
-                {nextBeat && rhythm.enabled ? `NEXT ${nextBeat}` : "PAUSED"}
+                {statusLabel(rhythm.enabled, allDoneForToday, nextBeat)}
               </Text>
             </View>
             <Switch
@@ -191,34 +192,49 @@ export function RhythmCard({
   );
 }
 
-function minutesBetween(start: string, end: string): number {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  return eh * 60 + em - (sh * 60 + sm);
+function statusLabel(
+  enabled: boolean,
+  allDone: boolean,
+  nextBeat: string | null
+): string {
+  if (!enabled) {
+    return "OFF";
+  }
+  if (allDone) {
+    return "DONE FOR TODAY";
+  }
+  if (nextBeat) {
+    return `NEXT ${nextBeat}`;
+  }
+  return "WAITING";
 }
 
 function computeProgress(rhythm: Rhythm): {
   done: number;
   total: number;
   currentProgress: number;
+  allDoneForToday: boolean;
 } {
-  const total = Math.floor(
-    minutesBetween(rhythm.startTime, rhythm.endTime) / rhythm.intervalMinutes
-  );
-
-  const now = new Date();
-  if (!rhythm.days.includes(now.getDay())) {
-    return { done: 0, total, currentProgress: 0 };
-  }
-
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const [sh, sm] = rhythm.startTime.split(":").map(Number);
   const [eh, em] = rhythm.endTime.split(":").map(Number);
   const startMin = sh * 60 + sm;
   const endMin = eh * 60 + em;
 
+  // Count all beats: first at startMin, then every interval until <= endMin
+  let total = 0;
+  for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
+    total++;
+  }
+
+  const now = new Date();
+  if (!rhythm.days.includes(now.getDay())) {
+    return { done: 0, total, currentProgress: 0, allDoneForToday: false };
+  }
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
   if (currentMinutes < startMin) {
-    return { done: 0, total, currentProgress: 0 };
+    return { done: 0, total, currentProgress: 0, allDoneForToday: false };
   }
 
   let done = 0;
@@ -232,11 +248,20 @@ function computeProgress(rhythm: Rhythm): {
     }
   }
 
+  const allDoneForToday = done >= total;
+
   // How far into the current interval (0..1)
   const elapsed = currentMinutes - lastBeatAt;
-  const currentProgress = Math.min(elapsed / rhythm.intervalMinutes, 1);
+  const currentProgress = allDoneForToday
+    ? 1
+    : Math.min(elapsed / rhythm.intervalMinutes, 1);
 
-  return { done, total, currentProgress };
+  return {
+    done: Math.min(done, total),
+    total,
+    currentProgress,
+    allDoneForToday,
+  };
 }
 
 function computeNextBeat(rhythm: Rhythm): string | null {

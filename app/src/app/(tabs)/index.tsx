@@ -45,6 +45,7 @@ export default function RhythmsScreen() {
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
   const nextAlarm = computeNextAlarm(activeRhythms);
+  const hasUpcomingAlarms = nextAlarm !== "--:--";
 
   async function handleToggle(id: string, enabled: boolean) {
     if (enabled) {
@@ -118,7 +119,7 @@ export default function RhythmsScreen() {
         </Text>
       </View>
       <View className="items-center gap-5 pt-7 pb-6">
-        <VuMeter active={activeRhythms.length > 0} />
+        <VuMeter active={hasUpcomingAlarms} />
         <View className="items-center gap-1">
           <Text
             className="text-[40px] text-foreground tracking-[4px]"
