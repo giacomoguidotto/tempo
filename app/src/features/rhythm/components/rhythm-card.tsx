@@ -164,18 +164,6 @@ export function RhythmCard({
               />
             ))}
 
-            {/* Center marker — the "now" position */}
-            <View
-              style={{
-                width: 2,
-                height: 10,
-                borderRadius: 1,
-                backgroundColor:
-                  rhythm.enabled && totalBeats > 0 ? "#C06730" : "#3D352E",
-                marginHorizontal: 4,
-              }}
-            />
-
             {/* Remaining ticks — right side */}
             {Array.from({ length: remainTicks }).map((_, i) => (
               <View
