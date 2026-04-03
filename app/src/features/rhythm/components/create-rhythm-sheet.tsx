@@ -9,7 +9,7 @@ import { forwardRef, type Ref, useCallback, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RangeSlider } from "@/components/ui/range-slider";
-import { Slider } from "@/components/ui/slider";
+import { DurationPicker } from "@/components/ui/wheel-picker";
 import { scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
 import { createRhythm, getAllRhythms } from "../operations";
@@ -73,7 +73,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const [showTimePicker, setShowTimePicker] = useState<"start" | "end" | null>(
     null
   );
-  const [showIntervalPicker, setShowIntervalPicker] = useState(false);
+  const [showDurationWheel, setShowDurationWheel] = useState(false);
 
   const canSave = name.trim().length > 0 && selectedDays.length > 0;
   const selectedIntensity = INTENSITIES.find((i) => i.value === intensity);
@@ -277,7 +277,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         {/* Interval */}
         <View style={{ paddingVertical: 16, gap: 12 }}>
           <Label>Every</Label>
-          <Pressable onPress={() => setShowIntervalPicker(true)}>
+          <Pressable onPress={() => setShowDurationWheel((v) => !v)}>
             <Text
               style={{
                 fontFamily: "IBMPlexMono_500Medium",
@@ -285,7 +285,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
                 color: "#EDE6DA",
                 letterSpacing: 2,
                 borderBottomWidth: 1.5,
-                borderBottomColor: "#3D352E",
+                borderBottomColor: showDurationWheel ? "#C06730" : "#3D352E",
                 paddingBottom: 4,
                 alignSelf: "flex-start",
               }}
@@ -297,7 +297,10 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
             {INTERVAL_PRESETS.map((mins) => (
               <Pressable
                 key={mins}
-                onPress={() => setInterval(mins)}
+                onPress={() => {
+                  setInterval(mins);
+                  setShowDurationWheel(false);
+                }}
                 style={{
                   paddingVertical: 5,
                   paddingHorizontal: 12,
@@ -322,15 +325,12 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
               </Pressable>
             ))}
           </View>
-          <Slider
-            max={120}
-            min={1}
-            onDragEnd={() => setSliderActive(false)}
-            onDragStart={() => setSliderActive(true)}
-            onValueChange={setInterval}
-            snapPoints={INTERVAL_PRESETS}
-            value={interval}
-          />
+          {showDurationWheel && (
+            <DurationPicker
+              onChange={(v) => setInterval(Math.max(1, v))}
+              value={interval}
+            />
+          )}
           <Divider />
         </View>
 
@@ -401,7 +401,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       {showTimePicker && (
         <DateTimePicker
           is24Hour
-          minuteInterval={15}
+          minuteInterval={1}
           mode="time"
           onChange={(_e, date) => {
             if (showTimePicker) {
@@ -413,29 +413,6 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
             const [h, m] = t.split(":").map(Number);
             const d = new Date();
             d.setHours(h, m, 0, 0);
-            return d;
-          })()}
-        />
-      )}
-
-      {/* Interval Picker Dialog */}
-      {showIntervalPicker && (
-        <DateTimePicker
-          is24Hour
-          minuteInterval={5}
-          mode="time"
-          onChange={(_e, date) => {
-            setShowIntervalPicker(false);
-            if (date) {
-              const totalMins = date.getHours() * 60 + date.getMinutes();
-              if (totalMins >= 1) {
-                setInterval(totalMins);
-              }
-            }
-          }}
-          value={(() => {
-            const d = new Date();
-            d.setHours(Math.floor(interval / 60), interval % 60, 0, 0);
             return d;
           })()}
         />
