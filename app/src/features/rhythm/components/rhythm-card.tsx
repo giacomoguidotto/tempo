@@ -4,8 +4,11 @@ import { Animated, Pressable, Switch, Text, View } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import type { Rhythm } from "../schemas";
 
-const MAX_VISIBLE_BEATS = 8;
 const DELETE_ANIM_DURATION = 250;
+const MAX_TICKS = 9;
+const TICK_W = 16;
+const TICK_H = 3;
+const TICK_GAP = 3;
 
 interface RhythmCardProps {
   onDelete: (id: string) => void;
@@ -24,12 +27,17 @@ export function RhythmCard({
   const heightAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
-  const beatsToday = 0; // TODO: derive from beat log
-  const totalBeats = Math.floor(
-    minutesBetween(rhythm.startTime, rhythm.endTime) / rhythm.intervalMinutes
-  );
-  const visibleBeats = Math.min(totalBeats, MAX_VISIBLE_BEATS);
+  const beatsToday = computeBeatsElapsed(rhythm);
+  const totalBeats = computeTotalBeats(rhythm);
+  const remaining = totalBeats - beatsToday;
   const nextBeat = computeNextBeat(rhythm);
+
+  // How many ticks fit in each half (left = done, right = remaining)
+  const halfMax = Math.floor(MAX_TICKS / 2);
+  const doneTicks = Math.min(beatsToday, halfMax);
+  const remainTicks = Math.min(remaining, MAX_TICKS - halfMax - 1);
+  const doneOverflow = beatsToday - doneTicks;
+  const remainOverflow = remaining - remainTicks;
 
   function handleDelete() {
     swipeableRef.current?.close();
@@ -132,35 +140,72 @@ export function RhythmCard({
             />
           </View>
 
-          <View className="flex-row items-center gap-1">
-            {Array.from({ length: visibleBeats }).map((_, i) => {
-              const filled = i < beatsToday;
-              const muted = !filled && rhythm.enabled;
-              let color = "bg-border";
-              if (filled) {
-                color = "bg-accent";
-              } else if (muted) {
-                color = "bg-accent/25";
-              }
-              return (
-                // biome-ignore lint/suspicious/noArrayIndexKey: static beat indicators
-                <View className={`h-[3px] w-5 rounded-sm ${color}`} key={i} />
-              );
-            })}
-            {totalBeats > MAX_VISIBLE_BEATS && (
+          {/* Progress bar: done | center marker | remaining */}
+          <View className="flex-row items-center">
+            {/* Done ticks — left side */}
+            {doneOverflow > 0 && (
               <Text
-                className="text-[8px] text-muted"
+                className="mr-1 text-[8px] text-accent"
                 style={{ fontFamily: "IBMPlexMono_400Regular" }}
               >
-                +{totalBeats - MAX_VISIBLE_BEATS}
+                {doneOverflow}+
               </Text>
             )}
+            {Array.from({ length: doneTicks }).map((_, i) => (
+              <View
+                key={`done-${String(i)}`}
+                style={{
+                  width: TICK_W,
+                  height: TICK_H,
+                  borderRadius: 1.5,
+                  backgroundColor: "#C06730",
+                  marginRight: TICK_GAP,
+                }}
+              />
+            ))}
+
+            {/* Center marker — the "now" position */}
+            <View
+              style={{
+                width: 2,
+                height: 10,
+                borderRadius: 1,
+                backgroundColor:
+                  rhythm.enabled && totalBeats > 0 ? "#C06730" : "#3D352E",
+                marginHorizontal: 4,
+              }}
+            />
+
+            {/* Remaining ticks — right side */}
+            {Array.from({ length: remainTicks }).map((_, i) => (
+              <View
+                key={`remain-${String(i)}`}
+                style={{
+                  width: TICK_W,
+                  height: TICK_H,
+                  borderRadius: 1.5,
+                  backgroundColor: rhythm.enabled
+                    ? "rgba(192, 103, 48, 0.25)"
+                    : "#3D352E",
+                  marginLeft: i === 0 ? 0 : TICK_GAP,
+                }}
+              />
+            ))}
+            {remainOverflow > 0 && (
+              <Text
+                className="ml-1 text-[8px] text-muted"
+                style={{ fontFamily: "IBMPlexMono_400Regular" }}
+              >
+                +{remainOverflow}
+              </Text>
+            )}
+
             <View className="flex-1" />
             <Text
               className="text-[10px] text-secondary"
               style={{ fontFamily: "IBMPlexMono_400Regular" }}
             >
-              {beatsToday}/{totalBeats} today
+              {beatsToday}/{totalBeats}
             </Text>
           </View>
         </Pressable>
@@ -175,11 +220,42 @@ function minutesBetween(start: string, end: string): number {
   return eh * 60 + em - (sh * 60 + sm);
 }
 
+function computeTotalBeats(rhythm: Rhythm): number {
+  return Math.floor(
+    minutesBetween(rhythm.startTime, rhythm.endTime) / rhythm.intervalMinutes
+  );
+}
+
+function computeBeatsElapsed(rhythm: Rhythm): number {
+  const now = new Date();
+  if (!rhythm.days.includes(now.getDay())) {
+    return 0;
+  }
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = rhythm.startTime.split(":").map(Number);
+  const [eh, em] = rhythm.endTime.split(":").map(Number);
+  const startMin = sh * 60 + sm;
+  const endMin = eh * 60 + em;
+
+  if (currentMinutes < startMin) {
+    return 0;
+  }
+
+  let count = 0;
+  for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
+    if (t <= currentMinutes) {
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count;
+}
+
 function computeNextBeat(rhythm: Rhythm): string | null {
   const now = new Date();
-  const currentDay = now.getDay();
-
-  if (!rhythm.days.includes(currentDay)) {
+  if (!rhythm.days.includes(now.getDay())) {
     return null;
   }
 
