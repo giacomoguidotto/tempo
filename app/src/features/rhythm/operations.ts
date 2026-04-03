@@ -15,7 +15,7 @@ export function getRhythm(id: string): Rhythm | undefined {
 
 export function createRhythm(input: CreateRhythm): Rhythm {
   const now = new Date().toISOString();
-  const id = crypto.randomUUID();
+  const id = uid();
   const row = {
     id,
     name: input.name,
@@ -73,6 +73,18 @@ export function toggleRhythm(id: string, enabled: boolean): void {
 
 export function deleteRhythm(id: string): void {
   db.delete(rhythms).where(eq(rhythms.id, id)).run();
+}
+
+function uid(): string {
+  const h = "0123456789abcdef";
+  const s = (n: number) => {
+    let o = "";
+    for (let i = 0; i < n; i++) {
+      o += h[Math.floor(Math.random() * 16)];
+    }
+    return o;
+  };
+  return `${s(8)}-${s(4)}-${s(4)}-${s(4)}-${s(12)}`;
 }
 
 function deserialize(row: typeof rhythms.$inferSelect): Rhythm {
