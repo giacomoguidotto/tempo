@@ -5,7 +5,13 @@ import {
 } from "@gorhom/bottom-sheet";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSetAtom } from "jotai";
-import { forwardRef, type Ref, useCallback, useState } from "react";
+import {
+  forwardRef,
+  type Ref,
+  useCallback,
+  useRef as useReactRef,
+  useState,
+} from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RangeSlider } from "@/components/ui/range-slider";
@@ -72,6 +78,9 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const [showTimePicker, setShowTimePicker] = useState<"start" | "end" | null>(
     null
   );
+  const [editingInterval, setEditingInterval] = useState(false);
+  const [intervalDraft, setIntervalDraft] = useState("");
+  const intervalInputRef = useReactRef<TextInput>(null);
 
   const canSave = name.trim().length > 0 && selectedDays.length > 0;
   const selectedIntensity = INTENSITIES.find((i) => i.value === intensity);
@@ -271,20 +280,81 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         {/* Interval */}
         <View style={{ paddingVertical: 16, gap: 12 }}>
           <Label>Every</Label>
-          <Text
-            style={{
-              fontFamily: "IBMPlexMono_500Medium",
-              fontSize: 32,
-              color: "#EDE6DA",
-              letterSpacing: 2,
-              borderBottomWidth: 1.5,
-              borderBottomColor: "#3D352E",
-              paddingBottom: 4,
-              alignSelf: "flex-start",
-            }}
-          >
-            {interval} min
-          </Text>
+          {editingInterval ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "baseline",
+                alignSelf: "flex-start",
+              }}
+            >
+              <TextInput
+                autoFocus
+                keyboardType="number-pad"
+                onBlur={() => {
+                  const parsed = Number.parseInt(intervalDraft, 10);
+                  if (parsed >= 1 && parsed <= 1440) {
+                    setInterval(parsed);
+                  }
+                  setEditingInterval(false);
+                }}
+                onChangeText={setIntervalDraft}
+                onSubmitEditing={() => {
+                  const parsed = Number.parseInt(intervalDraft, 10);
+                  if (parsed >= 1 && parsed <= 1440) {
+                    setInterval(parsed);
+                  }
+                  setEditingInterval(false);
+                }}
+                ref={intervalInputRef}
+                selectTextOnFocus
+                style={{
+                  fontFamily: "IBMPlexMono_500Medium",
+                  fontSize: 32,
+                  color: "#EDE6DA",
+                  letterSpacing: 2,
+                  borderBottomWidth: 1.5,
+                  borderBottomColor: "#C06730",
+                  paddingBottom: 4,
+                  minWidth: 60,
+                }}
+                value={intervalDraft}
+              />
+              <Text
+                style={{
+                  fontFamily: "IBMPlexMono_500Medium",
+                  fontSize: 32,
+                  color: "#7A6F63",
+                  letterSpacing: 2,
+                  marginLeft: 8,
+                }}
+              >
+                min
+              </Text>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => {
+                setIntervalDraft(String(interval));
+                setEditingInterval(true);
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "IBMPlexMono_500Medium",
+                  fontSize: 32,
+                  color: "#EDE6DA",
+                  letterSpacing: 2,
+                  borderBottomWidth: 1.5,
+                  borderBottomColor: "#3D352E",
+                  paddingBottom: 4,
+                  alignSelf: "flex-start",
+                }}
+              >
+                {interval} min
+              </Text>
+            </Pressable>
+          )}
           <View className="flex-row flex-wrap gap-[6px]">
             {INTERVAL_PRESETS.map((mins) => (
               <Pressable
