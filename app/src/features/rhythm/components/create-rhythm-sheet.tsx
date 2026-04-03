@@ -7,6 +7,7 @@ import { useSetAtom } from "jotai";
 import { forwardRef, type Ref, useCallback, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { scheduleRhythm } from "@/features/beat/engine";
 import { createRhythm, getAllRhythms } from "../operations";
 import type { IntensityLevel } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
@@ -73,7 +74,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     if (!canSave) {
       return;
     }
-    createRhythm({
+    const created = createRhythm({
       name: name.trim(),
       days: selectedDays,
       startTime,
@@ -82,6 +83,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       intensity,
       enabled: true,
     });
+    scheduleRhythm(created);
     setRhythms(getAllRhythms());
     resetForm();
     (ref as React.RefObject<BottomSheetModal>).current?.dismiss();

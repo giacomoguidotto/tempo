@@ -8,6 +8,7 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { CreateRhythmSheet } from "@/features/rhythm/components/create-rhythm-sheet";
 import {
   EditRhythmSheet,
@@ -31,7 +32,12 @@ export default function RhythmsScreen() {
   const editSheetRef = useRef<EditRhythmSheetHandle>(null);
 
   useEffect(() => {
-    setRhythms(getAllRhythms());
+    const loaded = getAllRhythms();
+    setRhythms(loaded);
+    // Schedule alarms for all enabled rhythms on mount
+    for (const r of loaded.filter((r) => r.enabled)) {
+      scheduleRhythm(r);
+    }
   }, [setRhythms]);
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
@@ -39,14 +45,18 @@ export default function RhythmsScreen() {
 
   function handleToggle(id: string, enabled: boolean) {
     toggleRhythm(id, enabled);
-    setRhythms((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, enabled, updatedAt: new Date().toISOString() } : r
-      )
+    const updated = rhythms.map((r) =>
+      r.id === id ? { ...r, enabled, updatedAt: new Date().toISOString() } : r
     );
+    setRhythms(updated);
+    const rhythm = updated.find((r) => r.id === id);
+    if (rhythm) {
+      scheduleRhythm(rhythm);
+    }
   }
 
   function handleDelete(id: string) {
+    cancelRhythm(id);
     deleteRhythm(id);
     setRhythms(getAllRhythms());
   }

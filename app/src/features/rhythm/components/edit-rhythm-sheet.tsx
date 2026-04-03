@@ -15,6 +15,7 @@ import {
 } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { deleteRhythm, getAllRhythms, updateRhythm } from "../operations";
 import type { IntensityLevel, Rhythm } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
@@ -100,7 +101,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
     if (!(canSave && editingId)) {
       return;
     }
-    updateRhythm(editingId, {
+    const updated = updateRhythm(editingId, {
       name: name.trim(),
       days: selectedDays,
       startTime,
@@ -108,6 +109,9 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       intervalMinutes: interval,
       intensity,
     });
+    if (updated) {
+      scheduleRhythm(updated);
+    }
     setRhythms(getAllRhythms());
     sheetRef.current?.dismiss();
   }
@@ -116,6 +120,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
     if (!editingId) {
       return;
     }
+    cancelRhythm(editingId);
     deleteRhythm(editingId);
     setRhythms(getAllRhythms());
     sheetRef.current?.dismiss();
