@@ -24,7 +24,9 @@ function AnimatedBar({
   const scale = useSharedValue(1);
 
   useEffect(() => {
-    const delay = index * 80;
+    const center = (BAR_HEIGHTS.length - 1) / 2;
+    const distFromCenter = Math.abs(index - center);
+    const delay = distFromCenter * 100;
     scale.value = withDelay(
       delay,
       withRepeat(

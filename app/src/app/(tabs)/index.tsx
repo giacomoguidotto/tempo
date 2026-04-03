@@ -11,7 +11,11 @@ import {
 } from "@/features/rhythm/components/edit-rhythm-sheet";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
-import { getAllRhythms, toggleRhythm } from "@/features/rhythm/operations";
+import {
+  deleteRhythm,
+  getAllRhythms,
+  toggleRhythm,
+} from "@/features/rhythm/operations";
 import type { Rhythm } from "@/features/rhythm/schemas";
 import { rhythmsAtom } from "@/features/rhythm/store/atoms";
 
@@ -35,6 +39,11 @@ export default function RhythmsScreen() {
         r.id === id ? { ...r, enabled, updatedAt: new Date().toISOString() } : r
       )
     );
+  }
+
+  function handleDelete(id: string) {
+    deleteRhythm(id);
+    setRhythms(getAllRhythms());
   }
 
   const handleOpenCreate = useCallback(() => {
@@ -104,6 +113,7 @@ export default function RhythmsScreen() {
             rhythms.map((rhythm) => (
               <RhythmCard
                 key={rhythm.id}
+                onDelete={handleDelete}
                 onPress={() => editSheetRef.current?.open(rhythm)}
                 onToggle={handleToggle}
                 rhythm={rhythm}
