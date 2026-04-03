@@ -75,7 +75,7 @@ export default function RhythmsScreen() {
 
         {/* VU Meter + Countdown */}
         <View className="items-center gap-5 pt-7 pb-6">
-          <VuMeter />
+          <VuMeter active={activeRhythms.length > 0} />
           <View className="items-center gap-1">
             <Text
               className="text-[40px] text-foreground tracking-[4px]"
