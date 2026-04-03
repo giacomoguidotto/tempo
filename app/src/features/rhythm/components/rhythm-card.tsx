@@ -15,7 +15,9 @@ const COLOR_DIM = "rgba(192, 103, 48, 0.2)";
 const COLOR_OFF = "#3D352E";
 
 interface RhythmCardProps {
+  isDragging?: boolean;
   onDelete: (id: string) => void;
+  onLongPress?: () => void;
   onPress: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
   rhythm: Rhythm;
@@ -23,9 +25,11 @@ interface RhythmCardProps {
 
 export function RhythmCard({
   rhythm,
+  isDragging,
   onToggle,
   onPress,
   onDelete,
+  onLongPress,
 }: RhythmCardProps) {
   const swipeableRef = useRef<Swipeable>(null);
   const heightAnim = useRef(new Animated.Value(1)).current;
@@ -117,7 +121,7 @@ export function RhythmCard({
         }),
         marginBottom: heightAnim.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, 10],
+          outputRange: [0, 8],
         }),
         overflow: "hidden",
       }}
@@ -130,11 +134,10 @@ export function RhythmCard({
         rightThreshold={40}
       >
         <Pressable
-          className={`gap-3 rounded-[14px] px-5 py-[18px] ${
-            rhythm.enabled
-              ? "border border-border bg-surface"
-              : "border border-border"
+          className={`gap-3 rounded-[14px] border bg-surface px-5 py-[18px] ${
+            isDragging ? "border-accent" : "border-border"
           }`}
+          onLongPress={onLongPress}
           onPress={() => onPress(rhythm.id)}
         >
           <View className="flex-row items-center justify-between">

@@ -2,7 +2,11 @@ import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
 import { useCallback, useEffect, useRef } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import DraggableFlatList, {
+  type RenderItemParams,
+  ScaleDecorator,
+} from "react-native-draggable-flatlist";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateRhythmSheet } from "@/features/rhythm/components/create-rhythm-sheet";
 import {
@@ -14,6 +18,7 @@ import { VuMeter } from "@/features/rhythm/components/vu-meter";
 import {
   deleteRhythm,
   getAllRhythms,
+  reorderRhythms,
   toggleRhythm,
 } from "@/features/rhythm/operations";
 import type { Rhythm } from "@/features/rhythm/schemas";
@@ -50,80 +55,99 @@ export default function RhythmsScreen() {
     createSheetRef.current?.present();
   }, []);
 
-  return (
-    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 80 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View className="gap-1 px-7 pt-8">
+  const handleDragEnd = useCallback(
+    ({ data }: { data: Rhythm[] }) => {
+      setRhythms(data);
+      reorderRhythms(data.map((r) => r.id));
+    },
+    [setRhythms]
+  );
+
+  const renderItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<Rhythm>) => (
+      <ScaleDecorator>
+        <View style={{ paddingHorizontal: 28 }}>
+          <RhythmCard
+            isDragging={isActive}
+            onDelete={handleDelete}
+            onLongPress={drag}
+            onPress={() => editSheetRef.current?.open(item)}
+            onToggle={handleToggle}
+            rhythm={item}
+          />
+        </View>
+      </ScaleDecorator>
+    ),
+    // biome-ignore lint/correctness/useExhaustiveDependencies: stable callbacks
+    [handleDelete, handleToggle]
+  );
+
+  const listHeader = (
+    <>
+      <View className="gap-1 px-7 pt-8">
+        <Text
+          className="text-[11px] text-secondary uppercase tracking-[3px]"
+          style={{ fontFamily: "IBMPlexMono_400Regular" }}
+        >
+          Now Playing
+        </Text>
+        <Text
+          className="text-[34px] text-foreground -tracking-[0.5px]"
+          style={{ fontFamily: "Fraunces_800ExtraBold" }}
+        >
+          My Rhythms
+        </Text>
+      </View>
+      <View className="items-center gap-5 pt-7 pb-6">
+        <VuMeter active={activeRhythms.length > 0} />
+        <View className="items-center gap-1">
           <Text
-            className="text-[11px] text-secondary uppercase tracking-[3px]"
+            className="text-[40px] text-foreground tracking-[4px]"
+            style={{ fontFamily: "IBMPlexMono_500Medium" }}
+          >
+            {nextAlarm}
+          </Text>
+          <Text
+            className="text-[10px] text-secondary uppercase tracking-[2px]"
             style={{ fontFamily: "IBMPlexMono_400Regular" }}
           >
-            Now Playing
-          </Text>
-          <Text
-            className="text-[34px] text-foreground -tracking-[0.5px]"
-            style={{ fontFamily: "Fraunces_800ExtraBold" }}
-          >
-            My Rhythms
+            Next alarm
           </Text>
         </View>
+      </View>
+    </>
+  );
 
-        {/* VU Meter + Countdown */}
-        <View className="items-center gap-5 pt-7 pb-6">
-          <VuMeter active={activeRhythms.length > 0} />
-          <View className="items-center gap-1">
-            <Text
-              className="text-[40px] text-foreground tracking-[4px]"
-              style={{ fontFamily: "IBMPlexMono_500Medium" }}
-            >
-              {nextAlarm}
-            </Text>
-            <Text
-              className="text-[10px] text-secondary uppercase tracking-[2px]"
-              style={{ fontFamily: "IBMPlexMono_400Regular" }}
-            >
-              Next alarm
-            </Text>
-          </View>
-        </View>
+  const listEmpty = (
+    <View className="items-center gap-3 px-7 py-12">
+      <Text
+        className="text-base text-secondary"
+        style={{ fontFamily: "Fraunces_400Regular" }}
+      >
+        No rhythms yet
+      </Text>
+      <Text
+        className="text-[11px] text-muted uppercase tracking-[1px]"
+        style={{ fontFamily: "IBMPlexMono_400Regular" }}
+      >
+        Tap + to create your first rhythm
+      </Text>
+    </View>
+  );
 
-        {/* Rhythm Cards */}
-        <View className="px-7">
-          {rhythms.length === 0 ? (
-            <View className="items-center gap-3 py-12">
-              <Text
-                className="text-base text-secondary"
-                style={{ fontFamily: "Fraunces_400Regular" }}
-              >
-                No rhythms yet
-              </Text>
-              <Text
-                className="text-[11px] text-muted uppercase tracking-[1px]"
-                style={{ fontFamily: "IBMPlexMono_400Regular" }}
-              >
-                Tap + to create your first rhythm
-              </Text>
-            </View>
-          ) : (
-            rhythms.map((rhythm) => (
-              <RhythmCard
-                key={rhythm.id}
-                onDelete={handleDelete}
-                onPress={() => editSheetRef.current?.open(rhythm)}
-                onToggle={handleToggle}
-                rhythm={rhythm}
-              />
-            ))
-          )}
-        </View>
-      </ScrollView>
+  return (
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <DraggableFlatList
+        contentContainerStyle={{ paddingBottom: 80 }}
+        data={rhythms}
+        keyExtractor={(item) => item.id}
+        ListEmptyComponent={listEmpty}
+        ListHeaderComponent={listHeader}
+        onDragEnd={handleDragEnd}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+      />
 
-      {/* FAB */}
       <Pressable
         className="absolute right-7 bottom-4 h-14 w-14 items-center justify-center rounded-full bg-accent"
         onPress={handleOpenCreate}

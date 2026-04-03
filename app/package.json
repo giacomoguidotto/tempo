@@ -20,6 +20,7 @@
     "@gorhom/bottom-sheet": "^5.1.4",
     "@notifee/react-native": "^9.1.8",
     "drizzle-orm": "^0.45.2",
+    "react-native-draggable-flatlist": "^4.0.3",
     "expo": "~55.0.9",
     "expo-font": "~55.0.4",
     "expo-linking": "~55.0.9",

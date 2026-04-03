@@ -22,6 +22,14 @@ export function runMigrations() {
         updated_at TEXT NOT NULL
       );
     `);
+    // v2: add sort_order column (ignore if exists)
+    try {
+      db.execSync(
+        "ALTER TABLE rhythms ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;"
+      );
+    } catch {
+      // column already exists
+    }
     migrated = true;
   } catch {
     // Native module not ready yet (hot reload) — will retry on next render

@@ -11,6 +11,7 @@ export const rhythms = sqliteTable("rhythms", {
     enum: ["whisper", "nudge", "pulse", "call"],
   }).notNull(),
   enabled: integer("enabled", { mode: "boolean" }).notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

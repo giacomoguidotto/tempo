@@ -1,10 +1,10 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { rhythms } from "@/lib/schema";
 import type { CreateRhythm, Rhythm } from "./schemas";
 
 export function getAllRhythms(): Rhythm[] {
-  const rows = db.select().from(rhythms).all();
+  const rows = db.select().from(rhythms).orderBy(asc(rhythms.sortOrder)).all();
   return rows.map(deserialize);
 }
 
@@ -16,6 +16,7 @@ export function getRhythm(id: string): Rhythm | undefined {
 export function createRhythm(input: CreateRhythm): Rhythm {
   const now = new Date().toISOString();
   const id = uid();
+  const count = db.select().from(rhythms).all().length;
   const row = {
     id,
     name: input.name,
@@ -25,6 +26,7 @@ export function createRhythm(input: CreateRhythm): Rhythm {
     intervalMinutes: input.intervalMinutes,
     intensity: input.intensity,
     enabled: input.enabled,
+    sortOrder: count,
     createdAt: now,
     updatedAt: now,
   };
@@ -73,6 +75,15 @@ export function toggleRhythm(id: string, enabled: boolean): void {
 
 export function deleteRhythm(id: string): void {
   db.delete(rhythms).where(eq(rhythms.id, id)).run();
+}
+
+export function reorderRhythms(orderedIds: string[]): void {
+  for (let i = 0; i < orderedIds.length; i++) {
+    db.update(rhythms)
+      .set({ sortOrder: i })
+      .where(eq(rhythms.id, orderedIds[i]))
+      .run();
+  }
 }
 
 function uid(): string {
