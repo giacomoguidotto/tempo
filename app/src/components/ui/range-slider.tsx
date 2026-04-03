@@ -8,6 +8,8 @@ const HIT_SLOP = 12;
 interface RangeSliderProps {
   max: number;
   min: number;
+  onDragEnd?: () => void;
+  onDragStart?: () => void;
   onValuesChange: (low: number, high: number) => void;
   step: number;
   valueHigh: number;
@@ -18,6 +20,8 @@ export function RangeSlider({
   min,
   max,
   step,
+  onDragStart,
+  onDragEnd,
   valueLow,
   valueHigh,
   onValuesChange,
@@ -75,9 +79,15 @@ export function RangeSlider({
     <View
       onLayout={measure}
       onMoveShouldSetResponder={() => true}
-      onResponderGrant={handleGrant}
+      onResponderGrant={(e) => {
+        handleGrant(e);
+        onDragStart?.();
+      }}
       onResponderMove={handleMove}
-      onResponderRelease={() => setDragging(null)}
+      onResponderRelease={() => {
+        setDragging(null);
+        onDragEnd?.();
+      }}
       onResponderTerminationRequest={() => false}
       onStartShouldSetResponder={() => true}
       ref={viewRef}

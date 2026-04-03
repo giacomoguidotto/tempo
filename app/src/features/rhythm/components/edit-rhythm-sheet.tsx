@@ -74,6 +74,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   const insets = useSafeAreaInsets();
   const setRhythms = useSetAtom(rhythmsAtom);
   const sheetRef = useRef<BottomSheetModal>(null);
+  const [sliderActive, setSliderActive] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -176,8 +177,10 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
     <BottomSheetModal
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: "#1A1714" }}
+      enableContentPanningGesture={!sliderActive}
       enableDynamicSizing={false}
-      enablePanDownToClose
+      enableHandlePanningGesture={!sliderActive}
+      enablePanDownToClose={!sliderActive}
       handleIndicatorStyle={{ backgroundColor: "#3D352E", width: 40 }}
       ref={sheetRef}
       snapPoints={["90%"]}
@@ -284,6 +287,8 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
           <RangeSlider
             max={1440}
             min={0}
+            onDragEnd={() => setSliderActive(false)}
+            onDragStart={() => setSliderActive(true)}
             onValuesChange={handleTimeRangeChange}
             step={60}
             valueHigh={timeToMinutes(endTime)}
@@ -343,6 +348,8 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
           <Slider
             max={120}
             min={1}
+            onDragEnd={() => setSliderActive(false)}
+            onDragStart={() => setSliderActive(true)}
             onValueChange={setInterval}
             snapPoints={INTERVAL_PRESETS}
             value={interval}

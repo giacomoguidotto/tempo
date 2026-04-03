@@ -8,6 +8,8 @@ const HIT_SLOP = 12;
 interface SliderProps {
   max: number;
   min: number;
+  onDragEnd?: () => void;
+  onDragStart?: () => void;
   onValueChange: (value: number) => void;
   snapPoints?: number[];
   value: number;
@@ -18,6 +20,8 @@ export function Slider({
   max,
   value,
   snapPoints,
+  onDragStart,
+  onDragEnd,
   onValueChange,
 }: SliderProps) {
   const viewRef = useRef<View>(null);
@@ -65,10 +69,14 @@ export function Slider({
       onResponderGrant={(e) => {
         measure();
         setIsDragging(true);
+        onDragStart?.();
         onValueChange(valueFromEvent(e));
       }}
       onResponderMove={(e) => onValueChange(valueFromEvent(e))}
-      onResponderRelease={() => setIsDragging(false)}
+      onResponderRelease={() => {
+        setIsDragging(false);
+        onDragEnd?.();
+      }}
       onResponderTerminationRequest={() => false}
       onStartShouldSetResponder={() => true}
       ref={viewRef}
