@@ -114,15 +114,15 @@ const HOURS = Array.from({ length: 3 }, (_, i) => ({
   value: i,
 }));
 
-const MINUTES = Array.from({ length: 12 }, (_, i) => ({
-  label: String(i * 5).padStart(2, "0"),
-  value: i * 5,
+const MINUTES = Array.from({ length: 60 }, (_, i) => ({
+  label: String(i).padStart(2, "0"),
+  value: i,
 }));
 
 export function DurationPicker({ value, onChange }: DurationPickerProps) {
   const hours = Math.floor(value / 60);
   const minutes = value % 60;
-  const roundedMinutes = Math.round(minutes / 5) * 5;
+  const roundedMinutes = minutes;
 
   return (
     <View
@@ -196,7 +196,8 @@ export function DurationPickerModal({
           backgroundColor: "rgba(0, 0, 0, 0.6)",
         }}
       >
-        <Pressable
+        <View
+          onStartShouldSetResponder={() => true}
           style={{
             backgroundColor: "#1A1714",
             borderRadius: 20,
@@ -269,7 +270,7 @@ export function DurationPickerModal({
               </Text>
             </Pressable>
           </View>
-        </Pressable>
+        </View>
       </Pressable>
     </Modal>
   );
