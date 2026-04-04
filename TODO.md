@@ -83,7 +83,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 - [x] **Core alarm engine**
   - [x] Define alarm config schema (Zod): name, days, time range, interval, intensity
   - [x] Android adapter: Notifee TimestampTrigger + AlarmManager for reliable delivery
-  - [ ] Background execution — alarms fire when app is backgrounded/killed (needs testing)
+  - [x] Background execution — alarms fire when app is backgrounded/killed
   - [x] Notification channel setup (4 channels per intensity level)
   - [ ] Persistent notification showing active rhythm status
   - [ ] Platform adapter interface for alarm scheduling (deferred — Android-only for v0)

@@ -33,24 +33,6 @@ export function registerNotificationHandlers() {
       }
     }
   });
-
-  // Background events
-  notifee.onBackgroundEvent(async ({ type, detail }) => {
-    const rhythmId = detail.notification?.data?.rhythmId as string | undefined;
-
-    if (
-      type === EventType.ACTION_PRESS &&
-      detail.pressAction?.id === "dismiss" &&
-      rhythmId
-    ) {
-      await notifee.cancelNotification(detail.notification?.id ?? "");
-      await rescheduleNext(rhythmId);
-    }
-
-    if (type === EventType.PRESS && rhythmId) {
-      await rescheduleNext(rhythmId);
-    }
-  });
 }
 
 async function rescheduleNext(rhythmId: string) {
