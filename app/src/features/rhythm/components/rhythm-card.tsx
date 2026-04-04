@@ -154,7 +154,12 @@ export function RhythmCard({
                 style={{ fontFamily: "IBMPlexMono_400Regular" }}
               >
                 EVERY {rhythm.intervalMinutes} MIN ·{" "}
-                {statusLabel(rhythm.enabled, allDoneForToday, nextBeat)}
+                {statusLabel(
+                  rhythm.enabled,
+                  allDoneForToday,
+                  nextBeat,
+                  rhythm.days
+                )}
               </Text>
             </View>
             <Switch
@@ -192,21 +197,41 @@ export function RhythmCard({
   );
 }
 
+const DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+function nextActiveDay(days: number[]): string | null {
+  if (days.length === 0) {
+    return null;
+  }
+  const today = new Date().getDay();
+  for (let offset = 1; offset <= 7; offset++) {
+    const day = (today + offset) % 7;
+    if (days.includes(day)) {
+      return DAY_NAMES[day];
+    }
+  }
+  return null;
+}
+
 function statusLabel(
   enabled: boolean,
   allDone: boolean,
-  nextBeat: string | null
+  nextBeat: string | null,
+  days: number[]
 ): string {
   if (!enabled) {
     return "OFF";
   }
-  if (allDone) {
-    return "DONE FOR TODAY";
-  }
   if (nextBeat) {
     return `NEXT ${nextBeat}`;
   }
-  return "WAITING";
+  if (allDone) {
+    const nextDay = nextActiveDay(days);
+    return nextDay ? `DONE · NEXT ${nextDay}` : "DONE FOR TODAY";
+  }
+  // Today not in schedule
+  const nextDay = nextActiveDay(days);
+  return nextDay ? `NEXT ${nextDay}` : "OFF";
 }
 
 function computeProgress(rhythm: Rhythm): {
