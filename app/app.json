@@ -34,7 +34,8 @@
       "expo-router",
       "expo-font",
       "expo-sqlite",
-      "./plugins/with-notifee"
+      "./plugins/with-notifee",
+      "./plugins/with-alarm-activity"
     ]
   }
 }

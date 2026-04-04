@@ -71,7 +71,7 @@ export interface EditRhythmSheetHandle {
 }
 
 export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
-  _props: Record<string, never>,
+  _props: Record<string, unknown>,
   ref: Ref<EditRhythmSheetHandle>
 ) {
   const insets = useSafeAreaInsets();

@@ -1,4 +1,9 @@
-import WheelPicker from "@quidone/react-native-wheel-picker";
+import WheelPickerBase from "@quidone/react-native-wheel-picker";
+
+const WheelPicker = WheelPickerBase as React.ComponentType<
+  Record<string, unknown>
+>;
+
 import { useEffect, useState } from "react";
 import {
   Modal,
@@ -206,7 +211,9 @@ export function TimePickerModal({
           infiniteScroll
           itemHeight={44}
           itemTextStyle={ITEM_STYLE}
-          onValueChanged={({ item }) => setDraftH(item.value)}
+          onValueChanged={({ item }: { item: { value: number } }) =>
+            setDraftH(item.value)
+          }
           overlayItemStyle={OVERLAY_STYLE}
           selectedIndicatorStyle={{ backgroundColor: "transparent" }}
           value={draftH}
@@ -227,7 +234,9 @@ export function TimePickerModal({
           infiniteScroll
           itemHeight={44}
           itemTextStyle={ITEM_STYLE}
-          onValueChanged={({ item }) => setDraftM(item.value)}
+          onValueChanged={({ item }: { item: { value: number } }) =>
+            setDraftM(item.value)
+          }
           overlayItemStyle={OVERLAY_STYLE}
           selectedIndicatorStyle={{ backgroundColor: "transparent" }}
           value={draftM}
@@ -285,7 +294,9 @@ export function DurationPickerModal({
           data={HOURS_3}
           itemHeight={44}
           itemTextStyle={ITEM_STYLE}
-          onValueChanged={({ item }) => setDraftH(item.value)}
+          onValueChanged={({ item }: { item: { value: number } }) =>
+            setDraftH(item.value)
+          }
           overlayItemStyle={OVERLAY_STYLE}
           selectedIndicatorStyle={{ backgroundColor: "transparent" }}
           value={draftH}
@@ -306,7 +317,9 @@ export function DurationPickerModal({
           infiniteScroll
           itemHeight={44}
           itemTextStyle={ITEM_STYLE}
-          onValueChanged={({ item }) => setDraftM(item.value)}
+          onValueChanged={({ item }: { item: { value: number } }) =>
+            setDraftM(item.value)
+          }
           overlayItemStyle={OVERLAY_STYLE}
           selectedIndicatorStyle={{ backgroundColor: "transparent" }}
           value={draftM}

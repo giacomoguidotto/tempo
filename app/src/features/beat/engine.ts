@@ -88,7 +88,9 @@ export async function scheduleRhythm(rhythm: Rhythm): Promise<void> {
         visibility: AndroidVisibility.PUBLIC,
         smallIcon: "ic_launcher",
         pressAction: { id: "default" },
-        fullScreenAction: isFullScreen ? { id: "full-screen" } : undefined,
+        fullScreenAction: isFullScreen
+          ? { id: "full-screen", launchActivity: "default" }
+          : undefined,
         autoCancel: false,
         ongoing: rhythm.intensity === "call",
         actions: [

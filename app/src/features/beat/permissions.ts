@@ -1,4 +1,7 @@
-import notifee, { AuthorizationStatus } from "@notifee/react-native";
+import notifee, {
+  AndroidNotificationSetting,
+  AuthorizationStatus,
+} from "@notifee/react-native";
 import { Alert, Linking, Platform } from "react-native";
 
 /**
@@ -25,12 +28,22 @@ export async function requestAlarmPermissions(): Promise<boolean> {
     }
   }
 
-  // 2. Exact alarm permission (Android 12+) — only prompt if not granted
+  // 2. Exact alarm permission (Android 12+)
   if (
     Platform.OS === "android" &&
-    settings.android.alarm !== AuthorizationStatus.AUTHORIZED
+    settings.android.alarm !== AndroidNotificationSetting.ENABLED
   ) {
     await notifee.openAlarmPermissionSettings();
+  }
+
+  // 3. Full-screen intent permission (Android 14+)
+  if (Platform.OS === "android") {
+    const updated = await notifee.getNotificationSettings();
+    const fsi = (updated.android as unknown as Record<string, unknown>)
+      .fullScreenIntent;
+    if (fsi !== undefined && fsi !== AndroidNotificationSetting.ENABLED) {
+      await notifee.openNotificationSettings();
+    }
   }
 
   return true;

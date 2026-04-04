@@ -72,7 +72,7 @@ export interface CreateRhythmSheetHandle {
 }
 
 export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
-  _props: Record<string, never>,
+  _props: Record<string, unknown>,
   ref: Ref<CreateRhythmSheetHandle>
 ) {
   const insets = useSafeAreaInsets();

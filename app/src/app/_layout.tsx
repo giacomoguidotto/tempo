@@ -17,7 +17,10 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { createNotificationChannels } from "@/features/beat/channels";
-import { registerNotificationHandlers } from "@/features/beat/handler";
+import {
+  handleInitialNotification,
+  registerNotificationHandlers,
+} from "@/features/beat/handler";
 import { runMigrations } from "@/lib/migrate";
 
 preventAutoHideAsync();
@@ -35,6 +38,7 @@ export default function RootLayout() {
     runMigrations();
     createNotificationChannels();
     registerNotificationHandlers();
+    handleInitialNotification();
   }, []);
 
   useEffect(() => {

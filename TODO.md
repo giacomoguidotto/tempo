@@ -92,7 +92,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Implement 4 intensity levels (Whisper / Nudge / Pulse / Call)
   - [x] Vibration patterns per level
   - [x] Sound playback per level (respecting system sound mode)
-  - [ ] Full-screen alert activity for Pulse and Call levels (not working)
+  - [x] Full-screen alert activity for Pulse and Call levels
   - [x] Dismiss actions on notifications
   - [ ] Snooze actions on notifications — deferred to v1
 
