@@ -12,8 +12,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RangeSlider } from "@/components/ui/range-slider";
 import {
   DurationPickerModal,
@@ -97,6 +98,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     null
   );
   const [showDurationWheel, setShowDurationWheel] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useImperativeHandle(ref, () => ({
     present() {
@@ -159,18 +161,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
 
   function handleClose() {
     if (isDirty) {
-      Alert.alert("Unsaved changes", "What would you like to do?", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Discard",
-          style: "destructive",
-          onPress: () => sheetRef.current?.dismiss(),
-        },
-        {
-          text: "Save",
-          onPress: () => handleSave(),
-        },
-      ]);
+      setShowConfirm(true);
     } else {
       sheetRef.current?.dismiss();
     }
@@ -477,6 +468,35 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         onConfirm={setInterval}
         value={interval}
         visible={showDurationWheel}
+      />
+
+      <ConfirmDialog
+        actions={[
+          {
+            label: "Cancel",
+            onPress: () => setShowConfirm(false),
+          },
+          {
+            label: "Discard",
+            style: "destructive",
+            onPress: () => {
+              setShowConfirm(false);
+              sheetRef.current?.dismiss();
+            },
+          },
+          {
+            label: "Save",
+            style: "accent",
+            onPress: () => {
+              setShowConfirm(false);
+              handleSave();
+            },
+          },
+        ]}
+        message="What would you like to do?"
+        onClose={() => setShowConfirm(false)}
+        title="Unsaved changes"
+        visible={showConfirm}
       />
     </BottomSheetModal>
   );
