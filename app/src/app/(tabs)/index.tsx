@@ -43,11 +43,20 @@ export default function RhythmsScreen() {
     }
   }, [setRhythms]);
 
-  // Re-render every 30s so countdown and progress bars stay current
+  // Re-render at the top of every minute so UI stays in sync with the clock
   const [, setTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 30_000);
-    return () => clearInterval(id);
+    const msToNextMinute =
+      (60 - new Date().getSeconds()) * 1000 - new Date().getMilliseconds();
+    let intervalId: ReturnType<typeof setInterval>;
+    const timeoutId = setTimeout(() => {
+      setTick((t) => t + 1);
+      intervalId = setInterval(() => setTick((t) => t + 1), 60_000);
+    }, msToNextMinute);
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
   }, []);
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
