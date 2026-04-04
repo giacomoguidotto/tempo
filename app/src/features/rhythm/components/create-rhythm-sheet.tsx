@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RangeSlider } from "@/components/ui/range-slider";
 import {
@@ -77,6 +77,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const insets = useSafeAreaInsets();
   const setRhythms = useSetAtom(rhythmsAtom);
   const sheetRef = useRef<BottomSheetModal>(null);
+  const initialNameRef = useRef("");
   const [sliderActive, setSliderActive] = useState(false);
 
   const [name, setName] = useState("");
@@ -125,12 +126,35 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
 
   function resetForm() {
     const next = randomPreset();
+    initialNameRef.current = next.name;
     setName(next.name);
     setSelectedDays(next.days);
     setStartTime(next.startTime);
     setEndTime(next.endTime);
     setInterval(next.intervalMinutes);
     setIntensity(next.intensity);
+  }
+
+  const isDirty =
+    name !== initialNameRef.current || name.trim() !== initialNameRef.current;
+
+  function handleClose() {
+    if (isDirty && name.trim().length > 0) {
+      Alert.alert("Unsaved changes", "What would you like to do?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Discard",
+          style: "destructive",
+          onPress: () => sheetRef.current?.dismiss(),
+        },
+        {
+          text: "Save",
+          onPress: () => handleSave(),
+        },
+      ]);
+    } else {
+      sheetRef.current?.dismiss();
+    }
   }
 
   function toggleDay(day: number) {
@@ -152,6 +176,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         appearsOnIndex={0}
         disappearsOnIndex={-1}
         opacity={0.6}
+        pressBehavior="none"
       />
     ),
     []
@@ -163,9 +188,23 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       backgroundStyle={{ backgroundColor: "#1A1714" }}
       enableContentPanningGesture={!sliderActive}
       enableDynamicSizing={false}
-      enableHandlePanningGesture={!sliderActive}
-      enablePanDownToClose={!sliderActive}
-      handleIndicatorStyle={{ backgroundColor: "#3D352E", width: 40 }}
+      enableHandlePanningGesture={false}
+      enablePanDownToClose={false}
+      handleComponent={() => (
+        <Pressable
+          onPress={handleClose}
+          style={{ alignItems: "center", paddingVertical: 12 }}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: "#3D352E",
+            }}
+          />
+        </Pressable>
+      )}
       ref={sheetRef}
       snapPoints={["90%"]}
     >

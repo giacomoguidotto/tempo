@@ -13,7 +13,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RangeSlider } from "@/components/ui/range-slider";
 import {
@@ -76,6 +76,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   const insets = useSafeAreaInsets();
   const setRhythms = useSetAtom(rhythmsAtom);
   const sheetRef = useRef<BottomSheetModal>(null);
+  const originalRef = useRef<Rhythm | null>(null);
   const [sliderActive, setSliderActive] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -92,6 +93,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
 
   useImperativeHandle(ref, () => ({
     open(rhythm: Rhythm) {
+      originalRef.current = rhythm;
       setEditingId(rhythm.id);
       setName(rhythm.name);
       setSelectedDays(rhythm.days);
@@ -141,6 +143,32 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
     );
   }
 
+  const isDirty =
+    originalRef.current !== null &&
+    (name !== originalRef.current.name ||
+      interval !== originalRef.current.intervalMinutes ||
+      startTime !== originalRef.current.startTime ||
+      endTime !== originalRef.current.endTime ||
+      intensity !== originalRef.current.intensity ||
+      JSON.stringify(selectedDays) !==
+        JSON.stringify(originalRef.current.days));
+
+  function handleClose() {
+    if (isDirty) {
+      Alert.alert("Unsaved changes", "What would you like to do?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Discard",
+          style: "destructive",
+          onPress: () => sheetRef.current?.dismiss(),
+        },
+        { text: "Save", onPress: () => handleSave() },
+      ]);
+    } else {
+      sheetRef.current?.dismiss();
+    }
+  }
+
   function handleTimeRangeChange(low: number, high: number) {
     setStartTime(minutesToTime(low));
     setEndTime(minutesToTime(high));
@@ -154,6 +182,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         appearsOnIndex={0}
         disappearsOnIndex={-1}
         opacity={0.6}
+        pressBehavior="none"
       />
     ),
     []
@@ -165,9 +194,23 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       backgroundStyle={{ backgroundColor: "#1A1714" }}
       enableContentPanningGesture={!sliderActive}
       enableDynamicSizing={false}
-      enableHandlePanningGesture={!sliderActive}
-      enablePanDownToClose={!sliderActive}
-      handleIndicatorStyle={{ backgroundColor: "#3D352E", width: 40 }}
+      enableHandlePanningGesture={false}
+      enablePanDownToClose={false}
+      handleComponent={() => (
+        <Pressable
+          onPress={handleClose}
+          style={{ alignItems: "center", paddingVertical: 12 }}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: "#3D352E",
+            }}
+          />
+        </Pressable>
+      )}
       ref={sheetRef}
       snapPoints={["90%"]}
     >
