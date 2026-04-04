@@ -77,7 +77,14 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const insets = useSafeAreaInsets();
   const setRhythms = useSetAtom(rhythmsAtom);
   const sheetRef = useRef<BottomSheetModal>(null);
-  const initialNameRef = useRef("");
+  const initialRef = useRef({
+    name: "",
+    days: "",
+    startTime: "",
+    endTime: "",
+    interval: 0,
+    intensity: "",
+  });
   const [sliderActive, setSliderActive] = useState(false);
 
   const [name, setName] = useState("");
@@ -126,7 +133,14 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
 
   function resetForm() {
     const next = randomPreset();
-    initialNameRef.current = next.name;
+    initialRef.current = {
+      name: next.name,
+      days: JSON.stringify(next.days),
+      startTime: next.startTime,
+      endTime: next.endTime,
+      interval: next.intervalMinutes,
+      intensity: next.intensity,
+    };
     setName(next.name);
     setSelectedDays(next.days);
     setStartTime(next.startTime);
@@ -136,10 +150,15 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   }
 
   const isDirty =
-    name !== initialNameRef.current || name.trim() !== initialNameRef.current;
+    name !== initialRef.current.name ||
+    JSON.stringify(selectedDays) !== initialRef.current.days ||
+    startTime !== initialRef.current.startTime ||
+    endTime !== initialRef.current.endTime ||
+    interval !== initialRef.current.interval ||
+    intensity !== initialRef.current.intensity;
 
   function handleClose() {
-    if (isDirty && name.trim().length > 0) {
+    if (isDirty) {
       Alert.alert("Unsaved changes", "What would you like to do?", [
         { text: "Cancel", style: "cancel" },
         {
@@ -176,10 +195,10 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         appearsOnIndex={0}
         disappearsOnIndex={-1}
         opacity={0.6}
-        pressBehavior="none"
+        pressBehavior={isDirty ? "none" : "close"}
       />
     ),
-    []
+    [isDirty]
   );
 
   return (
@@ -188,8 +207,8 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       backgroundStyle={{ backgroundColor: "#1A1714" }}
       enableContentPanningGesture={!sliderActive}
       enableDynamicSizing={false}
-      enableHandlePanningGesture={false}
-      enablePanDownToClose={false}
+      enableHandlePanningGesture={!(isDirty || sliderActive)}
+      enablePanDownToClose={!isDirty}
       handleComponent={() => (
         <Pressable
           onPress={handleClose}

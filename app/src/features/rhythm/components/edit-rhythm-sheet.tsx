@@ -182,10 +182,10 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         appearsOnIndex={0}
         disappearsOnIndex={-1}
         opacity={0.6}
-        pressBehavior="none"
+        pressBehavior={isDirty ? "none" : "close"}
       />
     ),
-    []
+    [isDirty]
   );
 
   return (
@@ -194,8 +194,8 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       backgroundStyle={{ backgroundColor: "#1A1714" }}
       enableContentPanningGesture={!sliderActive}
       enableDynamicSizing={false}
-      enableHandlePanningGesture={false}
-      enablePanDownToClose={false}
+      enableHandlePanningGesture={!(isDirty || sliderActive)}
+      enablePanDownToClose={!isDirty}
       handleComponent={() => (
         <Pressable
           onPress={handleClose}
