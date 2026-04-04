@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import DraggableFlatList, {
   type RenderItemParams,
@@ -42,6 +42,13 @@ export default function RhythmsScreen() {
       scheduleRhythm(r);
     }
   }, [setRhythms]);
+
+  // Re-render every 30s so countdown and progress bars stay current
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
   const nextAlarm = computeNextAlarm(activeRhythms);
