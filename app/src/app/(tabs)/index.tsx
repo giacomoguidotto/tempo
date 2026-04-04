@@ -102,6 +102,8 @@ export default function RhythmsScreen() {
     [handleDelete, handleToggle]
   );
 
+  const hasRhythms = rhythms.length > 0;
+
   const listHeader = (
     <>
       <View className="gap-1 px-7 pt-8">
@@ -118,28 +120,36 @@ export default function RhythmsScreen() {
           My Rhythms
         </Text>
       </View>
-      <View className="items-center gap-5 pt-7 pb-6">
-        <VuMeter active={activeRhythms.length > 0} moving={hasUpcomingAlarms} />
-        <View className="items-center gap-1">
-          <Text
-            className="text-[40px] text-foreground tracking-[4px]"
-            style={{ fontFamily: "IBMPlexMono_500Medium" }}
-          >
-            {nextAlarm}
-          </Text>
-          <Text
-            className="text-[10px] text-secondary uppercase tracking-[2px]"
-            style={{ fontFamily: "IBMPlexMono_400Regular" }}
-          >
-            Next alarm
-          </Text>
+      {hasRhythms && (
+        <View className="items-center gap-5 pt-7 pb-6">
+          <VuMeter
+            active={activeRhythms.length > 0}
+            moving={hasUpcomingAlarms}
+          />
+          <View className="items-center gap-1">
+            <Text
+              className="text-[40px] text-foreground tracking-[4px]"
+              style={{ fontFamily: "IBMPlexMono_500Medium" }}
+            >
+              {nextAlarm}
+            </Text>
+            <Text
+              className="text-[10px] text-secondary uppercase tracking-[2px]"
+              style={{ fontFamily: "IBMPlexMono_400Regular" }}
+            >
+              Next alarm
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
     </>
   );
 
   const listEmpty = (
-    <View className="items-center gap-3 px-7 py-12">
+    <View
+      className="flex-1 items-center justify-center px-7"
+      style={{ paddingTop: 120 }}
+    >
       <Text
         className="text-base text-secondary"
         style={{ fontFamily: "Fraunces_400Regular" }}
@@ -147,7 +157,7 @@ export default function RhythmsScreen() {
         No rhythms yet
       </Text>
       <Text
-        className="text-[11px] text-muted uppercase tracking-[1px]"
+        className="mt-2 text-[11px] text-muted uppercase tracking-[1px]"
         style={{ fontFamily: "IBMPlexMono_400Regular" }}
       >
         Tap + to create your first rhythm
