@@ -68,73 +68,81 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 > Goal: A beautiful, ad-free alarm app that reliably fires repeating alarms.
 > You still log in your spreadsheet. But the alarm works perfectly.
 
-- [ ] **Project bootstrap**
-  - [ ] Initialize monorepo (Bun workspaces + Turborepo)
-  - [ ] Scaffold Expo app in `app/`
-  - [ ] Scaffold Next.js marketing site in `site/`
-  - [ ] Create `pkgs/config` (shared biome, tsconfig base, brand tokens)
-  - [ ] Configure Biome + Ultracite at root
-  - [ ] Configure Husky pre-commit hook
-  - [ ] Configure Renovate
-  - [ ] Configure GitHub Actions CI
-  - [ ] Set up turbo.json pipelines (lint, typecheck, test, build)
-  - [ ] Initialize git repo + first commit
+- [x] **Project bootstrap**
+  - [x] Initialize monorepo (Bun workspaces + Turborepo)
+  - [x] Scaffold Expo app in `app/`
+  - [x] Scaffold Next.js marketing site in `site/` (placeholder .gitkeep)
+  - [ ] Create `pkgs/config` (shared biome, tsconfig base, brand tokens) — deferred, flat monorepo for now
+  - [x] Configure Biome + Ultracite at root
+  - [x] Configure Husky pre-commit hook
+  - [x] Configure Renovate
+  - [x] Configure GitHub Actions CI
+  - [x] Set up turbo.json pipelines (lint, typecheck, test, build)
+  - [x] Initialize git repo + first commit
 
-- [ ] **Core alarm engine**
-  - [ ] Define alarm config schema (Zod): name, days, time range, interval, intensity
-  - [ ] Platform adapter interface for alarm scheduling
-  - [ ] Android adapter: AlarmManager + foreground service for reliable delivery
-  - [ ] Background execution — alarms fire when app is backgrounded/killed
-  - [ ] Notification channel setup (Android 8+ requirement)
+- [x] **Core alarm engine**
+  - [x] Define alarm config schema (Zod): name, days, time range, interval, intensity
+  - [x] Android adapter: Notifee TimestampTrigger + AlarmManager for reliable delivery
+  - [ ] Background execution — alarms fire when app is backgrounded/killed (needs testing)
+  - [x] Notification channel setup (4 channels per intensity level)
   - [ ] Persistent notification showing active rhythm status
+  - [ ] Platform adapter interface for alarm scheduling (deferred — Android-only for v0)
 
-- [ ] **Alert system**
-  - [ ] Implement 4 intensity levels (Whisper / Nudge / Pulse / Call)
-  - [ ] Vibration patterns per level
-  - [ ] Sound playback per level (respecting system sound mode)
-  - [ ] Full-screen alert activity for Pulse and Call levels
-  - [ ] Dismiss / snooze actions on notifications
+- [x] **Alert system**
+  - [x] Implement 4 intensity levels (Whisper / Nudge / Pulse / Call)
+  - [x] Vibration patterns per level
+  - [x] Sound playback per level (respecting system sound mode)
+  - [ ] Full-screen alert activity for Pulse and Call levels (not working)
+  - [x] Dismiss actions on notifications
+  - [ ] Snooze actions on notifications — deferred to v1
 
-- [ ] **Data layer**
-  - [ ] MMKV setup for user preferences (default intensity, theme, etc.)
-  - [ ] expo-sqlite setup for rhythm storage
-  - [ ] CRUD operations for rhythms
+- [x] **Data layer**
+  - [x] MMKV setup for user preferences
+  - [x] expo-sqlite setup for rhythm storage (Drizzle ORM)
+  - [x] CRUD operations for rhythms (create, read, update, delete, toggle, reorder)
 
-- [ ] **UI — Home screen**
-  - [ ] List of saved rhythms with on/off toggle
-  - [ ] Active rhythm status (next beat countdown)
-  - [ ] FAB or primary action to create new rhythm
-  - [ ] Empty state for first-time users
+- [x] **UI — Home screen**
+  - [x] List of saved rhythms with on/off toggle
+  - [x] Active rhythm status (next beat countdown, live-updating every minute)
+  - [x] FAB to create new rhythm
+  - [x] Empty state for first-time users (hero hidden, centered message)
+  - [x] Swipe-to-delete with animated collapse
+  - [x] Long-press drag to reorder
+  - [x] Progress bar with proportional ticks + in-progress gradient
+  - [x] VU meter hero animation (conveyor belt, frame-driven, decelerate/accelerate)
 
-- [ ] **UI — Create/Edit rhythm screen**
-  - [ ] Name input
-  - [ ] Day selector (S M T W T F S)
-  - [ ] Time range picker (from / until)
-  - [ ] Interval selector
-  - [ ] Intensity picker (Whisper / Nudge / Pulse / Call)
-  - [ ] Preview: list of upcoming beats
-  - [ ] Save / delete actions
+- [x] **UI — Create/Edit rhythm screen**
+  - [x] Name input (pre-filled with random preset)
+  - [x] Day selector (S M T W T F S, justified)
+  - [x] Time range picker (dual-handle slider + tappable time labels → wheel picker modal)
+  - [x] Interval selector (preset chips + tappable label → wheel picker modal)
+  - [x] Intensity picker (Whisper / Nudge / Pulse / Call) with descriptions
+  - [ ] Preview: list of upcoming beats — deferred
+  - [x] Save / delete actions
+  - [x] Bottom sheet drawer with swipe-to-dismiss (locked when dirty)
+  - [x] Unsaved changes confirmation dialog (branded)
+  - [x] Random presets for new rhythm inspiration
 
-- [ ] **UI — Settings screen**
+- [ ] **UI — Settings screen** — deferred (theme is system-controlled)
   - [ ] Default intensity level
   - [ ] Theme (dark/light/system)
   - [ ] About / version info
 
-- [ ] **UI — Design system**
-  - [ ] NativeWind setup + brand color tokens
-  - [ ] Typography scale
-  - [ ] Core components (Button, Card, Input, Toggle, Picker)
-  - [ ] One signature animation (subtle metronome/pendulum on active rhythm)
-  - [ ] App icon + splash screen
+- [x] **UI — Design system**
+  - [x] NativeWind v5 setup + Warm Analog brand color tokens (dark + light)
+  - [x] Typography: Fraunces (display) + IBM Plex Mono (mono)
+  - [x] Core components (RangeSlider, Slider, WheelPicker, ConfirmDialog, RhythmCard)
+  - [x] Signature animation (VU meter with color shift + deceleration)
+  - [ ] App icon + splash screen — placeholder PNGs, custom icon pending
 
-- [ ] **Permissions**
-  - [ ] SCHEDULE_EXACT_ALARM (Android 12+)
-  - [ ] POST_NOTIFICATIONS (Android 13+)
-  - [ ] FOREGROUND_SERVICE
-  - [ ] WAKE_LOCK
-  - [ ] REQUEST_IGNORE_BATTERY_OPTIMIZATIONS (to survive Doze mode)
-  - [ ] USE_FULL_SCREEN_INTENT (for Pulse/Call levels)
-  - [ ] Permission request flow on first launch
+- [x] **Permissions**
+  - [x] SCHEDULE_EXACT_ALARM (Android 12+)
+  - [x] POST_NOTIFICATIONS (Android 13+)
+  - [x] FOREGROUND_SERVICE
+  - [x] WAKE_LOCK
+  - [ ] REQUEST_IGNORE_BATTERY_OPTIMIZATIONS — removed (opens system settings on every toggle on emulator)
+  - [x] USE_FULL_SCREEN_INTENT (for Pulse/Call levels)
+  - [x] Permission request flow (on first toggle/create, only when not granted)
 
 - [ ] **Testing**
   - [ ] Unit tests for alarm scheduling logic (pure functions)
