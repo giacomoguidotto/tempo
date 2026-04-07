@@ -17,11 +17,13 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RangeSlider } from "@/components/ui/range-slider";
+import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import {
   DurationPickerModal,
   TimePickerModal,
 } from "@/components/ui/wheel-picker";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
+import { requestAlarmPermissions } from "@/features/beat/permissions";
 import { deleteRhythm, getAllRhythms, updateRhythm } from "../operations";
 import type { IntensityLevel, Rhythm } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
@@ -47,11 +49,6 @@ const INTENSITIES: {
     value: "pulse",
     label: "Pulse",
     description: "Takes over your screen — hard to miss, hard to ignore",
-  },
-  {
-    value: "call",
-    label: "Call",
-    description: "Won't stop until you deal with it — for when it matters",
   },
 ];
 
@@ -92,6 +89,8 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   );
   const [showDurationWheel, setShowDurationWheel] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const { confirm: presentPermissionPrompt, dialog: permissionDialog } =
+    useConfirmDialog();
 
   useImperativeHandle(ref, () => ({
     open(rhythm: Rhythm) {
@@ -110,7 +109,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   const canSave = name.trim().length > 0 && selectedDays.length > 0;
   const selectedIntensity = INTENSITIES.find((i) => i.value === intensity);
 
-  function handleSave() {
+  async function handleSave() {
     if (!(canSave && editingId)) {
       return;
     }
@@ -123,6 +122,16 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       intensity,
     });
     if (updated) {
+      if (updated.enabled) {
+        const granted = await requestAlarmPermissions({
+          presentPrompt: presentPermissionPrompt,
+          requireFullScreen:
+            updated.intensity === "pulse" || updated.intensity === "call",
+        });
+        if (!granted) {
+          return;
+        }
+      }
       scheduleRhythm(updated);
     }
     setRhythms(getAllRhythms());
@@ -465,6 +474,8 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         value={interval}
         visible={showDurationWheel}
       />
+
+      {permissionDialog}
 
       <ConfirmDialog
         actions={[

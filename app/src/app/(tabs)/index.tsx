@@ -7,6 +7,7 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
 import {
@@ -33,6 +34,8 @@ export default function RhythmsScreen() {
   const [rhythms, setRhythms] = useAtom(rhythmsAtom);
   const createSheetRef = useRef<CreateRhythmSheetHandle>(null);
   const editSheetRef = useRef<EditRhythmSheetHandle>(null);
+  const { confirm: presentPermissionPrompt, dialog: permissionDialog } =
+    useConfirmDialog();
 
   useEffect(() => {
     const loaded = getAllRhythms();
@@ -64,8 +67,15 @@ export default function RhythmsScreen() {
   const hasUpcomingAlarms = nextAlarm !== "--:--";
 
   async function handleToggle(id: string, enabled: boolean) {
+    const currentRhythm = rhythms.find((r) => r.id === id);
+
     if (enabled) {
-      const granted = await requestAlarmPermissions();
+      const granted = await requestAlarmPermissions({
+        presentPrompt: presentPermissionPrompt,
+        requireFullScreen:
+          currentRhythm?.intensity === "pulse" ||
+          currentRhythm?.intensity === "call",
+      });
       if (!granted) {
         return;
       }
@@ -210,6 +220,7 @@ export default function RhythmsScreen() {
 
       <CreateRhythmSheet ref={createSheetRef} />
       <EditRhythmSheet ref={editSheetRef} />
+      {permissionDialog}
     </View>
   );
 }

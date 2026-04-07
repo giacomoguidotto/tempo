@@ -16,6 +16,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RangeSlider } from "@/components/ui/range-slider";
+import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import {
   DurationPickerModal,
   TimePickerModal,
@@ -48,11 +49,6 @@ const INTENSITIES: {
     value: "pulse",
     label: "Pulse",
     description: "Takes over your screen — hard to miss, hard to ignore",
-  },
-  {
-    value: "call",
-    label: "Call",
-    description: "Won't stop until you deal with it — for when it matters",
   },
 ];
 
@@ -99,6 +95,8 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   );
   const [showDurationWheel, setShowDurationWheel] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const { confirm: presentPermissionPrompt, dialog: permissionDialog } =
+    useConfirmDialog();
 
   useImperativeHandle(ref, () => ({
     present() {
@@ -114,7 +112,10 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     if (!canSave) {
       return;
     }
-    const granted = await requestAlarmPermissions();
+    const granted = await requestAlarmPermissions({
+      presentPrompt: presentPermissionPrompt,
+      requireFullScreen: intensity === "pulse" || intensity === "call",
+    });
     if (!granted) {
       return;
     }
@@ -469,6 +470,8 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         value={interval}
         visible={showDurationWheel}
       />
+
+      {permissionDialog}
 
       <ConfirmDialog
         actions={[
