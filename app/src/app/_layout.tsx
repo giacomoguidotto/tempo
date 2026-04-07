@@ -11,10 +11,10 @@ import {
 } from "@expo-google-fonts/ibm-plex-mono";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRootNavigationState } from "expo-router";
 import { hideAsync, preventAutoHideAsync } from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { createNotificationChannels } from "@/features/beat/channels";
 import {
@@ -33,13 +33,27 @@ export default function RootLayout() {
     IBMPlexMono_400Regular,
     IBMPlexMono_500Medium,
   });
+  const rootNavigationState = useRootNavigationState();
+  const initialNotificationHandledRef = useRef(false);
 
   useEffect(() => {
     runMigrations();
     createNotificationChannels();
     registerNotificationHandlers();
-    handleInitialNotification();
   }, []);
+
+  useEffect(() => {
+    if (!(fontsLoaded && rootNavigationState?.key)) {
+      return;
+    }
+
+    if (initialNotificationHandledRef.current) {
+      return;
+    }
+
+    initialNotificationHandledRef.current = true;
+    handleInitialNotification();
+  }, [fontsLoaded, rootNavigationState?.key]);
 
   useEffect(() => {
     if (fontsLoaded) {
