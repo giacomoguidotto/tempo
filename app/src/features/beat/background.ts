@@ -1,4 +1,6 @@
 import notifee, { EventType } from "@notifee/react-native";
+import { getAlarmDebugPayload, logAlarmEvent } from "./debug";
+import { supersedeOlderNotifications, topOffRhythmSchedule } from "./runtime";
 
 /**
  * Register background event handler for Notifee.
@@ -7,20 +9,44 @@ import notifee, { EventType } from "@notifee/react-native";
 export function registerBackgroundHandler() {
   notifee.onBackgroundEvent(async ({ type, detail }) => {
     const rhythmId = detail.notification?.data?.rhythmId as string | undefined;
+    const payload = getAlarmDebugPayload(detail.notification, "background");
+
+    if (type === EventType.DELIVERED && rhythmId) {
+      logAlarmEvent("delivered", payload);
+      await supersedeOlderNotifications(
+        rhythmId,
+        detail.notification?.id,
+        "background-supersede"
+      );
+      await topOffRhythmSchedule(rhythmId, "background-delivered");
+      return;
+    }
 
     if (
       type === EventType.ACTION_PRESS &&
-      detail.pressAction?.id === "dismiss" &&
-      rhythmId
+      detail.pressAction?.id === "dismiss"
     ) {
+      logAlarmEvent("dismissed", {
+        ...payload,
+        source: "background-action-dismiss",
+      });
       await notifee.cancelNotification(detail.notification?.id ?? "");
-      // Can't reschedule here reliably — the DB may not be initialized.
-      // The app will reschedule all rhythms on next mount.
+      return;
     }
 
-    if (type === EventType.PRESS && rhythmId) {
-      // App will open — foreground handler takes over
-      await notifee.cancelNotification(detail.notification?.id ?? "");
+    if (type === EventType.DISMISSED) {
+      logAlarmEvent("dismissed", {
+        ...payload,
+        source: "background-swipe",
+      });
+      return;
+    }
+
+    if (type === EventType.PRESS) {
+      logAlarmEvent("opened", {
+        ...payload,
+        source: "background-press",
+      });
     }
   });
 }

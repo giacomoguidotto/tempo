@@ -1,7 +1,6 @@
 import notifee, { EventType } from "@notifee/react-native";
-import { router } from "expo-router";
-import { getRhythm } from "@/features/rhythm/operations";
-import { scheduleRhythm } from "./engine";
+import { getAlarmDebugPayload, logAlarmEvent } from "./debug";
+import { supersedeOlderNotifications, topOffRhythmSchedule } from "./runtime";
 
 /**
  * Register foreground event handler for Notifee.
@@ -10,31 +9,44 @@ import { scheduleRhythm } from "./engine";
 export function registerNotificationHandlers() {
   notifee.onForegroundEvent(async ({ type, detail }) => {
     const rhythmId = detail.notification?.data?.rhythmId as string | undefined;
-    const actionId = detail.pressAction?.id;
+    const payload = getAlarmDebugPayload(detail.notification, "foreground");
 
-    // Dismiss button pressed
-    if (type === EventType.ACTION_PRESS && actionId === "dismiss" && rhythmId) {
+    if (type === EventType.DELIVERED && rhythmId) {
+      logAlarmEvent("delivered", payload);
+      await supersedeOlderNotifications(
+        rhythmId,
+        detail.notification?.id,
+        "foreground-supersede"
+      );
+      await topOffRhythmSchedule(rhythmId, "foreground-delivered");
+      return;
+    }
+
+    if (
+      type === EventType.ACTION_PRESS &&
+      detail.pressAction?.id === "dismiss"
+    ) {
+      logAlarmEvent("dismissed", {
+        ...payload,
+        source: "foreground-action-dismiss",
+      });
       await notifee.cancelNotification(detail.notification?.id ?? "");
-      await rescheduleNext(rhythmId);
+      return;
     }
 
-    // Full-screen action (app was foregrounded by full-screen intent)
-    if (type === EventType.ACTION_PRESS && actionId === "full-screen") {
-      router.push("/alarm");
-      if (rhythmId) {
-        await rescheduleNext(rhythmId);
-      }
+    if (type === EventType.DISMISSED) {
+      logAlarmEvent("dismissed", {
+        ...payload,
+        source: "foreground-swipe",
+      });
+      return;
     }
 
-    // Notification tapped
     if (type === EventType.PRESS) {
-      const intensity = detail.notification?.data?.intensity;
-      if (intensity === "pulse" || intensity === "call") {
-        router.push("/alarm");
-      }
-      if (rhythmId) {
-        await rescheduleNext(rhythmId);
-      }
+      logAlarmEvent("opened", {
+        ...payload,
+        source: "foreground-press",
+      });
     }
   });
 }
@@ -49,26 +61,12 @@ export async function handleInitialNotification() {
     return;
   }
 
-  const rhythmId = initial.notification?.data?.rhythmId as string | undefined;
-  const intensity = initial.notification?.data?.intensity;
+  logAlarmEvent(
+    "opened",
+    getAlarmDebugPayload(initial.notification, "initial-notification")
+  );
 
-  // Navigate to alarm screen if launched from pulse/call
-  if (intensity === "pulse" || intensity === "call") {
-    router.push("/alarm");
-  }
-
-  // Cancel the notification and schedule next
   if (initial.notification?.id) {
     await notifee.cancelNotification(initial.notification.id);
-  }
-  if (rhythmId) {
-    await rescheduleNext(rhythmId);
-  }
-}
-
-async function rescheduleNext(rhythmId: string) {
-  const rhythm = getRhythm(rhythmId);
-  if (rhythm?.enabled) {
-    await scheduleRhythm(rhythm);
   }
 }
