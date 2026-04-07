@@ -23,7 +23,9 @@ Repeating alarm & productivity time-audit app for Android, built with Expo.
 
 ## Agent guidelines
 
+- [Manifesto](docs/agents/manifesto.md) - cross-project working principles
 - [Conventions](docs/agents/conventions.md) — commits, naming, feature folders
 - [Frontend](docs/agents/frontend.md) — NativeWind, theme, components, animations
 - [Data](docs/agents/data.md) — Drizzle, MMKV, Jotai, Zod
 - [Alarms](docs/agents/alarms.md) — Notifee, intensity levels, permissions
+- [Working with Jack](docs/agents/working-with-jack.md) - Tempo-specific collaboration, stack traps, and brand rules
