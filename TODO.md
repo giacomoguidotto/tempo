@@ -52,6 +52,14 @@ A repeating alarm & productivity time-audit tool for Android.
 | **Urgent** | *Call*    | Long vibrate | Persistent sound | Yes         | Yes            |
 
 All levels respect system sound mode (silent/vibrate/ring). Default intensity configurable in settings.
+- `v0` focus: expose `Whisper`, `Nudge`, and `Pulse` only while stabilizing the urgent alarm flow.
+- The current fourth level (`Call`) is deferred from the UI and should be reintroduced in `v1` under a new name.
+
+### Alarm Reliability Guards
+- **Hard guard** = a system condition Tempo requires in order to honestly promise the intended `Pulse` behavior.
+- If a hard guard is missing or later revoked, Tempo should mark the rhythm as unhealthy and avoid arming `Pulse`. Do not silently downgrade intensity or disable the rhythm behind the user's back.
+- **v0 hard guards for `Pulse`:** notification permission granted, exact alarm access granted, full-screen notification access granted where required, `Pulse` channel exists and is enabled, `Pulse` channel importance remains high.
+- **Not hard guards in v0:** battery optimization, DND override, OEM background restrictions. These should be surfaced as reliability warnings, not blockers.
 
 ### Musical Naming Convention
 - **Rhythm** = a configured alarm schedule
@@ -95,6 +103,8 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Full-screen alert activity for Pulse and Call levels
   - [x] Dismiss actions on notifications
   - [ ] Snooze actions on notifications — deferred to v1
+  - [ ] Alarm lifetime policy: mark active alerts as `missed` after their timeout window, and mark older active instances as `superseded` when a newer instance fires — deferred while stabilizing Pulse v0 flow
+  - [ ] Remove `Call` from the v0 UI and stabilize `Pulse` as the only exposed full-screen level
 
 - [x] **Data layer**
   - [x] MMKV setup for user preferences
@@ -117,6 +127,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Time range picker (dual-handle slider + tappable time labels → wheel picker modal)
   - [x] Interval selector (preset chips + tappable label → wheel picker modal)
   - [x] Intensity picker (Whisper / Nudge / Pulse / Call) with descriptions
+  - [ ] Remove `Call` from the v0 intensity picker while the urgent fourth level is deferred
   - [ ] Preview: list of upcoming beats — deferred
   - [x] Save / delete actions
   - [x] Bottom sheet drawer with swipe-to-dismiss (locked when dirty)
@@ -152,6 +163,9 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 
 ### v1 — Capture built in
 > Goal: When a beat fires, you can log your activity right there. No more spreadsheet.
+
+- [ ] Reintroduce the fourth urgency level to the UI after `Pulse` is reliable
+- [ ] Rename the current `Call` concept before reintroducing it in product copy, tokens, and UI
 
 - [ ] **Quick capture flow**
   - [ ] Notification action: quick-reply text input for activity note
