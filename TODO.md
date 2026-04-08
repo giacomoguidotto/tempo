@@ -80,7 +80,6 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Initialize monorepo (Bun workspaces + Turborepo)
   - [x] Scaffold Expo app in `app/`
   - [x] Scaffold Next.js marketing site in `site/` (placeholder .gitkeep)
-  - [ ] Create `pkgs/config` (shared biome, tsconfig base, brand tokens) — deferred, flat monorepo for now
   - [x] Configure Biome + Ultracite at root
   - [x] Configure Husky pre-commit hook
   - [x] Configure Renovate
@@ -94,7 +93,6 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Background execution — alarms fire when app is backgrounded/killed
   - [x] Notification channel setup (4 channels per intensity level)
   - [ ] Persistent notification showing active rhythm status
-  - [ ] Platform adapter interface for alarm scheduling (deferred — Android-only for v0)
 
 - [x] **Alert system**
   - [x] Implement 4 intensity levels (Whisper / Nudge / Pulse / Call)
@@ -102,9 +100,8 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Sound playback per level (respecting system sound mode)
   - [x] Full-screen alert activity for Pulse and Call levels
   - [x] Dismiss actions on notifications
-  - [ ] Snooze actions on notifications — deferred to v1
-  - [ ] Alarm lifetime policy: mark active alerts as `missed` after their timeout window, and mark older active instances as `superseded` when a newer instance fires — deferred while stabilizing Pulse v0 flow
-  - [ ] Remove `Call` from the v0 UI and stabilize `Pulse` as the only exposed full-screen level
+  - [x] Older active alerts are superseded when a newer instance fires
+  - [x] Remove `Call` from the v0 UI and stabilize `Pulse` as the only exposed full-screen level
 
 - [x] **Data layer**
   - [x] MMKV setup for user preferences
@@ -126,38 +123,31 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Day selector (S M T W T F S, justified)
   - [x] Time range picker (dual-handle slider + tappable time labels → wheel picker modal)
   - [x] Interval selector (preset chips + tappable label → wheel picker modal)
-  - [x] Intensity picker (Whisper / Nudge / Pulse / Call) with descriptions
-  - [ ] Remove `Call` from the v0 intensity picker while the urgent fourth level is deferred
-  - [ ] Preview: list of upcoming beats — deferred
+  - [x] Intensity picker (Whisper / Nudge / Pulse) with descriptions
+  - [x] Remove `Call` from the v0 intensity picker while the urgent fourth level is deferred
   - [x] Save / delete actions
   - [x] Bottom sheet drawer with swipe-to-dismiss (locked when dirty)
   - [x] Unsaved changes confirmation dialog (branded)
   - [x] Random presets for new rhythm inspiration
-
-- [ ] **UI — Settings screen** — deferred (theme is system-controlled)
-  - [ ] Default intensity level
-  - [ ] Theme (dark/light/system)
-  - [ ] About / version info
 
 - [x] **UI — Design system**
   - [x] NativeWind v5 setup + Warm Analog brand color tokens (dark + light)
   - [x] Typography: Fraunces (display) + IBM Plex Mono (mono)
   - [x] Core components (RangeSlider, Slider, WheelPicker, ConfirmDialog, RhythmCard)
   - [x] Signature animation (VU meter with color shift + deceleration)
-  - [ ] App icon + splash screen — placeholder PNGs, custom icon pending
+  - [x] App icon + splash screen wired with current branded assets
 
 - [x] **Permissions**
   - [x] SCHEDULE_EXACT_ALARM (Android 12+)
   - [x] POST_NOTIFICATIONS (Android 13+)
   - [x] FOREGROUND_SERVICE
   - [x] WAKE_LOCK
-  - [ ] REQUEST_IGNORE_BATTERY_OPTIMIZATIONS — removed (opens system settings on every toggle on emulator)
   - [x] USE_FULL_SCREEN_INTENT (for Pulse/Call levels)
   - [x] Permission request flow (on first toggle/create, only when not granted)
 
 - [ ] **Testing**
-  - [ ] Unit tests for alarm scheduling logic (pure functions)
-  - [ ] Unit tests for Zod schemas
+  - [x] Unit tests for alarm scheduling logic (pure functions)
+  - [x] Unit tests for Zod schemas
   - [ ] Unit tests for CRUD operations
   - [ ] Manual testing checklist for alarm reliability
 
@@ -166,6 +156,15 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 
 - [ ] Reintroduce the fourth urgency level to the UI after `Pulse` is reliable
 - [ ] Rename the current `Call` concept before reintroducing it in product copy, tokens, and UI
+
+- [ ] **Alarm controls & reliability**
+  - [ ] Snooze actions on notifications
+  - [ ] Mark active alerts as `missed` after their timeout window
+  - [ ] Preview: list of upcoming beats while editing a rhythm
+
+- [ ] **Settings**
+  - [ ] Default intensity level
+  - [ ] About / version info
 
 - [ ] **Quick capture flow**
   - [ ] Notification action: quick-reply text input for activity note
@@ -220,8 +219,11 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [ ] Search notes
 
 ### Future ideas (unscoped)
+- [ ] Shared `pkgs/config` workspace package once cross-project config reuse becomes worth it
 - [ ] iOS support (implement iOS adapters)
+- [ ] Extract a platform adapter interface for alarm scheduling when iOS support starts
 - [ ] i18n (English + Italian, following Blueprint's next-intl pattern)
+- [ ] Optional manual theme override (dark/light/system)
 - [ ] Interval timer mode (work/break phases, Pomodoro-style)
 - [ ] Chain timer mode (sequence of different durations)
 - [ ] Stopwatch with lap alerts
@@ -233,6 +235,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 - [ ] Wear OS companion app
 - [ ] Cloud sync (optional, for multi-device)
 - [ ] Web dashboard for reviewing time logs on desktop
+- [ ] Revisit battery optimization guidance if a non-disruptive OEM-safe flow emerges
 - [ ] Marketing site at tempo.guidotto.dev
 - [ ] Play Store listing
 
@@ -276,14 +279,9 @@ tempo/
 │   ├── src/
 │   ├── package.json
 │   └── tsconfig.json
-├── pkgs/
-│   └── config/                   # Shared configuration
-│       ├── biome.json            # Base biome config
-│       ├── tsconfig.base.json    # Base TypeScript config
-│       └── brand.ts              # Colors, fonts, tokens
 ├── turbo.json
 ├── package.json                  # Workspace root
-├── biome.json                    # Root biome (extends pkgs/config)
+├── biome.json                    # Root Biome config
 ├── renovate.json
 ├── .husky/
 ├── .github/workflows/ci.yml
