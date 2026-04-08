@@ -1,6 +1,7 @@
+import { router } from "expo-router";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import DraggableFlatList, {
   type RenderItemParams,
@@ -10,14 +11,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
-import {
-  CreateRhythmSheet,
-  type CreateRhythmSheetHandle,
-} from "@/features/rhythm/components/create-rhythm-sheet";
-import {
-  EditRhythmSheet,
-  type EditRhythmSheetHandle,
-} from "@/features/rhythm/components/edit-rhythm-sheet";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
 import {
@@ -33,8 +26,6 @@ import { getUpcomingBeatDates } from "@/features/rhythm/time-range";
 export default function RhythmsScreen() {
   const insets = useSafeAreaInsets();
   const [rhythms, setRhythms] = useAtom(rhythmsAtom);
-  const createSheetRef = useRef<CreateRhythmSheetHandle>(null);
-  const editSheetRef = useRef<EditRhythmSheetHandle>(null);
   const { confirm: presentPermissionPrompt, dialog: permissionDialog } =
     useConfirmDialog();
 
@@ -99,7 +90,7 @@ export default function RhythmsScreen() {
   }
 
   const handleOpenCreate = useCallback(() => {
-    createSheetRef.current?.present();
+    router.push("/rhythm/new");
   }, []);
 
   const handleDragEnd = useCallback(
@@ -118,7 +109,12 @@ export default function RhythmsScreen() {
             isDragging={isActive}
             onDelete={handleDelete}
             onLongPress={drag}
-            onPress={() => editSheetRef.current?.open(item)}
+            onPress={() =>
+              router.push({
+                pathname: "/rhythm/[id]",
+                params: { id: item.id },
+              })
+            }
             onToggle={handleToggle}
             rhythm={item}
           />
@@ -218,9 +214,6 @@ export default function RhythmsScreen() {
       >
         <Plus color="#EDE6DA" size={24} strokeWidth={2} />
       </Pressable>
-
-      <CreateRhythmSheet ref={createSheetRef} />
-      <EditRhythmSheet ref={editSheetRef} />
       {permissionDialog}
     </View>
   );

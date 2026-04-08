@@ -72,12 +72,19 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen
+            name="rhythm/new"
+            options={{
+              animation: "none",
+              gestureEnabled: false,
+              presentation: "transparentModal",
+            }}
+          />
+          <Stack.Screen
             name="rhythm/[id]"
             options={{
-              presentation: "modal",
-              gestureEnabled: true,
-              animation: "slide_from_bottom",
-              gestureDirection: "vertical",
+              animation: "none",
+              gestureEnabled: false,
+              presentation: "transparentModal",
             }}
           />
           <Stack.Screen

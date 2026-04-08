@@ -30,11 +30,17 @@ import { minutesToTime } from "../time-range";
 import { RhythmFormFields } from "./rhythm-form-fields";
 
 export interface CreateRhythmSheetHandle {
+  dismiss: () => void;
   present: () => void;
+  requestClose: () => void;
+}
+
+interface CreateRhythmSheetProps {
+  onDismiss?: () => void;
 }
 
 export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
-  _props: Record<string, unknown>,
+  { onDismiss }: CreateRhythmSheetProps,
   ref: Ref<CreateRhythmSheetHandle>
 ) {
   const insets = useSafeAreaInsets();
@@ -67,9 +73,15 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     useConfirmDialog();
 
   useImperativeHandle(ref, () => ({
+    dismiss() {
+      sheetRef.current?.dismiss();
+    },
     present() {
       resetForm();
       sheetRef.current?.present();
+    },
+    requestClose() {
+      handleClose();
     },
   }));
 
@@ -204,6 +216,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
           />
         </Pressable>
       )}
+      onDismiss={onDismiss}
       ref={sheetRef}
       snapPoints={["90%"]}
     >

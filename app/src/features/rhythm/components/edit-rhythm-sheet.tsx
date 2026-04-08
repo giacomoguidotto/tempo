@@ -30,11 +30,17 @@ import { minutesToTime } from "../time-range";
 import { RhythmFormFields } from "./rhythm-form-fields";
 
 export interface EditRhythmSheetHandle {
+  dismiss: () => void;
   open: (rhythm: Rhythm) => void;
+  requestClose: () => void;
+}
+
+interface EditRhythmSheetProps {
+  onDismiss?: () => void;
 }
 
 export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
-  _props: Record<string, unknown>,
+  { onDismiss }: EditRhythmSheetProps,
   ref: Ref<EditRhythmSheetHandle>
 ) {
   const insets = useSafeAreaInsets();
@@ -61,6 +67,9 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
     useConfirmDialog();
 
   useImperativeHandle(ref, () => ({
+    dismiss() {
+      sheetRef.current?.dismiss();
+    },
     open(rhythm: Rhythm) {
       setNameInputKey((current) => current + 1);
       nameRef.current = rhythm.name;
@@ -74,6 +83,9 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       setInterval(rhythm.intervalMinutes);
       setIntensity(rhythm.intensity);
       sheetRef.current?.present();
+    },
+    requestClose() {
+      handleClose();
     },
   }));
 
@@ -202,6 +214,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
           />
         </Pressable>
       )}
+      onDismiss={onDismiss}
       ref={sheetRef}
       snapPoints={["90%"]}
     >

@@ -1,29 +1,20 @@
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef } from "react";
+import { useNavigation, useRouter } from "expo-router";
+import { useEffect, useRef } from "react";
 import {
-  EditRhythmSheet,
-  type EditRhythmSheetHandle,
-} from "@/features/rhythm/components/edit-rhythm-sheet";
-import { getRhythm } from "@/features/rhythm/operations";
+  CreateRhythmSheet,
+  type CreateRhythmSheetHandle,
+} from "@/features/rhythm/components/create-rhythm-sheet";
 
-export default function EditRhythmScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+export default function NewRhythmScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const rhythm = useMemo(() => (id ? getRhythm(id) : undefined), [id]);
-  const sheetRef = useRef<EditRhythmSheetHandle>(null);
+  const sheetRef = useRef<CreateRhythmSheetHandle>(null);
   const allowRemoveRef = useRef(false);
   const pendingActionRef = useRef<unknown>(null);
 
   useEffect(() => {
-    if (!rhythm) {
-      allowRemoveRef.current = true;
-      router.back();
-      return;
-    }
-
-    sheetRef.current?.open(rhythm);
-  }, [rhythm, router]);
+    sheetRef.current?.present();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (event) => {
@@ -39,12 +30,8 @@ export default function EditRhythmScreen() {
     return unsubscribe;
   }, [navigation]);
 
-  if (!rhythm) {
-    return null;
-  }
-
   return (
-    <EditRhythmSheet
+    <CreateRhythmSheet
       onDismiss={() => {
         allowRemoveRef.current = true;
 

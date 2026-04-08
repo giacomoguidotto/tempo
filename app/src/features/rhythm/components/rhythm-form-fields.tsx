@@ -1,6 +1,11 @@
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
-import { memo } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { memo, useRef } from "react";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
+import {
+  Gesture,
+  GestureDetector,
+  type GestureUpdateEvent,
+  type PanGestureHandlerEventPayload,
+} from "react-native-gesture-handler";
 import { RangeSlider } from "@/components/ui/range-slider";
 import type { IntensityLevel } from "../schemas";
 import { crossesMidnight, MINUTES_PER_DAY, timeToMinutes } from "../time-range";
@@ -106,7 +111,7 @@ const NameField = memo(function NameField({
   return (
     <View style={{ paddingVertical: 16, gap: 6 }}>
       <Label>Name</Label>
-      <BottomSheetTextInput
+      <TextInput
         autoCorrect={false}
         cursorColor="#C06730"
         defaultValue={initialName}
@@ -139,30 +144,93 @@ const DaysField = memo(function DaysField({
   onToggleDay: (day: number) => void;
   selectedDays: number[];
 }) {
+  const rowRef = useRef<View>(null);
+  const layoutRef = useRef({ width: 0, x: 0 });
+  const visitedDaysRef = useRef<Set<number>>(new Set());
+
+  function measure() {
+    rowRef.current?.measureInWindow((x, _y, width) => {
+      if (width > 0) {
+        layoutRef.current = { width, x };
+      }
+    });
+  }
+
+  function resolveDayIndex(absoluteX: number): number | null {
+    if (layoutRef.current.width <= 0) {
+      return null;
+    }
+
+    const relativeX = absoluteX - layoutRef.current.x;
+    const clampedX = Math.max(
+      0,
+      Math.min(layoutRef.current.width - 1, relativeX)
+    );
+    const slotWidth = layoutRef.current.width / DAYS.length;
+    const index = Math.floor(clampedX / slotWidth);
+
+    if (index < 0 || index >= DAYS.length) {
+      return null;
+    }
+
+    return index;
+  }
+
+  function toggleTouchedDay(absoluteX: number) {
+    const dayIndex = resolveDayIndex(absoluteX);
+    if (dayIndex === null || visitedDaysRef.current.has(dayIndex)) {
+      return;
+    }
+
+    visitedDaysRef.current.add(dayIndex);
+    onToggleDay(dayIndex);
+  }
+
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .minDistance(0)
+    .shouldCancelWhenOutside(false)
+    .onBegin((event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+      visitedDaysRef.current = new Set();
+      measure();
+      toggleTouchedDay(event.absoluteX);
+    })
+    .onUpdate((event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
+      toggleTouchedDay(event.absoluteX);
+    })
+    .onFinalize(() => {
+      visitedDaysRef.current = new Set();
+    });
+
   return (
     <View style={{ paddingVertical: 16, gap: 10 }}>
       <Label>Days</Label>
-      <View className="flex-row justify-between">
-        {DAYS.map((label, index) => (
-          <Pressable
-            className={`h-10 w-10 items-center justify-center rounded-full ${
-              selectedDays.includes(index)
-                ? "bg-accent"
-                : "border border-border"
-            }`}
-            // biome-ignore lint/suspicious/noArrayIndexKey: static day list
-            key={index}
-            onPress={() => onToggleDay(index)}
-          >
-            <Text
-              className={`text-xs ${selectedDays.includes(index) ? "text-foreground" : "text-secondary"}`}
-              style={{ fontFamily: "IBMPlexMono_500Medium" }}
+      <GestureDetector gesture={panGesture}>
+        <View
+          className="flex-row justify-between"
+          onLayout={measure}
+          ref={rowRef}
+        >
+          {DAYS.map((label, index) => (
+            <View
+              className={`h-10 w-10 items-center justify-center rounded-full ${
+                selectedDays.includes(index)
+                  ? "bg-accent"
+                  : "border border-border"
+              }`}
+              // biome-ignore lint/suspicious/noArrayIndexKey: static day list
+              key={index}
             >
-              {label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+              <Text
+                className={`text-xs ${selectedDays.includes(index) ? "text-foreground" : "text-secondary"}`}
+                style={{ fontFamily: "IBMPlexMono_500Medium" }}
+              >
+                {label}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </GestureDetector>
       <Divider />
     </View>
   );
