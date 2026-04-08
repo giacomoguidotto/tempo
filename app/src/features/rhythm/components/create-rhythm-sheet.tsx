@@ -12,10 +12,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { RangeSlider } from "@/components/ui/range-slider";
 import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import {
   DurationPickerModal,
@@ -27,41 +26,8 @@ import { createRhythm, getAllRhythms } from "../operations";
 import { randomPreset } from "../presets";
 import type { IntensityLevel } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
-
-const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
-const INTERVAL_PRESETS = [5, 15, 25, 30, 45, 60, 90];
-const INTENSITIES: {
-  value: IntensityLevel;
-  label: string;
-  description: string;
-}[] = [
-  {
-    value: "whisper",
-    label: "Whisper",
-    description: "A gentle buzz — glance at your phone when you feel it",
-  },
-  {
-    value: "nudge",
-    label: "Nudge",
-    description: "A quick chime to pull you back, easy to catch",
-  },
-  {
-    value: "pulse",
-    label: "Pulse",
-    description: "Takes over your screen — hard to miss, hard to ignore",
-  },
-];
-
-function timeToMinutes(t: string): number {
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function minutesToTime(m: number): string {
-  const h = Math.floor(m / 60);
-  const min = m % 60;
-  return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-}
+import { minutesToTime } from "../time-range";
+import { RhythmFormFields } from "./rhythm-form-fields";
 
 export interface CreateRhythmSheetHandle {
   present: () => void;
@@ -74,17 +40,19 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const insets = useSafeAreaInsets();
   const setRhythms = useSetAtom(rhythmsAtom);
   const sheetRef = useRef<BottomSheetModal>(null);
+  const nameRef = useRef("");
   const initialRef = useRef({
     name: "",
     days: "",
     startTime: "",
     endTime: "",
-    interval: 0,
+    interval: 1,
     intensity: "",
   });
-  const [sliderActive, setSliderActive] = useState(false);
+  const [nameInputKey, setNameInputKey] = useState(0);
 
-  const [name, setName] = useState("");
+  const [hasName, setHasName] = useState(false);
+  const [nameDirty, setNameDirty] = useState(false);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
@@ -105,11 +73,14 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     },
   }));
 
-  const canSave = name.trim().length > 0 && selectedDays.length > 0;
-  const selectedIntensity = INTENSITIES.find((i) => i.value === intensity);
+  const canSave = hasName && selectedDays.length > 0;
 
   async function handleSave() {
     if (!canSave) {
+      return;
+    }
+    const trimmedName = nameRef.current.trim();
+    if (!trimmedName) {
       return;
     }
     const granted = await requestAlarmPermissions({
@@ -120,7 +91,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       return;
     }
     const created = createRhythm({
-      name: name.trim(),
+      name: trimmedName,
       days: selectedDays,
       startTime,
       endTime,
@@ -136,6 +107,8 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
 
   function resetForm() {
     const next = randomPreset();
+    setNameInputKey((current) => current + 1);
+    nameRef.current = next.name;
     initialRef.current = {
       name: next.name,
       days: JSON.stringify(next.days),
@@ -144,7 +117,8 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       interval: next.intervalMinutes,
       intensity: next.intensity,
     };
-    setName(next.name);
+    setHasName(next.name.trim().length > 0);
+    setNameDirty(false);
     setSelectedDays(next.days);
     setStartTime(next.startTime);
     setEndTime(next.endTime);
@@ -153,7 +127,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   }
 
   const isDirty =
-    name !== initialRef.current.name ||
+    nameDirty ||
     JSON.stringify(selectedDays) !== initialRef.current.days ||
     startTime !== initialRef.current.startTime ||
     endTime !== initialRef.current.endTime ||
@@ -168,16 +142,31 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     }
   }
 
-  function toggleDay(day: number) {
+  const toggleDay = useCallback((day: number) => {
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
     );
-  }
+  }, []);
 
-  function handleTimeRangeChange(low: number, high: number) {
+  const handleTimeRangeChange = useCallback((low: number, high: number) => {
     setStartTime(minutesToTime(low));
     setEndTime(minutesToTime(high));
-  }
+  }, []);
+
+  const handleIntervalChange = useCallback((value: number) => {
+    setInterval(value);
+    setShowDurationWheel(false);
+  }, []);
+
+  const handleNameChange = useCallback((value: string) => {
+    nameRef.current = value;
+
+    const nextHasName = value.trim().length > 0;
+    setHasName((current) => (current === nextHasName ? current : nextHasName));
+
+    const nextDirty = value !== initialRef.current.name;
+    setNameDirty((current) => (current === nextDirty ? current : nextDirty));
+  }, []);
 
   const renderBackdrop = useCallback(
     // biome-ignore lint/suspicious/noExplicitAny: bottom sheet backdrop typing
@@ -197,9 +186,8 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     <BottomSheetModal
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: "#1A1714" }}
-      enableContentPanningGesture={!sliderActive}
       enableDynamicSizing={false}
-      enableHandlePanningGesture={!(isDirty || sliderActive)}
+      enableHandlePanningGesture={!isDirty}
       enablePanDownToClose={!isDirty}
       handleComponent={() => (
         <Pressable
@@ -230,203 +218,26 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
 
       <BottomSheetScrollView
         contentContainerStyle={{ paddingHorizontal: 28, paddingBottom: 16 }}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Name */}
-        <View style={{ paddingVertical: 16, gap: 6 }}>
-          <Label>Name</Label>
-          <TextInput
-            onChangeText={setName}
-            placeholder="e.g. Deep Work"
-            placeholderTextColor="#4A433C"
-            style={{
-              fontFamily: "Fraunces_400Regular",
-              fontSize: 20,
-              color: "#EDE6DA",
-              borderBottomWidth: 1.5,
-              borderBottomColor: "#2A2420",
-              paddingBottom: 6,
-            }}
-            value={name}
-          />
-        </View>
-
-        {/* Days */}
-        <View style={{ paddingVertical: 16, gap: 10 }}>
-          <Label>Days</Label>
-          <View className="flex-row justify-between">
-            {DAYS.map((label, i) => (
-              <Pressable
-                className={`h-10 w-10 items-center justify-center rounded-full ${
-                  selectedDays.includes(i)
-                    ? "bg-accent"
-                    : "border border-border"
-                }`}
-                // biome-ignore lint/suspicious/noArrayIndexKey: static day list
-                key={i}
-                onPress={() => toggleDay(i)}
-              >
-                <Text
-                  className={`text-xs ${selectedDays.includes(i) ? "text-foreground" : "text-secondary"}`}
-                  style={{ fontFamily: "IBMPlexMono_500Medium" }}
-                >
-                  {label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <Divider />
-        </View>
-
-        {/* Time Range */}
-        <View style={{ paddingVertical: 16, gap: 16 }}>
-          <View className="flex-row justify-between">
-            <View style={{ gap: 4 }}>
-              <Label>From</Label>
-              <Pressable onPress={() => setShowTimePicker("start")}>
-                <Text
-                  style={{
-                    fontFamily: "IBMPlexMono_500Medium",
-                    fontSize: 32,
-                    color: "#EDE6DA",
-                    letterSpacing: 2,
-                    borderBottomWidth: 1.5,
-                    borderBottomColor: "#3D352E",
-                    paddingBottom: 4,
-                  }}
-                >
-                  {startTime}
-                </Text>
-              </Pressable>
-            </View>
-            <View style={{ gap: 4, alignItems: "flex-end" }}>
-              <Label>To</Label>
-              <Pressable onPress={() => setShowTimePicker("end")}>
-                <Text
-                  style={{
-                    fontFamily: "IBMPlexMono_500Medium",
-                    fontSize: 32,
-                    color: "#EDE6DA",
-                    letterSpacing: 2,
-                    borderBottomWidth: 1.5,
-                    borderBottomColor: "#3D352E",
-                    paddingBottom: 4,
-                  }}
-                >
-                  {endTime}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-          <RangeSlider
-            max={1440}
-            min={0}
-            onDragEnd={() => setSliderActive(false)}
-            onDragStart={() => setSliderActive(true)}
-            onValuesChange={handleTimeRangeChange}
-            step={60}
-            valueHigh={timeToMinutes(endTime)}
-            valueLow={timeToMinutes(startTime)}
-          />
-          <Divider />
-        </View>
-
-        {/* Interval */}
-        <View style={{ paddingVertical: 16, gap: 12 }}>
-          <Label>Every</Label>
-          <Pressable onPress={() => setShowDurationWheel(true)}>
-            <Text
-              style={{
-                fontFamily: "IBMPlexMono_500Medium",
-                fontSize: 32,
-                color: "#EDE6DA",
-                letterSpacing: 2,
-                borderBottomWidth: 1.5,
-                borderBottomColor: "#3D352E",
-                paddingBottom: 4,
-                alignSelf: "flex-start",
-              }}
-            >
-              {interval} min
-            </Text>
-          </Pressable>
-          <View className="flex-row flex-wrap gap-[6px]">
-            {INTERVAL_PRESETS.map((mins) => (
-              <Pressable
-                key={mins}
-                onPress={() => {
-                  setInterval(mins);
-                  setShowDurationWheel(false);
-                }}
-                style={{
-                  paddingVertical: 5,
-                  paddingHorizontal: 12,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: interval === mins ? "#C06730" : "#2A2420",
-                  backgroundColor:
-                    interval === mins
-                      ? "rgba(192, 103, 48, 0.15)"
-                      : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: "IBMPlexMono_400Regular",
-                    fontSize: 11,
-                    color: interval === mins ? "#C06730" : "#4A433C",
-                  }}
-                >
-                  {mins}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <Divider />
-        </View>
-
-        {/* Intensity */}
-        <View style={{ paddingVertical: 16, gap: 10 }}>
-          <Label>Intensity</Label>
-          <View className="flex-row gap-2">
-            {INTENSITIES.map(({ value, label }) => (
-              <Pressable
-                key={value}
-                onPress={() => setIntensity(value)}
-                style={{
-                  flex: 1,
-                  paddingVertical: 10,
-                  borderRadius: 10,
-                  borderWidth: 1,
-                  borderColor: intensity === value ? "#C06730" : "#2A2420",
-                  backgroundColor:
-                    intensity === value
-                      ? "rgba(192, 103, 48, 0.15)"
-                      : "transparent",
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: "IBMPlexMono_500Medium",
-                    fontSize: 11,
-                    color: intensity === value ? "#C06730" : "#4A433C",
-                  }}
-                >
-                  {label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          {selectedIntensity && (
-            <Text
-              className="pt-1 text-[11px] text-secondary"
-              style={{ fontFamily: "IBMPlexMono_400Regular" }}
-            >
-              {selectedIntensity.description}
-            </Text>
-          )}
-        </View>
+        <RhythmFormFields
+          endTime={endTime}
+          initialName={nameRef.current}
+          intensity={intensity}
+          interval={interval}
+          nameInputKey={nameInputKey}
+          onIntensityChange={setIntensity}
+          onIntervalChange={handleIntervalChange}
+          onNameChange={handleNameChange}
+          onOpenDurationPicker={() => setShowDurationWheel(true)}
+          onOpenEndTimePicker={() => setShowTimePicker("end")}
+          onOpenStartTimePicker={() => setShowTimePicker("start")}
+          onTimeRangeChange={handleTimeRangeChange}
+          onToggleDay={toggleDay}
+          selectedDays={selectedDays}
+          startTime={startTime}
+        />
       </BottomSheetScrollView>
 
       {/* Save button */}
@@ -504,25 +315,3 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     </BottomSheetModal>
   );
 });
-
-function Label({ children }: { children: string }) {
-  return (
-    <Text
-      style={{
-        fontFamily: "IBMPlexMono_400Regular",
-        fontSize: 10,
-        letterSpacing: 2,
-        color: "#7A6F63",
-        textTransform: "uppercase",
-      }}
-    >
-      {children}
-    </Text>
-  );
-}
-
-function Divider() {
-  return (
-    <View style={{ height: 1, backgroundColor: "#2A2420", marginTop: 8 }} />
-  );
-}

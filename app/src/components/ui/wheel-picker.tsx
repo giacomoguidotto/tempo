@@ -273,11 +273,17 @@ export function DurationPickerModal({
     }
   }, [visible, value]);
 
+  useEffect(() => {
+    if (draftH === 0 && draftM === 0) {
+      setDraftM(1);
+    }
+  }, [draftH, draftM]);
+
   return (
     <PickerModal
       onClose={onClose}
       onConfirm={() => {
-        onConfirm(Math.max(1, draftH * 60 + draftM));
+        onConfirm(draftH * 60 + draftM);
         onClose();
       }}
       title="Interval"
