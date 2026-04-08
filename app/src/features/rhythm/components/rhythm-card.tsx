@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { Animated, Pressable, Switch, Text, View } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import type { Rhythm } from "../schemas";
+import { getRelevantWindowBeats, getUpcomingBeatDates } from "../time-range";
 
 const DELETE_ANIM_DURATION = 250;
 const DISPLAY_TICKS = 10;
@@ -240,46 +241,26 @@ function computeProgress(rhythm: Rhythm): {
   currentProgress: number;
   allDoneForToday: boolean;
 } {
-  const [sh, sm] = rhythm.startTime.split(":").map(Number);
-  const [eh, em] = rhythm.endTime.split(":").map(Number);
-  const startMin = sh * 60 + sm;
-  const endMin = eh * 60 + em;
-
-  // Count all beats: first at startMin, then every interval until <= endMin
-  let total = 0;
-  for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
-    total++;
-  }
-
   const now = new Date();
-  if (!rhythm.days.includes(now.getDay())) {
-    return { done: 0, total, currentProgress: 0, allDoneForToday: false };
+  const beats = getRelevantWindowBeats(rhythm, now);
+  const total = beats.length;
+
+  if (total === 0) {
+    return { done: 0, total: 0, currentProgress: 0, allDoneForToday: false };
   }
 
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  if (currentMinutes < startMin) {
+  const done = beats.filter((beat) => beat.getTime() <= now.getTime()).length;
+  if (done === 0) {
     return { done: 0, total, currentProgress: 0, allDoneForToday: false };
-  }
-
-  let done = 0;
-  let lastBeatAt = startMin;
-  for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
-    if (t <= currentMinutes) {
-      done++;
-      lastBeatAt = t;
-    } else {
-      break;
-    }
   }
 
   const allDoneForToday = done >= total;
+  const lastBeatAt = beats[Math.min(done - 1, beats.length - 1)];
+  const elapsedMinutes = (now.getTime() - lastBeatAt.getTime()) / 60_000;
 
-  // How far into the current interval (0..1)
-  const elapsed = currentMinutes - lastBeatAt;
   const currentProgress = allDoneForToday
     ? 1
-    : Math.min(elapsed / rhythm.intervalMinutes, 1);
+    : Math.min(elapsedMinutes / rhythm.intervalMinutes, 1);
 
   return {
     done: Math.min(done, total),
@@ -291,23 +272,19 @@ function computeProgress(rhythm: Rhythm): {
 
 function computeNextBeat(rhythm: Rhythm): string | null {
   const now = new Date();
-  if (!rhythm.days.includes(now.getDay())) {
+  const nextBeat = getUpcomingBeatDates(rhythm, 1, now)[0];
+  if (!nextBeat) {
     return null;
   }
 
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const [sh, sm] = rhythm.startTime.split(":").map(Number);
-  const [eh, em] = rhythm.endTime.split(":").map(Number);
-  const startMin = sh * 60 + sm;
-  const endMin = eh * 60 + em;
+  const isSameDay =
+    nextBeat.getFullYear() === now.getFullYear() &&
+    nextBeat.getMonth() === now.getMonth() &&
+    nextBeat.getDate() === now.getDate();
 
-  for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
-    if (t > currentMinutes) {
-      const h = Math.floor(t / 60);
-      const m = t % 60;
-      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-    }
+  if (!isSameDay) {
+    return null;
   }
 
-  return null;
+  return `${String(nextBeat.getHours()).padStart(2, "0")}:${String(nextBeat.getMinutes()).padStart(2, "0")}`;
 }

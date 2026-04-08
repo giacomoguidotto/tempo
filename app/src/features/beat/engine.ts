@@ -5,6 +5,7 @@ import notifee, {
   TriggerType,
 } from "@notifee/react-native";
 import type { Rhythm } from "@/features/rhythm/schemas";
+import { getUpcomingBeatDates } from "@/features/rhythm/time-range";
 import { CHANNEL_IDS } from "./channels";
 import { logAlarmEvent } from "./debug";
 
@@ -14,41 +15,7 @@ const SCHEDULE_AHEAD_COUNT = 5;
  * Compute the next N beat timestamps for a rhythm from now.
  */
 export function computeNextBeats(rhythm: Rhythm, count = 1): Date[] {
-  const now = new Date();
-  const currentDay = now.getDay();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const beats: Date[] = [];
-
-  const [sh, sm] = rhythm.startTime.split(":").map(Number);
-  const [eh, em] = rhythm.endTime.split(":").map(Number);
-  const startMin = sh * 60 + sm;
-  const endMin = eh * 60 + em;
-
-  // Check today and next 7 days
-  for (let dayOffset = 0; dayOffset < 7 && beats.length < count; dayOffset++) {
-    const day = (currentDay + dayOffset) % 7;
-    if (!rhythm.days.includes(day)) {
-      continue;
-    }
-
-    for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
-      // Skip beats in the past for today
-      if (dayOffset === 0 && t <= currentMinutes) {
-        continue;
-      }
-
-      const date = new Date(now);
-      date.setDate(date.getDate() + dayOffset);
-      date.setHours(Math.floor(t / 60), t % 60, 0, 0);
-      beats.push(date);
-
-      if (beats.length >= count) {
-        break;
-      }
-    }
-  }
-
-  return beats;
+  return getUpcomingBeatDates(rhythm, count);
 }
 
 /**

@@ -28,6 +28,7 @@ import {
 } from "@/features/rhythm/operations";
 import type { Rhythm } from "@/features/rhythm/schemas";
 import { rhythmsAtom } from "@/features/rhythm/store/atoms";
+import { getUpcomingBeatDates } from "@/features/rhythm/time-range";
 
 export default function RhythmsScreen() {
   const insets = useSafeAreaInsets();
@@ -231,25 +232,17 @@ function computeNextAlarm(activeRhythms: Rhythm[]): string {
   }
 
   const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const currentDay = now.getDay();
   let soonest = Number.POSITIVE_INFINITY;
 
   for (const rhythm of activeRhythms) {
-    if (!rhythm.days.includes(currentDay)) {
+    const nextBeat = getUpcomingBeatDates(rhythm, 1, now)[0];
+    if (!nextBeat) {
       continue;
     }
 
-    const [sh, sm] = rhythm.startTime.split(":").map(Number);
-    const [eh, em] = rhythm.endTime.split(":").map(Number);
-    const startMin = sh * 60 + sm;
-    const endMin = eh * 60 + em;
-
-    for (let t = startMin; t <= endMin; t += rhythm.intervalMinutes) {
-      const diff = t - currentMinutes;
-      if (diff > 0 && diff < soonest) {
-        soonest = diff;
-      }
+    const diff = Math.ceil((nextBeat.getTime() - now.getTime()) / 60_000);
+    if (diff > 0 && diff < soonest) {
+      soonest = diff;
     }
   }
 
