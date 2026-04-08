@@ -148,7 +148,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 - [ ] **Testing**
   - [x] Unit tests for alarm scheduling logic (pure functions)
   - [x] Unit tests for Zod schemas
-  - [ ] Unit tests for CRUD operations
+  - [x] Unit tests for CRUD operations
   - [ ] Manual testing checklist for alarm reliability
 
 ### v1 — Capture built in
