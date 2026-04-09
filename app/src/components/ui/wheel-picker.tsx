@@ -23,10 +23,12 @@ const MINUTES_60 = Array.from({ length: 60 }, (_, i) => ({
   value: i,
 }));
 
-const HOURS_3 = Array.from({ length: 3 }, (_, i) => ({
-  label: String(i).padStart(2, "0"),
-  value: i,
-}));
+function makeHours(max: number) {
+  return Array.from({ length: max + 1 }, (_, i) => ({
+    label: String(i).padStart(2, "0"),
+    value: i,
+  }));
+}
 
 const WHEEL_STYLE = {
   width: 80,
@@ -251,6 +253,7 @@ export function TimePickerModal({
 // --- Duration Picker Modal (for interval) ---
 
 interface DurationPickerModalProps {
+  max?: number;
   onClose: () => void;
   onConfirm: (totalMinutes: number) => void;
   value: number;
@@ -258,11 +261,15 @@ interface DurationPickerModalProps {
 }
 
 export function DurationPickerModal({
+  max = 480,
   visible,
   value,
   onConfirm,
   onClose,
 }: DurationPickerModalProps) {
+  const maxH = Math.floor(max / 60);
+  const hours = makeHours(maxH);
+
   const [draftH, setDraftH] = useState(Math.floor(value / 60));
   const [draftM, setDraftM] = useState(value % 60);
 
@@ -273,17 +280,22 @@ export function DurationPickerModal({
     }
   }, [visible, value]);
 
+  // Clamp: at least 1 min, and don't exceed max
   useEffect(() => {
-    if (draftH === 0 && draftM === 0) {
+    const total = draftH * 60 + draftM;
+    if (total === 0) {
       setDraftM(1);
+    } else if (total > max) {
+      setDraftH(Math.floor(max / 60));
+      setDraftM(max % 60);
     }
-  }, [draftH, draftM]);
+  }, [draftH, draftM, max]);
 
   return (
     <PickerModal
       onClose={onClose}
       onConfirm={() => {
-        onConfirm(draftH * 60 + draftM);
+        onConfirm(Math.min(draftH * 60 + draftM, max));
         onClose();
       }}
       title="Interval"
@@ -297,7 +309,7 @@ export function DurationPickerModal({
         }}
       >
         <WheelPicker
-          data={HOURS_3}
+          data={hours}
           itemHeight={44}
           itemTextStyle={ITEM_STYLE}
           onValueChanged={({ item }: { item: { value: number } }) =>
@@ -313,7 +325,7 @@ export function DurationPickerModal({
           style={{
             fontFamily: "IBMPlexMono_500Medium",
             fontSize: 26,
-            color: "#7A6F63",
+            color: "#8A7D70",
           }}
         >
           :

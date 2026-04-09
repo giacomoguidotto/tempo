@@ -1,6 +1,13 @@
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { memo, useRef } from "react";
-import { Platform, Pressable, Text, useColorScheme, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -13,7 +20,19 @@ import type { IntensityLevel } from "../schemas";
 import { crossesMidnight, MINUTES_PER_DAY, timeToMinutes } from "../time-range";
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
-const INTERVAL_PRESETS = [5, 15, 25, 30, 45, 60, 90];
+const INTERVAL_PRESETS = [5, 15, 25, 30, 45, 60, 90, 120, 180, 240, 360, 480];
+
+function formatPresetLabel(minutes: number): string {
+  if (minutes < 60) {
+    return String(minutes);
+  }
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (m === 0) {
+    return `${h}h`;
+  }
+  return `${h}h${m}`;
+}
 const SLIDER_MAX = MINUTES_PER_DAY - 1;
 
 const INTENSITIES: {
@@ -89,9 +108,11 @@ export const RhythmFormFields = memo(function RhythmFormFields({
         startTime={startTime}
       />
       <IntervalField
+        endTime={endTime}
         interval={interval}
         onIntervalChange={onIntervalChange}
         onOpenDurationPicker={onOpenDurationPicker}
+        startTime={startTime}
       />
       <IntensityField
         intensity={intensity}
@@ -303,20 +324,29 @@ const TimeRangeField = memo(function TimeRangeField({
 });
 
 const IntervalField = memo(function IntervalField({
+  endTime,
   interval,
   onIntervalChange,
   onOpenDurationPicker,
+  startTime,
 }: {
+  endTime: string;
   interval: number;
   onIntervalChange: (value: number) => void;
   onOpenDurationPicker: () => void;
+  startTime: string;
 }) {
+  const startMin = timeToMinutes(startTime);
+  const endMin = timeToMinutes(endTime);
+  const maxInterval =
+    startMin > endMin ? MINUTES_PER_DAY - startMin + endMin : endMin - startMin;
+
   return (
     <View style={{ paddingVertical: 16, gap: 12 }}>
       <Label>Every</Label>
       <Pressable onPress={onOpenDurationPicker}>
         <Text
-          className="self-start text-[32px] text-foreground tracking-[2px]"
+          className="self-start text-[32px] text-accent tracking-[2px]"
           style={{
             fontFamily: "IBMPlexMono_500Medium",
             borderBottomWidth: 1.5,
@@ -327,32 +357,48 @@ const IntervalField = memo(function IntervalField({
           {interval} min
         </Text>
       </Pressable>
-      <View className="flex-row flex-wrap gap-[6px]">
-        {INTERVAL_PRESETS.map((minutes) => (
-          <Pressable
-            key={minutes}
-            onPress={() => onIntervalChange(minutes)}
-            style={{
-              paddingVertical: 5,
-              paddingHorizontal: 12,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: interval === minutes ? "#C06730" : "#2A2420",
-              backgroundColor:
-                interval === minutes
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 28, gap: 6 }}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -28 }}
+      >
+        {INTERVAL_PRESETS.map((minutes) => {
+          const disabled = minutes > maxInterval;
+          const selected = interval === minutes;
+          let borderColor = "#2A2420";
+          if (selected) {
+            borderColor = "#C06730";
+          } else if (disabled) {
+            borderColor = "transparent";
+          }
+          return (
+            <Pressable
+              disabled={disabled}
+              key={minutes}
+              onPress={() => onIntervalChange(minutes)}
+              style={{
+                paddingVertical: 5,
+                paddingHorizontal: 12,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor,
+                backgroundColor: selected
                   ? "rgba(192, 103, 48, 0.15)"
                   : "transparent",
-            }}
-          >
-            <Text
-              className={`text-xs ${interval === minutes ? "text-accent" : "text-secondary"}`}
-              style={{ fontFamily: "IBMPlexMono_400Regular" }}
+                opacity: disabled ? 0.35 : 1,
+              }}
             >
-              {minutes}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+              <Text
+                className={`text-xs ${selected ? "text-accent" : "text-secondary"}`}
+                style={{ fontFamily: "IBMPlexMono_400Regular" }}
+              >
+                {formatPresetLabel(minutes)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
       <Divider />
     </View>
   );

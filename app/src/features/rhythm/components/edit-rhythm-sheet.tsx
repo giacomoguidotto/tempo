@@ -30,7 +30,12 @@ import { syncStatusNotification } from "@/features/beat/status";
 import { deleteRhythm, getAllRhythms, updateRhythm } from "../operations";
 import type { IntensityLevel, Rhythm } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
-import { minutesToTime } from "../time-range";
+import {
+  crossesMidnight,
+  MINUTES_PER_DAY,
+  minutesToTime,
+  timeToMinutes,
+} from "../time-range";
 import { RhythmFormFields } from "./rhythm-form-fields";
 
 export interface EditRhythmSheetHandle {
@@ -313,6 +318,13 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       )}
 
       <DurationPickerModal
+        max={
+          crossesMidnight(startTime, endTime)
+            ? MINUTES_PER_DAY -
+              timeToMinutes(startTime) +
+              timeToMinutes(endTime)
+            : timeToMinutes(endTime) - timeToMinutes(startTime)
+        }
         onClose={() => setShowDurationWheel(false)}
         onConfirm={setInterval}
         value={interval}
