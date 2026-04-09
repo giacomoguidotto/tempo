@@ -341,64 +341,68 @@ const IntervalField = memo(function IntervalField({
   const maxInterval =
     startMin > endMin ? MINUTES_PER_DAY - startMin + endMin : endMin - startMin;
 
+  const onceADay = maxInterval === 0;
+
   return (
     <View style={{ paddingVertical: 16, gap: 12 }}>
       <Label>Every</Label>
-      <Pressable onPress={onOpenDurationPicker}>
+      <Pressable disabled={onceADay} onPress={onOpenDurationPicker}>
         <Text
           className="self-start text-[32px] text-foreground tracking-[2px]"
           style={{
             fontFamily: "IBMPlexMono_500Medium",
-            borderBottomWidth: 1.5,
+            borderBottomWidth: onceADay ? 0 : 1.5,
             borderBottomColor: "#3D352E",
             paddingBottom: 4,
           }}
         >
-          {formatIntervalDisplay(interval)}
+          {onceADay ? "Once a day" : formatIntervalDisplay(interval)}
         </Text>
       </Pressable>
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 28, gap: 6 }}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: -28 }}
-      >
-        {INTERVAL_PRESETS.map((minutes) => {
-          const disabled = minutes > maxInterval;
-          const selected = interval === minutes;
-          let borderColor = "#2A2420";
-          if (selected) {
-            borderColor = "#C06730";
-          } else if (disabled) {
-            borderColor = "transparent";
-          }
-          return (
-            <Pressable
-              disabled={disabled}
-              key={minutes}
-              onPress={() => onIntervalChange(minutes)}
-              style={{
-                paddingVertical: 5,
-                paddingHorizontal: 12,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor,
-                backgroundColor: selected
-                  ? "rgba(192, 103, 48, 0.15)"
-                  : "transparent",
-                opacity: disabled ? 0.35 : 1,
-              }}
-            >
-              <Text
-                className={`text-xs ${selected ? "text-accent" : "text-secondary"}`}
-                style={{ fontFamily: "IBMPlexMono_400Regular" }}
+      {!onceADay && (
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 28, gap: 6 }}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -28 }}
+        >
+          {INTERVAL_PRESETS.map((minutes) => {
+            const disabled = minutes > maxInterval;
+            const selected = interval === minutes;
+            let borderColor = "#2A2420";
+            if (selected) {
+              borderColor = "#C06730";
+            } else if (disabled) {
+              borderColor = "transparent";
+            }
+            return (
+              <Pressable
+                disabled={disabled}
+                key={minutes}
+                onPress={() => onIntervalChange(minutes)}
+                style={{
+                  paddingVertical: 5,
+                  paddingHorizontal: 12,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor,
+                  backgroundColor: selected
+                    ? "rgba(192, 103, 48, 0.15)"
+                    : "transparent",
+                  opacity: disabled ? 0.35 : 1,
+                }}
               >
-                {formatPresetLabel(minutes)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+                <Text
+                  className={`text-xs ${selected ? "text-accent" : "text-secondary"}`}
+                  style={{ fontFamily: "IBMPlexMono_400Regular" }}
+                >
+                  {formatPresetLabel(minutes)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
       <Divider />
     </View>
   );
