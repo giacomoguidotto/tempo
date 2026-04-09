@@ -1,6 +1,6 @@
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { memo, useRef } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, useColorScheme, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -8,6 +8,7 @@ import {
   type PanGestureHandlerEventPayload,
 } from "react-native-gesture-handler";
 import { RangeSlider } from "@/components/ui/range-slider";
+import { colors } from "@/constants/tokens";
 import type { IntensityLevel } from "../schemas";
 import { crossesMidnight, MINUTES_PER_DAY, timeToMinutes } from "../time-range";
 
@@ -109,17 +110,20 @@ const NameField = memo(function NameField({
   nameInputKey: number;
   onNameChange: (value: string) => void;
 }) {
+  const scheme = useColorScheme();
+  const theme = colors[scheme === "light" ? "light" : "dark"];
+
   return (
     <View style={{ paddingVertical: 16, gap: 6 }}>
       <Label>Name</Label>
       <BottomSheetTextInput
         autoCorrect={false}
-        cursorColor="#C06730"
+        cursorColor={theme.accent}
         defaultValue={initialName}
         key={nameInputKey}
         onChangeText={onNameChange}
         placeholder="e.g. Deep Work"
-        placeholderTextColor="#4A433C"
+        placeholderTextColor={theme.muted}
         spellCheck={false}
         style={{
           fontFamily: Platform.select({
@@ -127,9 +131,9 @@ const NameField = memo(function NameField({
             default: "IBMPlexMono_500Medium",
           }),
           fontSize: 20,
-          color: "#EDE6DA",
+          color: theme.foreground,
           borderBottomWidth: 1.5,
-          borderBottomColor: "#2A2420",
+          borderBottomColor: theme.surface,
           paddingBottom: 8,
         }}
         underlineColorAndroid="transparent"
@@ -286,7 +290,7 @@ const TimeRangeField = memo(function TimeRangeField({
       />
 
       <Text
-        className="text-[11px] text-secondary"
+        className="text-secondary text-xs"
         style={{ fontFamily: "IBMPlexMono_400Regular", lineHeight: 18 }}
       >
         {wraps
@@ -312,15 +316,12 @@ const IntervalField = memo(function IntervalField({
       <Label>Every</Label>
       <Pressable onPress={onOpenDurationPicker}>
         <Text
+          className="self-start text-[32px] text-foreground tracking-[2px]"
           style={{
             fontFamily: "IBMPlexMono_500Medium",
-            fontSize: 32,
-            color: "#EDE6DA",
-            letterSpacing: 2,
             borderBottomWidth: 1.5,
             borderBottomColor: "#3D352E",
             paddingBottom: 4,
-            alignSelf: "flex-start",
           }}
         >
           {interval} min
@@ -344,11 +345,8 @@ const IntervalField = memo(function IntervalField({
             }}
           >
             <Text
-              style={{
-                fontFamily: "IBMPlexMono_400Regular",
-                fontSize: 11,
-                color: interval === minutes ? "#C06730" : "#4A433C",
-              }}
+              className={`text-xs ${interval === minutes ? "text-accent" : "text-secondary"}`}
+              style={{ fontFamily: "IBMPlexMono_400Regular" }}
             >
               {minutes}
             </Text>
@@ -393,11 +391,8 @@ const IntensityField = memo(function IntensityField({
             }}
           >
             <Text
-              style={{
-                fontFamily: "IBMPlexMono_500Medium",
-                fontSize: 11,
-                color: intensity === value ? "#C06730" : "#4A433C",
-              }}
+              className={`text-xs ${intensity === value ? "text-accent" : "text-secondary"}`}
+              style={{ fontFamily: "IBMPlexMono_500Medium" }}
             >
               {label}
             </Text>
@@ -406,7 +401,7 @@ const IntensityField = memo(function IntensityField({
       </View>
       {selectedIntensity ? (
         <Text
-          className="pt-1 text-[11px] text-secondary"
+          className="pt-1 text-secondary text-xs"
           style={{ fontFamily: "IBMPlexMono_400Regular" }}
         >
           {selectedIntensity.description}
@@ -419,11 +414,9 @@ const IntensityField = memo(function IntensityField({
 function TimeValue({ children }: { children: string }) {
   return (
     <Text
+      className="text-[32px] text-foreground tracking-[2px]"
       style={{
         fontFamily: "IBMPlexMono_500Medium",
-        fontSize: 32,
-        color: "#EDE6DA",
-        letterSpacing: 2,
         borderBottomWidth: 1.5,
         borderBottomColor: "#3D352E",
         paddingBottom: 4,
@@ -437,13 +430,8 @@ function TimeValue({ children }: { children: string }) {
 function Label({ children }: { children: string }) {
   return (
     <Text
-      style={{
-        fontFamily: "IBMPlexMono_400Regular",
-        fontSize: 10,
-        letterSpacing: 2,
-        color: "#7A6F63",
-        textTransform: "uppercase",
-      }}
+      className="text-secondary text-xs uppercase tracking-[2px]"
+      style={{ fontFamily: "IBMPlexMono_400Regular" }}
     >
       {children}
     </Text>
@@ -451,7 +439,5 @@ function Label({ children }: { children: string }) {
 }
 
 function Divider() {
-  return (
-    <View style={{ height: 1, backgroundColor: "#2A2420", marginTop: 8 }} />
-  );
+  return <View className="mt-2 h-px bg-surface" />;
 }

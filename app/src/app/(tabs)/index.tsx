@@ -182,11 +182,11 @@ export default function RhythmsScreen() {
           right: 0,
           paddingTop: 32,
           paddingBottom: 12,
-          backgroundColor: "#1A1714",
+          backgroundColor: "#1A1714", // must match bg-background for opaque cover
         }}
       >
         <Text
-          className="text-[11px] text-secondary uppercase tracking-[3px]"
+          className="text-secondary text-xs uppercase tracking-[3px]"
           style={{ fontFamily: "IBMPlexMono_400Regular" }}
         >
           Now Playing
@@ -224,7 +224,7 @@ export default function RhythmsScreen() {
               {nextAlarm}
             </Text>
             <Text
-              className="text-[10px] text-secondary uppercase tracking-[2px]"
+              className="text-secondary text-xs uppercase tracking-[2px]"
               style={{ fontFamily: "IBMPlexMono_400Regular" }}
             >
               Next alarm
@@ -246,7 +246,7 @@ export default function RhythmsScreen() {
               No rhythms yet
             </Text>
             <Text
-              className="mt-2 text-[11px] text-muted uppercase tracking-[1px]"
+              className="mt-2 text-muted text-xs uppercase tracking-[1px]"
               style={{ fontFamily: "IBMPlexMono_400Regular" }}
             >
               Tap + to create your first rhythm

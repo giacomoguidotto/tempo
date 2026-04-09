@@ -82,7 +82,7 @@ export function RhythmCard({
         }}
       >
         <Animated.View style={{ transform: [{ scale }] }}>
-          <Trash2 color="#9C6F63" size={20} />
+          <Trash2 color="#C4796A" size={20} />
         </Animated.View>
       </RectButton>
     );
@@ -151,7 +151,7 @@ export function RhythmCard({
                 {rhythm.name}
               </Text>
               <Text
-                className="text-[10px] text-secondary uppercase tracking-[1.5px]"
+                className="text-secondary text-xs uppercase tracking-[1.5px]"
                 style={{ fontFamily: "IBMPlexMono_400Regular" }}
               >
                 EVERY {rhythm.intervalMinutes} MIN ·{" "}
@@ -165,7 +165,7 @@ export function RhythmCard({
             </View>
             <Switch
               onValueChange={(value) => onToggle(rhythm.id, value)}
-              thumbColor={rhythm.enabled ? "#EDE6DA" : "#4A433C"}
+              thumbColor={rhythm.enabled ? "#EDE6DA" : "#6B6058"}
               trackColor={{ false: "#2A2420", true: "#C06730" }}
               value={rhythm.enabled}
             />
@@ -186,7 +186,7 @@ export function RhythmCard({
             ))}
             <View className="flex-1" />
             <Text
-              className="text-[10px] text-secondary"
+              className="text-secondary text-xs"
               style={{ fontFamily: "IBMPlexMono_400Regular" }}
             >
               {done}/{total}
