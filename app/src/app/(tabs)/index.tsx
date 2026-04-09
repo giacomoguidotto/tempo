@@ -14,6 +14,7 @@ import { requestAlarmPermissions } from "@/features/beat/permissions";
 import { syncStatusNotification } from "@/features/beat/status";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
+import { formatNextAlarm } from "@/features/rhythm/next-alarm";
 import {
   deleteRhythm,
   getAllRhythms,
@@ -22,7 +23,6 @@ import {
 } from "@/features/rhythm/operations";
 import type { Rhythm } from "@/features/rhythm/schemas";
 import { rhythmsAtom } from "@/features/rhythm/store/atoms";
-import { getUpcomingBeatDates } from "@/features/rhythm/time-range";
 
 export default function RhythmsScreen() {
   const insets = useSafeAreaInsets();
@@ -64,7 +64,7 @@ export default function RhythmsScreen() {
   }, []);
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
-  const nextAlarm = computeNextAlarm(activeRhythms);
+  const nextAlarm = formatNextAlarm(activeRhythms);
   const hasUpcomingAlarms = nextAlarm !== "--:--";
 
   async function handleToggle(id: string, enabled: boolean) {
@@ -162,7 +162,7 @@ export default function RhythmsScreen() {
           />
           <View className="items-center gap-1">
             <Text
-              className="text-[40px] text-foreground tracking-[4px]"
+              className="text-[40px] text-foreground tracking-[2px]"
               style={{ fontFamily: "IBMPlexMono_500Medium" }}
             >
               {nextAlarm}
@@ -228,33 +228,4 @@ export default function RhythmsScreen() {
       {permissionDialog}
     </View>
   );
-}
-
-function computeNextAlarm(activeRhythms: Rhythm[]): string {
-  if (activeRhythms.length === 0) {
-    return "--:--";
-  }
-
-  const now = new Date();
-  let soonest = Number.POSITIVE_INFINITY;
-
-  for (const rhythm of activeRhythms) {
-    const nextBeat = getUpcomingBeatDates(rhythm, 1, now)[0];
-    if (!nextBeat) {
-      continue;
-    }
-
-    const diff = Math.ceil((nextBeat.getTime() - now.getTime()) / 60_000);
-    if (diff > 0 && diff < soonest) {
-      soonest = diff;
-    }
-  }
-
-  if (soonest === Number.POSITIVE_INFINITY) {
-    return "--:--";
-  }
-
-  const h = Math.floor(soonest / 60);
-  const m = soonest % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
