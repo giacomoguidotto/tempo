@@ -2,11 +2,16 @@ import { router } from "expo-router";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
@@ -24,11 +29,17 @@ import {
 import type { Rhythm } from "@/features/rhythm/schemas";
 import { rhythmsAtom } from "@/features/rhythm/store/atoms";
 
+const STICKY_TITLE_HEIGHT = 80;
+const VUMETER_SECTION_HEIGHT = 248;
+const FADE_DISTANCE = 150;
+
 export default function RhythmsScreen() {
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
   const [rhythms, setRhythms] = useAtom(rhythmsAtom);
   const { confirm: presentPermissionPrompt, dialog: permissionDialog } =
     useConfirmDialog();
+  const scrollY = useSharedValue(0);
 
   useEffect(() => {
     async function hydrateRhythms() {
@@ -47,7 +58,6 @@ export default function RhythmsScreen() {
     });
   }, [setRhythms]);
 
-  // Re-render at the top of every minute so UI stays in sync with the clock
   const [, setTick] = useState(0);
   useEffect(() => {
     const msToNextMinute =
@@ -66,6 +76,31 @@ export default function RhythmsScreen() {
   const activeRhythms = rhythms.filter((r) => r.enabled);
   const nextAlarm = formatNextAlarm(activeRhythms);
   const hasUpcomingAlarms = nextAlarm !== "--:--";
+  const hasRhythms = rhythms.length > 0;
+
+  const targetCardY = screenHeight * 0.45;
+  const contentAboveCards =
+    STICKY_TITLE_HEIGHT + (hasRhythms ? VUMETER_SECTION_HEIGHT : 0);
+  const headerBottomPadding = Math.max(
+    targetCardY - insets.top - contentAboveCards,
+    16
+  );
+
+  const vuMeterAnimStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, FADE_DISTANCE],
+      [1, 0],
+      "clamp"
+    );
+    const scale = interpolate(
+      scrollY.value,
+      [0, FADE_DISTANCE],
+      [1, 0.85],
+      "clamp"
+    );
+    return { opacity, transform: [{ scale }] };
+  });
 
   async function handleToggle(id: string, enabled: boolean) {
     const currentRhythm = rhythms.find((r) => r.id === id);
@@ -136,11 +171,20 @@ export default function RhythmsScreen() {
     [handleDelete, handleToggle]
   );
 
-  const hasRhythms = rhythms.length > 0;
-
-  const listHeader = (
-    <>
-      <View className="gap-1 px-7 pt-8">
+  return (
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      {/* Sticky title — pinned above the scrolling list */}
+      <View
+        className="absolute z-10 gap-1 px-7"
+        style={{
+          top: insets.top,
+          left: 0,
+          right: 0,
+          paddingTop: 32,
+          paddingBottom: 12,
+          backgroundColor: "#1A1714",
+        }}
+      >
         <Text
           className="text-[11px] text-secondary uppercase tracking-[3px]"
           style={{ fontFamily: "IBMPlexMono_400Regular" }}
@@ -154,8 +198,20 @@ export default function RhythmsScreen() {
           My Rhythms
         </Text>
       </View>
+
+      {/* VuMeter + Next Alarm — fixed behind the scrolling list */}
       {hasRhythms && (
-        <View className="items-center gap-5 pt-7 pb-6">
+        <Animated.View
+          className="absolute items-center gap-5 pt-7 pb-6"
+          style={[
+            {
+              top: insets.top + STICKY_TITLE_HEIGHT,
+              left: 0,
+              right: 0,
+            },
+            vuMeterAnimStyle,
+          ]}
+        >
           <VuMeter
             active={activeRhythms.length > 0}
             moving={hasUpcomingAlarms}
@@ -174,48 +230,56 @@ export default function RhythmsScreen() {
               Next alarm
             </Text>
           </View>
-        </View>
+        </Animated.View>
       )}
-    </>
-  );
 
-  const listEmpty = (
-    <View
-      className="flex-1 items-center justify-center px-7"
-      style={{ paddingTop: 120 }}
-    >
-      <Text
-        className="text-base text-secondary"
-        style={{ fontFamily: "Fraunces_400Regular" }}
-      >
-        No rhythms yet
-      </Text>
-      <Text
-        className="mt-2 text-[11px] text-muted uppercase tracking-[1px]"
-        style={{ fontFamily: "IBMPlexMono_400Regular" }}
-      >
-        Tap + to create your first rhythm
-      </Text>
-    </View>
-  );
-
-  return (
-    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
       <DraggableFlatList
-        contentContainerStyle={{ paddingBottom: 80 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
         data={rhythms}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={listEmpty}
-        ListHeaderComponent={listHeader}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center px-7">
+            <Text
+              className="text-base text-secondary"
+              style={{ fontFamily: "Fraunces_400Regular" }}
+            >
+              No rhythms yet
+            </Text>
+            <Text
+              className="mt-2 text-[11px] text-muted uppercase tracking-[1px]"
+              style={{ fontFamily: "IBMPlexMono_400Regular" }}
+            >
+              Tap + to create your first rhythm
+            </Text>
+          </View>
+        }
+        ListHeaderComponent={
+          <>
+            {/* Spacer matching sticky title height */}
+            <View style={{ height: STICKY_TITLE_HEIGHT }} />
+
+            {/* Transparent spacer — VuMeter shows through from behind */}
+            {hasRhythms && <View style={{ height: VUMETER_SECTION_HEIGHT }} />}
+
+            {/* Extra breathing room to push first card to ~45% screen height */}
+            <View style={{ height: headerBottomPadding }} />
+          </>
+        }
         onDragEnd={handleDragEnd}
+        onScrollOffsetChange={(offset) => {
+          scrollY.value = offset;
+        }}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
       />
 
+      {/* FAB — 64px, equal 24px inset from corner */}
       <Pressable
-        className="absolute right-7 bottom-4 h-14 w-14 items-center justify-center rounded-full bg-accent"
+        className="absolute h-16 w-16 items-center justify-center rounded-full bg-accent"
         onPress={handleOpenCreate}
         style={{
+          right: 24,
+          bottom: 24,
           shadowColor: "#C06730",
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.4,
@@ -223,7 +287,7 @@ export default function RhythmsScreen() {
           elevation: 8,
         }}
       >
-        <Plus color="#EDE6DA" size={24} strokeWidth={2} />
+        <Plus color="#EDE6DA" size={26} strokeWidth={2} />
       </Pressable>
       {permissionDialog}
     </View>
