@@ -185,9 +185,26 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     });
   }, []);
 
+  function clampIntervalToRange(start: string, end: string) {
+    const s = timeToMinutes(start);
+    const e = timeToMinutes(end);
+    const duration = s > e ? MINUTES_PER_DAY - s + e : e - s;
+    if (duration > 0) {
+      setInterval((prev) => Math.min(prev, duration));
+    }
+  }
+
   const handleTimeRangeChange = useCallback((low: number, high: number) => {
-    setStartTime(minutesToTime(low));
-    setEndTime(minutesToTime(high));
+    const newStart = minutesToTime(low);
+    const newEnd = minutesToTime(high);
+    setStartTime(newStart);
+    setEndTime(newEnd);
+    const s = low;
+    const e = high;
+    const duration = s > e ? MINUTES_PER_DAY - s + e : e - s;
+    if (duration > 0) {
+      setInterval((prev) => Math.min(prev, duration));
+    }
   }, []);
 
   const handleIntervalChange = useCallback((value: number) => {
@@ -300,8 +317,10 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
           onConfirm={(time) => {
             if (showTimePicker === "start") {
               setStartTime(time);
+              clampIntervalToRange(time, endTime);
             } else {
               setEndTime(time);
+              clampIntervalToRange(startTime, time);
             }
           }}
           value={showTimePicker === "start" ? startTime : endTime}

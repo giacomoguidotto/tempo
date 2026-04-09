@@ -275,21 +275,22 @@ export function DurationPickerModal({
   onConfirm,
   onClose,
 }: DurationPickerModalProps) {
-  const maxH = Math.floor(max / 60);
-  const hours = makeHours(maxH);
+  const hours = makeHours(Math.floor(Math.max(max, 1) / 60));
 
   const [draftH, setDraftH] = useState(Math.floor(value / 60));
   const [draftM, setDraftM] = useState(value % 60);
 
   // When at the max hour, cap available minutes; otherwise full 0-59
   // When at hour 0, start from 1 to prevent selecting 0:00
-  const maxMinForHour = draftH >= maxH ? max % 60 : 59;
-  const minMinForHour = draftH === 0 ? 1 : 0;
+  const effectiveMax = Math.max(max, 1);
+  const effectiveMaxH = Math.floor(effectiveMax / 60);
+  const maxMinForHour = draftH >= effectiveMaxH ? effectiveMax % 60 : 59;
+  const minMinForHour = Math.min(draftH === 0 ? 1 : 0, maxMinForHour);
   const minutes =
-    draftH >= maxH || draftH === 0
+    draftH >= effectiveMaxH || draftH === 0
       ? makeMinutes(maxMinForHour, minMinForHour)
       : MINUTES_60;
-  const canInfiniteScroll = draftH > 0 && draftH < maxH;
+  const canInfiniteScroll = draftH > 0 && draftH < effectiveMaxH;
 
   useEffect(() => {
     if (visible) {
