@@ -25,7 +25,7 @@ function formatPresetLabel(minutes: number): string {
   if (m === 0) {
     return `${h}h`;
   }
-  return `${h}h${m}`;
+  return `${h}h ${m}`;
 }
 const SLIDER_MAX = MINUTES_PER_DAY - 1;
 
