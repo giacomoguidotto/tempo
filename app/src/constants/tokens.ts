@@ -8,16 +8,18 @@ export const colors = {
     muted: "#C4BAB0",
     accent: "#C06730",
     accentGlow: "rgba(192, 103, 48, 0.3)",
+    destructive: "#B85C4A",
   },
   dark: {
     background: "#1A1714",
     surface: "#2A2420",
     border: "#3D352E",
     foreground: "#EDE6DA",
-    secondary: "#7A6F63",
-    muted: "#4A433C",
+    secondary: "#8A7D70",
+    muted: "#6B6058",
     accent: "#C06730",
     accentGlow: "rgba(192, 103, 48, 0.4)",
+    destructive: "#C4796A",
   },
 } as const;
 

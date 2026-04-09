@@ -13,6 +13,7 @@
   --color-muted: #c4bab0;
   --color-accent: #c06730;
   --color-accent-glow: rgba(192, 103, 48, 0.3);
+  --color-destructive: #b85c4a;
 
   /* Typography */
   --font-display: "Fraunces_800ExtraBold";
@@ -31,9 +32,10 @@
     --color-surface: #2a2420;
     --color-border: #3d352e;
     --color-foreground: #ede6da;
-    --color-secondary: #7a6f63;
-    --color-muted: #4a433c;
+    --color-secondary: #8a7d70;
+    --color-muted: #6b6058;
     --color-accent: #c06730;
     --color-accent-glow: rgba(192, 103, 48, 0.4);
+    --color-destructive: #c4796a;
   }
 }
