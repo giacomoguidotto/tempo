@@ -1,7 +1,7 @@
 import notifee, { AndroidStyle } from "@notifee/react-native";
 import { getAllRhythms } from "../rhythm/operations";
 import type { Rhythm } from "../rhythm/schemas";
-import { getUpcomingBeatDates } from "../rhythm/time-range";
+import { getUpcomingBeatDates, MINUTES_PER_DAY } from "../rhythm/time-range";
 import { CHANNEL_IDS } from "./channels";
 
 const STATUS_NOTIFICATION_ID = "tempo-status";
@@ -100,7 +100,7 @@ export function buildStatusNotificationModel(
   );
 
   const lines = [
-    `Next in ${formatRelativeTime(primary.nextBeat, now)} - ${formatClock(primary.nextBeat)}`,
+    `Next in ${formatRelativeTime(primary.nextBeat, now)} - ${formatUpcomingLabel(primary.nextBeat, now)}`,
   ];
   const sameTimeLines = visibleSameTime.map(
     (candidate) =>
@@ -190,6 +190,11 @@ function formatRelativeTime(target: Date, now: Date): string {
     return `${diffMinutes} min`;
   }
 
+  if (diffMinutes > MINUTES_PER_DAY) {
+    const days = Math.max(1, getCalendarDayDiff(now, target));
+    return `${days} day${days === 1 ? "" : "s"}`;
+  }
+
   const hours = Math.floor(diffMinutes / 60);
   const minutes = diffMinutes % 60;
   if (minutes === 0) {
@@ -204,5 +209,17 @@ function isSameDay(left: Date, right: Date): boolean {
     left.getFullYear() === right.getFullYear() &&
     left.getMonth() === right.getMonth() &&
     left.getDate() === right.getDate()
+  );
+}
+
+function getCalendarDayDiff(from: Date, to: Date): number {
+  const fromStart = new Date(from);
+  fromStart.setHours(0, 0, 0, 0);
+
+  const toStart = new Date(to);
+  toStart.setHours(0, 0, 0, 0);
+
+  return Math.round(
+    (toStart.getTime() - fromStart.getTime()) / (24 * 60 * 60 * 1000)
   );
 }

@@ -160,6 +160,22 @@ describe("buildStatusNotificationModel", () => {
     expect(model?.lines).toContain("Friday Rhythm: next Friday");
   });
 
+  it("shows day-based relative text in the primary line when the next beat is more than 24 hours away", () => {
+    const now = new Date(2026, 3, 8, 10, 0);
+
+    const model = buildStatusNotificationModel(
+      [
+        {
+          nextBeat: new Date(2026, 3, 10, 8, 0),
+          rhythm: makeRhythm({ id: "a", name: "Friday Rhythm", sortOrder: 0 }),
+        },
+      ],
+      now
+    );
+
+    expect(model?.lines[0]).toBe("Next in 2 days - Friday");
+  });
+
   it("uses the singular form when only one later rhythm is hidden", () => {
     const now = new Date(2026, 3, 8, 10, 0);
 
