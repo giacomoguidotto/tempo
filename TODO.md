@@ -92,7 +92,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Android adapter: Notifee TimestampTrigger + AlarmManager for reliable delivery
   - [x] Background execution — alarms fire when app is backgrounded/killed
   - [x] Notification channel setup (4 channels per intensity level)
-  - [ ] Persistent notification showing active rhythm status
+  - [x] Persistent notification showing active rhythm status
 
 - [x] **Alert system**
   - [x] Implement 4 intensity levels (Whisper / Nudge / Pulse / Call)
