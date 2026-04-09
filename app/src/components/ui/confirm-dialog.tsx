@@ -1,10 +1,5 @@
-import {
-  Modal,
-  Pressable,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ConfirmDialogProps {
   actions: {
@@ -18,15 +13,11 @@ interface ConfirmDialogProps {
   visible: boolean;
 }
 
-function actionColor(style?: "default" | "destructive" | "accent"): string {
-  if (style === "destructive") {
-    return "#9C6F63";
-  }
-  if (style === "accent") {
-    return "#EDE6DA";
-  }
-  return "#7A6F63";
-}
+const STYLE_ORDER: Record<string, number> = {
+  accent: 0,
+  destructive: 1,
+  default: 2,
+};
 
 export function ConfirmDialog({
   visible,
@@ -35,6 +26,19 @@ export function ConfirmDialog({
   actions,
   onClose,
 }: ConfirmDialogProps) {
+  const insets = useSafeAreaInsets();
+
+  const sorted = [...actions].sort(
+    (a, b) =>
+      (STYLE_ORDER[a.style ?? "default"] ?? 2) -
+      (STYLE_ORDER[b.style ?? "default"] ?? 2)
+  );
+
+  const primary = sorted.filter(
+    (a) => a.style === "accent" || a.style === "destructive"
+  );
+  const secondary = sorted.filter((a) => !a.style || a.style === "default");
+
   return (
     <Modal
       animationType="fade"
@@ -42,86 +46,107 @@ export function ConfirmDialog({
       transparent
       visible={visible}
     >
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
+      <Pressable
+        onPress={onClose}
+        style={{ flex: 1, justifyContent: "flex-end" }}
       >
-        <TouchableWithoutFeedback onPress={onClose}>
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.6)",
-            }}
-          />
-        </TouchableWithoutFeedback>
         <View
           style={{
-            backgroundColor: "#1A1714",
-            borderRadius: 20,
-            paddingTop: 24,
-            paddingBottom: 16,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+          }}
+        />
+
+        <View
+          className="bg-surface"
+          onStartShouldSetResponder={() => true}
+          style={{
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            paddingTop: 28,
             paddingHorizontal: 24,
-            width: 300,
-            borderWidth: 1,
-            borderColor: "#2A2420",
+            paddingBottom: Math.max(insets.bottom, 36),
           }}
         >
           <Text
+            className="text-[20px] text-foreground"
             style={{
               fontFamily: "Fraunces_600SemiBold",
-              fontSize: 18,
-              color: "#EDE6DA",
               marginBottom: 6,
             }}
           >
             {title}
           </Text>
           <Text
+            className="text-secondary text-sm"
             style={{
               fontFamily: "IBMPlexMono_400Regular",
-              fontSize: 13,
-              color: "#7A6F63",
-              lineHeight: 20,
+              lineHeight: 22,
+              marginBottom: 24,
             }}
           >
             {message}
           </Text>
 
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              gap: 12,
-              marginTop: 24,
-            }}
-          >
-            {actions.map((action) => (
+          <View style={{ gap: 10 }}>
+            {primary.map((action) => (
               <Pressable
+                className="items-center justify-center rounded-[14px]"
                 key={action.label}
                 onPress={action.onPress}
-                style={{
-                  paddingVertical: 8,
-                  paddingHorizontal: 14,
-                  borderRadius: 8,
-                  backgroundColor:
-                    action.style === "accent" ? "#C06730" : "transparent",
-                }}
+                style={
+                  action.style === "accent"
+                    ? {
+                        height: 52,
+                        backgroundColor: "#C06730",
+                        shadowColor: "#C06730",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 16,
+                        elevation: 4,
+                      }
+                    : {
+                        height: 52,
+                        backgroundColor: "rgba(196, 121, 106, 0.12)",
+                        borderWidth: 1,
+                        borderColor: "rgba(196, 121, 106, 0.2)",
+                      }
+                }
               >
                 <Text
-                  style={{
-                    fontFamily: "IBMPlexMono_500Medium",
-                    fontSize: 12,
-                    letterSpacing: 1,
-                    textTransform: "uppercase",
-                    color: actionColor(action.style),
-                  }}
+                  className={`text-[13px] uppercase tracking-[1.5px] ${
+                    action.style === "accent"
+                      ? "text-foreground"
+                      : "text-destructive"
+                  }`}
+                  style={{ fontFamily: "IBMPlexMono_500Medium" }}
+                >
+                  {action.label}
+                </Text>
+              </Pressable>
+            ))}
+
+            {secondary.length > 0 && (
+              <View
+                className="bg-border"
+                style={{ height: 1, opacity: 0.5, marginVertical: 4 }}
+              />
+            )}
+
+            {secondary.map((action) => (
+              <Pressable
+                className="items-center justify-center"
+                key={action.label}
+                onPress={action.onPress}
+                style={{ height: 40 }}
+              >
+                <Text
+                  className="text-secondary text-xs uppercase tracking-[1px]"
+                  style={{ fontFamily: "IBMPlexMono_500Medium" }}
                 >
                   {action.label}
                 </Text>
@@ -129,7 +154,7 @@ export function ConfirmDialog({
             ))}
           </View>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }
