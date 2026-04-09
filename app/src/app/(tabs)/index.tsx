@@ -19,7 +19,7 @@ import { requestAlarmPermissions } from "@/features/beat/permissions";
 import { syncStatusNotification } from "@/features/beat/status";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
-import { formatNextAlarm } from "@/features/rhythm/next-alarm";
+import { formatNextBeat } from "@/features/rhythm/next-beat";
 import {
   deleteRhythm,
   getAllRhythms,
@@ -74,8 +74,8 @@ export default function RhythmsScreen() {
   }, []);
 
   const activeRhythms = rhythms.filter((r) => r.enabled);
-  const nextAlarm = formatNextAlarm(activeRhythms);
-  const hasUpcomingAlarms = nextAlarm !== "--:--";
+  const nextBeat = formatNextBeat(activeRhythms);
+  const hasUpcomingBeats = nextBeat !== "--:--";
   const hasRhythms = rhythms.length > 0;
 
   const targetCardY = screenHeight * 0.5;
@@ -199,7 +199,7 @@ export default function RhythmsScreen() {
         </Text>
       </View>
 
-      {/* VuMeter + Next Alarm — fixed behind the scrolling list */}
+      {/* VuMeter + Next Beat — fixed behind the scrolling list */}
       {hasRhythms && (
         <Animated.View
           className="absolute items-center gap-5 pt-7 pb-6"
@@ -214,20 +214,20 @@ export default function RhythmsScreen() {
         >
           <VuMeter
             active={activeRhythms.length > 0}
-            moving={hasUpcomingAlarms}
+            moving={hasUpcomingBeats}
           />
           <View className="items-center gap-1">
             <Text
               className="text-[40px] text-foreground tracking-[2px]"
               style={{ fontFamily: "IBMPlexMono_500Medium" }}
             >
-              {nextAlarm}
+              {nextBeat}
             </Text>
             <Text
               className="text-secondary text-xs uppercase tracking-[2px]"
               style={{ fontFamily: "IBMPlexMono_400Regular" }}
             >
-              Next alarm
+              Next beat
             </Text>
           </View>
         </Animated.View>

@@ -1,7 +1,7 @@
 import type { Rhythm } from "./schemas";
 import { getUpcomingBeatDates, MINUTES_PER_DAY } from "./time-range";
 
-export function formatNextAlarm(
+export function formatNextBeat(
   activeRhythms: Rhythm[],
   now = new Date()
 ): string {

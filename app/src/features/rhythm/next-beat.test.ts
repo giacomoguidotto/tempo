@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatNextAlarm } from "./next-alarm";
+import { formatNextBeat } from "./next-beat";
 import type { Rhythm } from "./schemas";
 
 function makeRhythm(overrides: Partial<Rhythm> = {}): Rhythm {
@@ -19,9 +19,9 @@ function makeRhythm(overrides: Partial<Rhythm> = {}): Rhythm {
   };
 }
 
-describe("formatNextAlarm", () => {
+describe("formatNextBeat", () => {
   it('returns "--:--" when there are no active rhythms', () => {
-    expect(formatNextAlarm([])).toBe("--:--");
+    expect(formatNextBeat([])).toBe("--:--");
   });
 
   it("returns an hours and minutes countdown within the next 24 hours", () => {
@@ -32,10 +32,10 @@ describe("formatNextAlarm", () => {
       startTime: "12:00",
     });
 
-    expect(formatNextAlarm([mondayRhythm], now)).toBe("02:00");
+    expect(formatNextBeat([mondayRhythm], now)).toBe("02:00");
   });
 
-  it('returns "IN 1 DAY" when the soonest alarm is more than 24 hours away but tomorrow', () => {
+  it('returns "IN 1 DAY" when the soonest beat is more than 24 hours away but tomorrow', () => {
     const now = new Date(2026, 3, 6, 10, 0);
     const tomorrowRhythm = makeRhythm({
       days: [2],
@@ -43,10 +43,10 @@ describe("formatNextAlarm", () => {
       startTime: "11:00",
     });
 
-    expect(formatNextAlarm([tomorrowRhythm], now)).toBe("IN 1 DAY");
+    expect(formatNextBeat([tomorrowRhythm], now)).toBe("IN 1 DAY");
   });
 
-  it('returns "IN X DAYS" when the soonest alarm is multiple calendar days away', () => {
+  it('returns "IN X DAYS" when the soonest beat is multiple calendar days away', () => {
     const now = new Date(2026, 3, 6, 10, 0);
     const laterRhythm = makeRhythm({
       days: [3],
@@ -54,6 +54,6 @@ describe("formatNextAlarm", () => {
       startTime: "09:00",
     });
 
-    expect(formatNextAlarm([laterRhythm], now)).toBe("IN 2 DAYS");
+    expect(formatNextBeat([laterRhythm], now)).toBe("IN 2 DAYS");
   });
 });
