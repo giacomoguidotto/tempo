@@ -9,6 +9,29 @@ const STATUS_DISABLE_ACTION_ID = "status-disable";
 const STATUS_NOTIFICATION_KIND = "status";
 const MAX_EXPANDED_ADDITIONAL = 2;
 
+/** Self-scheduling refresh: keeps the "Next in X min" countdown fresh. */
+let refreshTimerId: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleRefresh() {
+  if (refreshTimerId) {
+    clearTimeout(refreshTimerId);
+    refreshTimerId = null;
+  }
+  const msToNextMinute =
+    (60 - new Date().getSeconds()) * 1000 - new Date().getMilliseconds() + 500;
+  refreshTimerId = setTimeout(() => {
+    refreshTimerId = null;
+    syncStatusNotification("refresh").catch(() => undefined);
+  }, msToNextMinute);
+}
+
+function cancelRefresh() {
+  if (refreshTimerId) {
+    clearTimeout(refreshTimerId);
+    refreshTimerId = null;
+  }
+}
+
 interface StatusRhythmCandidate {
   nextBeat: Date;
   rhythm: Rhythm;
@@ -35,6 +58,7 @@ export async function syncStatusNotification(source = "manual"): Promise<void> {
   const model = buildStatusNotificationModel(getStatusRhythmCandidates());
 
   if (!model) {
+    cancelRefresh();
     await notifee.cancelNotification(STATUS_NOTIFICATION_ID);
     return;
   }
@@ -67,6 +91,8 @@ export async function syncStatusNotification(source = "manual"): Promise<void> {
       source,
     },
   });
+
+  scheduleRefresh();
 }
 
 export function buildStatusNotificationModel(
