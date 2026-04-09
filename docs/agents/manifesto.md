@@ -18,6 +18,7 @@ Project-specific docs may override these defaults when the constraint is real an
 - Verify assumptions before coding: API availability, platform support, dependency compatibility, version constraints, and runtime boundaries.
 - Start simple. Add complexity only after evidence shows the simple version is not enough.
 - If the same fix fails twice, stop patching symptoms and re-evaluate the model.
+- Don't be afraid to break down and rebuild when tech debt is driving workarounds instead of clean, simple solutions. A rewrite costs less than a thousand patches.
 - Let tooling win by default. Run formatting, linting, typechecking, and the most relevant tests before handing work off.
 - Commit coherent changes with clear messages. Avoid amending history unless explicitly asked.
 - Debug from evidence. Read the real error, reproduce the issue, and follow the failure chain before guessing.
