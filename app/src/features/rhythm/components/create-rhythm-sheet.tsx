@@ -111,7 +111,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       intensity,
       enabled: true,
     });
-    scheduleRhythm(created);
+    await scheduleRhythm(created, "create-rhythm");
     setRhythms(getAllRhythms());
     resetForm();
     sheetRef.current?.dismiss();

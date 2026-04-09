@@ -8,6 +8,7 @@ import type { Rhythm } from "@/features/rhythm/schemas";
 import { getUpcomingBeatDates } from "@/features/rhythm/time-range";
 import { CHANNEL_IDS } from "./channels";
 import { logAlarmEvent } from "./debug";
+import { syncStatusNotification } from "./status";
 
 const SCHEDULE_AHEAD_COUNT = 5;
 
@@ -29,6 +30,7 @@ export async function scheduleRhythm(
   await cancelRhythm(rhythm.id);
 
   if (!rhythm.enabled) {
+    await syncStatusNotification(source);
     return;
   }
 
@@ -40,6 +42,7 @@ export async function scheduleRhythm(
       rhythmId: rhythm.id,
       rhythmName: rhythm.name,
     });
+    await syncStatusNotification(source);
     return;
   }
 
@@ -105,6 +108,7 @@ export async function scheduleRhythm(
     rhythmName: rhythm.name,
     scheduledAt: nextBeats[0]?.toISOString() ?? null,
   });
+  await syncStatusNotification(source);
 }
 
 /**
@@ -127,6 +131,8 @@ export async function scheduleAllRhythms(rhythms: Rhythm[]): Promise<void> {
   for (const rhythm of rhythms) {
     await scheduleRhythm(rhythm, "schedule-all");
   }
+
+  await syncStatusNotification("schedule-all");
 }
 
 function formatTime(date: Date): string {

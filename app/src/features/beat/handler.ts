@@ -1,6 +1,12 @@
 import notifee, { EventType } from "@notifee/react-native";
+import { disableRhythmFromStatusNotification } from "./commands";
 import { getAlarmDebugPayload, logAlarmEvent } from "./debug";
 import { supersedeOlderNotifications, topOffRhythmSchedule } from "./runtime";
+import {
+  getStatusNotificationActionId,
+  isStatusNotification,
+  syncStatusNotification,
+} from "./status";
 
 /**
  * Register foreground event handler for Notifee.
@@ -8,6 +14,22 @@ import { supersedeOlderNotifications, topOffRhythmSchedule } from "./runtime";
  */
 export function registerNotificationHandlers() {
   notifee.onForegroundEvent(async ({ type, detail }) => {
+    if (isStatusNotification(detail.notification)) {
+      if (
+        type === EventType.ACTION_PRESS &&
+        detail.pressAction?.id === getStatusNotificationActionId()
+      ) {
+        await disableRhythmFromStatusNotification(
+          detail.notification?.data?.primaryRhythmId as string | undefined,
+          "foreground-status-disable"
+        );
+      }
+      if (type === EventType.DISMISSED) {
+        await syncStatusNotification("foreground-status-dismissed");
+      }
+      return;
+    }
+
     const rhythmId = detail.notification?.data?.rhythmId as string | undefined;
     const payload = getAlarmDebugPayload(detail.notification, "foreground");
 

@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
+import { syncStatusNotification } from "@/features/beat/status";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
 import {
@@ -30,12 +31,20 @@ export default function RhythmsScreen() {
     useConfirmDialog();
 
   useEffect(() => {
-    const loaded = getAllRhythms();
-    setRhythms(loaded);
-    // Schedule alarms for all enabled rhythms on mount
-    for (const r of loaded.filter((r) => r.enabled)) {
-      scheduleRhythm(r);
+    async function hydrateRhythms() {
+      const loaded = getAllRhythms();
+      setRhythms(loaded);
+
+      for (const rhythm of loaded.filter((candidate) => candidate.enabled)) {
+        await scheduleRhythm(rhythm, "tabs-mount");
+      }
+
+      await syncStatusNotification("tabs-mount");
     }
+
+    hydrateRhythms().catch(() => {
+      syncStatusNotification("tabs-mount-fallback").catch(() => undefined);
+    });
   }, [setRhythms]);
 
   // Re-render at the top of every minute so UI stays in sync with the clock
@@ -83,10 +92,11 @@ export default function RhythmsScreen() {
     }
   }
 
-  function handleDelete(id: string) {
-    cancelRhythm(id);
+  async function handleDelete(id: string) {
+    await cancelRhythm(id);
     deleteRhythm(id);
     setRhythms(getAllRhythms());
+    await syncStatusNotification("tabs-delete");
   }
 
   const handleOpenCreate = useCallback(() => {
@@ -97,6 +107,7 @@ export default function RhythmsScreen() {
     ({ data }: { data: Rhythm[] }) => {
       setRhythms(data);
       reorderRhythms(data.map((r) => r.id));
+      syncStatusNotification("tabs-reorder").catch(() => undefined);
     },
     [setRhythms]
   );

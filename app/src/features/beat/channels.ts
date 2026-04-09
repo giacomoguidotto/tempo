@@ -1,6 +1,7 @@
 import notifee, { AndroidImportance } from "@notifee/react-native";
 
 export const CHANNEL_IDS = {
+  status: "tempo-status",
   whisper: "tempo-whisper",
   nudge: "tempo-nudge",
   pulse: "tempo-pulse",
@@ -8,6 +9,15 @@ export const CHANNEL_IDS = {
 } as const;
 
 export async function createNotificationChannels() {
+  await notifee.createChannel({
+    id: CHANNEL_IDS.status,
+    name: "Tempo Status",
+    description: "Persistent status for enabled rhythms",
+    importance: AndroidImportance.LOW,
+    vibration: false,
+    sound: undefined,
+  });
+
   await notifee.createChannel({
     id: CHANNEL_IDS.whisper,
     name: "Whisper",

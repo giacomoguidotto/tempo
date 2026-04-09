@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/wheel-picker";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
+import { syncStatusNotification } from "@/features/beat/status";
 import { deleteRhythm, getAllRhythms, updateRhythm } from "../operations";
 import type { IntensityLevel, Rhythm } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
@@ -118,19 +119,21 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
           return;
         }
       }
-      scheduleRhythm(updated);
+      await scheduleRhythm(updated, "edit-rhythm");
     }
     setRhythms(getAllRhythms());
     sheetRef.current?.dismiss();
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!editingId) {
       return;
     }
-    cancelRhythm(editingId);
+
+    await cancelRhythm(editingId);
     deleteRhythm(editingId);
     setRhythms(getAllRhythms());
+    await syncStatusNotification("edit-delete");
     sheetRef.current?.dismiss();
   }
 
