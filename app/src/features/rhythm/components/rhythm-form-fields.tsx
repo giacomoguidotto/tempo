@@ -71,6 +71,7 @@ interface RhythmFormFieldsProps {
   onOpenStartTimePicker: () => void;
   onSetDay: (day: number, selected: boolean) => void;
   onTimeRangeChange: (low: number, high: number) => void;
+  onTimeRangeDragEnd?: () => void;
   selectedDays: number[];
   startTime: string;
 }
@@ -87,6 +88,7 @@ export const RhythmFormFields = memo(function RhythmFormFields({
   onOpenDurationPicker,
   onOpenEndTimePicker,
   onOpenStartTimePicker,
+  onTimeRangeDragEnd,
   onSetDay,
   onTimeRangeChange,
   selectedDays,
@@ -105,6 +107,7 @@ export const RhythmFormFields = memo(function RhythmFormFields({
         onOpenEndTimePicker={onOpenEndTimePicker}
         onOpenStartTimePicker={onOpenStartTimePicker}
         onTimeRangeChange={onTimeRangeChange}
+        onTimeRangeDragEnd={onTimeRangeDragEnd}
         startTime={startTime}
       />
       <IntervalField
@@ -274,12 +277,14 @@ const TimeRangeField = memo(function TimeRangeField({
   onOpenEndTimePicker,
   onOpenStartTimePicker,
   onTimeRangeChange,
+  onTimeRangeDragEnd,
   startTime,
 }: {
   endTime: string;
   onOpenEndTimePicker: () => void;
   onOpenStartTimePicker: () => void;
   onTimeRangeChange: (low: number, high: number) => void;
+  onTimeRangeDragEnd?: () => void;
   startTime: string;
 }) {
   const wraps = crossesMidnight(startTime, endTime);
@@ -304,6 +309,7 @@ const TimeRangeField = memo(function TimeRangeField({
       <RangeSlider
         max={SLIDER_MAX}
         min={0}
+        onDragEnd={onTimeRangeDragEnd}
         onValuesChange={onTimeRangeChange}
         step={60}
         valueHigh={timeToMinutes(endTime)}

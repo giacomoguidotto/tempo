@@ -197,17 +197,13 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   }
 
   const handleTimeRangeChange = useCallback((low: number, high: number) => {
-    const newStart = minutesToTime(low);
-    const newEnd = minutesToTime(high);
-    setStartTime(newStart);
-    setEndTime(newEnd);
-    const s = low;
-    const e = high;
-    const duration = s > e ? MINUTES_PER_DAY - s + e : e - s;
-    if (duration > 0) {
-      setInterval((prev) => Math.min(prev, duration));
-    }
+    setStartTime(minutesToTime(low));
+    setEndTime(minutesToTime(high));
   }, []);
+
+  function handleTimeRangeDragEnd() {
+    clampIntervalToRange(startTime, endTime);
+  }
 
   const handleIntervalChange = useCallback((value: number) => {
     setInterval(value);
@@ -290,6 +286,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
           onOpenStartTimePicker={() => setShowTimePicker("start")}
           onSetDay={setDay}
           onTimeRangeChange={handleTimeRangeChange}
+          onTimeRangeDragEnd={handleTimeRangeDragEnd}
           selectedDays={selectedDays}
           startTime={startTime}
         />
