@@ -1,5 +1,6 @@
 import {
-  BottomSheetBackdrop,
+  type BottomSheetBackdropProps,
+  type BottomSheetHandleProps,
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
@@ -16,6 +17,8 @@ import {
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SheetBackdrop } from "@/components/ui/sheet-backdrop";
+import { SheetHandle } from "@/components/ui/sheet-handle";
 import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import {
   DurationPickerModal,
@@ -40,6 +43,8 @@ interface EditRhythmSheetProps {
   onDismiss?: () => void;
 }
 
+const SNAP_POINTS = ["60%", "90%"];
+
 export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   { onDismiss }: EditRhythmSheetProps,
   ref: Ref<EditRhythmSheetHandle>
@@ -49,6 +54,8 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
   const sheetRef = useRef<BottomSheetModal>(null);
   const nameRef = useRef("");
   const originalRef = useRef<Rhythm | null>(null);
+  const isDirtyRef = useRef(false);
+  const allowDismissRef = useRef(false);
   const [nameInputKey, setNameInputKey] = useState(0);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -122,6 +129,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       await scheduleRhythm(updated, "edit-rhythm");
     }
     setRhythms(getAllRhythms());
+    allowDismissRef.current = true;
     sheetRef.current?.dismiss();
   }
 
@@ -134,6 +142,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
     deleteRhythm(editingId);
     setRhythms(getAllRhythms());
     await syncStatusNotification("edit-delete");
+    allowDismissRef.current = true;
     sheetRef.current?.dismiss();
   }
 
@@ -160,6 +169,8 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       JSON.stringify(selectedDays) !==
         JSON.stringify(originalRef.current.days));
 
+  isDirtyRef.current = isDirty;
+
   function handleClose() {
     if (isDirty) {
       setShowConfirm(true);
@@ -167,6 +178,9 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
       sheetRef.current?.dismiss();
     }
   }
+
+  const handleCloseRef = useRef(handleClose);
+  handleCloseRef.current = handleClose;
 
   const handleTimeRangeChange = useCallback((low: number, high: number) => {
     setStartTime(minutesToTime(low));
@@ -188,45 +202,43 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
     setNameDirty((current) => (current === nextDirty ? current : nextDirty));
   }, []);
 
-  const renderBackdrop = useCallback(
-    // biome-ignore lint/suspicious/noExplicitAny: bottom sheet backdrop typing
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        opacity={0.6}
-        pressBehavior={isDirty ? "none" : "close"}
-      />
+  const HandleComponent = useCallback(
+    (props: BottomSheetHandleProps) => (
+      <SheetHandle {...props} onPress={() => handleCloseRef.current()} />
     ),
-    [isDirty]
+    []
+  );
+
+  const BackdropComponent = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <SheetBackdrop {...props} onPress={() => handleCloseRef.current()} />
+    ),
+    []
   );
 
   return (
     <BottomSheetModal
-      backdropComponent={renderBackdrop}
+      android_keyboardInputMode="adjustResize"
+      backdropComponent={BackdropComponent}
       backgroundStyle={{ backgroundColor: "#1A1714" }}
       enableDynamicSizing={false}
-      enableHandlePanningGesture={!isDirty}
-      enablePanDownToClose={!isDirty}
-      handleComponent={() => (
-        <Pressable
-          onPress={handleClose}
-          style={{ alignItems: "center", paddingVertical: 12 }}
-        >
-          <View
-            style={{
-              width: 40,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: "#3D352E",
-            }}
-          />
-        </Pressable>
-      )}
-      onDismiss={onDismiss}
+      enablePanDownToClose
+      handleComponent={HandleComponent}
+      index={1}
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      onAnimate={(_fromIndex, toIndex) => {
+        if (toIndex === -1 && isDirtyRef.current && !allowDismissRef.current) {
+          sheetRef.current?.snapToIndex(0);
+          setShowConfirm(true);
+        }
+      }}
+      onDismiss={() => {
+        allowDismissRef.current = false;
+        onDismiss?.();
+      }}
       ref={sheetRef}
-      snapPoints={["90%"]}
+      snapPoints={SNAP_POINTS}
     >
       <View className="items-center px-7 py-3">
         <Text
@@ -261,19 +273,18 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         />
       </BottomSheetScrollView>
 
-      {/* Bottom buttons */}
       <View
         className="flex-row gap-3 px-7 pt-3"
-        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        style={{ paddingBottom: Math.max(insets.bottom, 32) }}
       >
         <Pressable
-          className="items-center justify-center rounded-2xl border border-border px-4 py-4"
+          className="items-center justify-center rounded-2xl border border-border px-5 py-5"
           onPress={handleDelete}
         >
           <Trash2 color="#7A6F63" size={20} />
         </Pressable>
         <Pressable
-          className={`flex-1 items-center rounded-2xl py-4 ${canSave ? "bg-accent" : "bg-border"}`}
+          className={`flex-1 items-center rounded-2xl py-5 ${canSave ? "bg-accent" : "bg-border"}`}
           disabled={!canSave}
           onPress={handleSave}
         >
@@ -286,7 +297,6 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         </Pressable>
       </View>
 
-      {/* Time Picker Dialog */}
       {showTimePicker && (
         <TimePickerModal
           onClose={() => setShowTimePicker(null)}
@@ -322,6 +332,7 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
             style: "destructive",
             onPress: () => {
               setShowConfirm(false);
+              allowDismissRef.current = true;
               sheetRef.current?.dismiss();
             },
           },

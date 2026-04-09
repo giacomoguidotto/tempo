@@ -1,5 +1,6 @@
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { memo, useRef } from "react";
-import { Platform, Pressable, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -111,7 +112,7 @@ const NameField = memo(function NameField({
   return (
     <View style={{ paddingVertical: 16, gap: 6 }}>
       <Label>Name</Label>
-      <TextInput
+      <BottomSheetTextInput
         autoCorrect={false}
         cursorColor="#C06730"
         defaultValue={initialName}
