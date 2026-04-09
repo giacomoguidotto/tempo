@@ -260,6 +260,14 @@ interface DurationPickerModalProps {
   visible: boolean;
 }
 
+function makeMinutes(maxMin: number) {
+  const count = Math.min(maxMin + 1, 60);
+  return Array.from({ length: count }, (_, i) => ({
+    label: String(i).padStart(2, "0"),
+    value: i,
+  }));
+}
+
 export function DurationPickerModal({
   max = 480,
   visible,
@@ -273,6 +281,11 @@ export function DurationPickerModal({
   const [draftH, setDraftH] = useState(Math.floor(value / 60));
   const [draftM, setDraftM] = useState(value % 60);
 
+  // When at the max hour, cap available minutes; otherwise full 0-59
+  const maxMinForHour = draftH >= maxH ? max % 60 : 59;
+  const minutes = draftH >= maxH ? makeMinutes(maxMinForHour) : MINUTES_60;
+  const canInfiniteScroll = draftH < maxH;
+
   useEffect(() => {
     if (visible) {
       setDraftH(Math.floor(value / 60));
@@ -280,22 +293,20 @@ export function DurationPickerModal({
     }
   }, [visible, value]);
 
-  // Clamp: at least 1 min, and don't exceed max
+  // Clamp minutes if hour changed and current minutes exceed new cap
   useEffect(() => {
-    const total = draftH * 60 + draftM;
-    if (total === 0) {
+    if (draftH === 0 && draftM === 0) {
       setDraftM(1);
-    } else if (total > max) {
-      setDraftH(Math.floor(max / 60));
-      setDraftM(max % 60);
+    } else if (draftM > maxMinForHour) {
+      setDraftM(maxMinForHour);
     }
-  }, [draftH, draftM, max]);
+  }, [draftH, draftM, maxMinForHour]);
 
   return (
     <PickerModal
       onClose={onClose}
       onConfirm={() => {
-        onConfirm(Math.min(draftH * 60 + draftM, max));
+        onConfirm(draftH * 60 + draftM);
         onClose();
       }}
       title="Interval"
@@ -331,8 +342,8 @@ export function DurationPickerModal({
           :
         </Text>
         <WheelPicker
-          data={MINUTES_60}
-          infiniteScroll
+          data={minutes}
+          infiniteScroll={canInfiniteScroll}
           itemHeight={44}
           itemTextStyle={ITEM_STYLE}
           onValueChanged={({ item }: { item: { value: number } }) =>
