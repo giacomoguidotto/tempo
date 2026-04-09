@@ -163,6 +163,15 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [ ] Mark active alerts as `missed` after their timeout window
   - [ ] Preview: list of upcoming beats while editing a rhythm
 
+- [ ] **Schedule & lifecycle**
+  - [ ] Day presets in day selector (Workdays, Weekends, Every day)
+  - [ ] Timeout timer — auto-stop rhythm after X days (naming TBD: "Expiry", "Sunset", "Coda")
+  - [ ] Holiday disable — pause rhythms during user-defined date ranges
+
+- [ ] **Beat customization**
+  - [ ] Configurable beat duration (how long the alert vibrates/sounds/shows full-screen)
+  - [ ] Per-rhythm duration override independent of intensity level
+
 - [ ] **Settings**
   - [ ] Default intensity level
   - [ ] About / version info
@@ -204,6 +213,15 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [ ] Auto-categorize based on note text (ML or keyword matching)
   - [ ] Manual category assignment
   - [ ] Custom categories with colors
+
+- [ ] **Intensity customization**
+  - [ ] Custom intensity level with granular controls (sound on/off + duration, vibration on/off + duration, full-screen on lock screen, full-screen over apps)
+  - [ ] Rethink notification channel strategy for arbitrary custom configs
+  - [ ] Sound playback analysis for long-duration alerts
+
+- [ ] **Hero & engagement**
+  - [ ] VuMeter animation synced to beat timing (countdown approach animation, beat-moment pulse)
+  - [ ] Connect VU meter to beat engine's real-time schedule
 
 - [ ] **Charts & analytics**
   - [ ] Daily breakdown (pie/donut chart by category)
