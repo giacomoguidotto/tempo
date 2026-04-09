@@ -63,9 +63,13 @@ export default function RhythmsScreen() {
     const msToNextMinute =
       (60 - new Date().getSeconds()) * 1000 - new Date().getMilliseconds();
     let intervalId: ReturnType<typeof setInterval>;
-    const timeoutId = setTimeout(() => {
+    const tick = () => {
       setTick((t) => t + 1);
-      intervalId = setInterval(() => setTick((t) => t + 1), 60_000);
+      syncStatusNotification("tick").catch(() => undefined);
+    };
+    const timeoutId = setTimeout(() => {
+      tick();
+      intervalId = setInterval(tick, 60_000);
     }, msToNextMinute);
     return () => {
       clearTimeout(timeoutId);
