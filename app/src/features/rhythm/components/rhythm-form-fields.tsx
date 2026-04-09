@@ -1,18 +1,12 @@
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { memo, useRef } from "react";
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Platform, Pressable, Text, useColorScheme, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
   type GestureUpdateEvent,
   type PanGestureHandlerEventPayload,
+  ScrollView,
 } from "react-native-gesture-handler";
 import { RangeSlider } from "@/components/ui/range-slider";
 import { colors } from "@/constants/tokens";
@@ -346,7 +340,7 @@ const IntervalField = memo(function IntervalField({
       <Label>Every</Label>
       <Pressable onPress={onOpenDurationPicker}>
         <Text
-          className="self-start text-[32px] text-accent tracking-[2px]"
+          className="self-start text-[32px] text-foreground tracking-[2px]"
           style={{
             fontFamily: "IBMPlexMono_500Medium",
             borderBottomWidth: 1.5,
