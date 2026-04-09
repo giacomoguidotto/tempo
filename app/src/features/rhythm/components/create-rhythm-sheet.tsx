@@ -154,10 +154,17 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     }
   }
 
-  const toggleDay = useCallback((day: number) => {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
-    );
+  const setDay = useCallback((day: number, selected: boolean) => {
+    setSelectedDays((prev) => {
+      const has = prev.includes(day);
+      if (selected && !has) {
+        return [...prev, day].sort();
+      }
+      if (!selected && has) {
+        return prev.filter((d) => d !== day);
+      }
+      return prev;
+    });
   }, []);
 
   const handleTimeRangeChange = useCallback((low: number, high: number) => {
@@ -246,8 +253,8 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
           onOpenDurationPicker={() => setShowDurationWheel(true)}
           onOpenEndTimePicker={() => setShowTimePicker("end")}
           onOpenStartTimePicker={() => setShowTimePicker("start")}
+          onSetDay={setDay}
           onTimeRangeChange={handleTimeRangeChange}
-          onToggleDay={toggleDay}
           selectedDays={selectedDays}
           startTime={startTime}
         />

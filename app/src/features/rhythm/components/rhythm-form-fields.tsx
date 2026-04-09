@@ -48,8 +48,8 @@ interface RhythmFormFieldsProps {
   onOpenDurationPicker: () => void;
   onOpenEndTimePicker: () => void;
   onOpenStartTimePicker: () => void;
+  onSetDay: (day: number, selected: boolean) => void;
   onTimeRangeChange: (low: number, high: number) => void;
-  onToggleDay: (day: number) => void;
   selectedDays: number[];
   startTime: string;
 }
@@ -66,8 +66,8 @@ export const RhythmFormFields = memo(function RhythmFormFields({
   onOpenDurationPicker,
   onOpenEndTimePicker,
   onOpenStartTimePicker,
+  onSetDay,
   onTimeRangeChange,
-  onToggleDay,
   selectedDays,
   startTime,
 }: RhythmFormFieldsProps) {
@@ -78,7 +78,7 @@ export const RhythmFormFields = memo(function RhythmFormFields({
         nameInputKey={nameInputKey}
         onNameChange={onNameChange}
       />
-      <DaysField onToggleDay={onToggleDay} selectedDays={selectedDays} />
+      <DaysField onSetDay={onSetDay} selectedDays={selectedDays} />
       <TimeRangeField
         endTime={endTime}
         onOpenEndTimePicker={onOpenEndTimePicker}
@@ -138,15 +138,16 @@ const NameField = memo(function NameField({
 });
 
 const DaysField = memo(function DaysField({
-  onToggleDay,
+  onSetDay,
   selectedDays,
 }: {
-  onToggleDay: (day: number) => void;
+  onSetDay: (day: number, selected: boolean) => void;
   selectedDays: number[];
 }) {
   const rowRef = useRef<View>(null);
   const layoutRef = useRef({ width: 0, x: 0 });
   const visitedDaysRef = useRef<Set<number>>(new Set());
+  const gestureActionRef = useRef<boolean | null>(null);
 
   function measure() {
     rowRef.current?.measureInWindow((x, _y, width) => {
@@ -176,14 +177,18 @@ const DaysField = memo(function DaysField({
     return index;
   }
 
-  function toggleTouchedDay(absoluteX: number) {
+  function applyTouchedDay(absoluteX: number) {
     const dayIndex = resolveDayIndex(absoluteX);
     if (dayIndex === null || visitedDaysRef.current.has(dayIndex)) {
       return;
     }
 
+    if (gestureActionRef.current === null) {
+      gestureActionRef.current = !selectedDays.includes(dayIndex);
+    }
+
     visitedDaysRef.current.add(dayIndex);
-    onToggleDay(dayIndex);
+    onSetDay(dayIndex, gestureActionRef.current);
   }
 
   const panGesture = Gesture.Pan()
@@ -192,14 +197,16 @@ const DaysField = memo(function DaysField({
     .shouldCancelWhenOutside(false)
     .onBegin((event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
       visitedDaysRef.current = new Set();
+      gestureActionRef.current = null;
       measure();
-      toggleTouchedDay(event.absoluteX);
+      applyTouchedDay(event.absoluteX);
     })
     .onUpdate((event: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
-      toggleTouchedDay(event.absoluteX);
+      applyTouchedDay(event.absoluteX);
     })
     .onFinalize(() => {
       visitedDaysRef.current = new Set();
+      gestureActionRef.current = null;
     });
 
   return (
