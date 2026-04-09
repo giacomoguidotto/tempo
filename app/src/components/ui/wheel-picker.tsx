@@ -260,11 +260,11 @@ interface DurationPickerModalProps {
   visible: boolean;
 }
 
-function makeMinutes(maxMin: number) {
-  const count = Math.min(maxMin + 1, 60);
+function makeMinutes(maxMin: number, minMin = 0) {
+  const count = Math.min(maxMin + 1, 60) - minMin;
   return Array.from({ length: count }, (_, i) => ({
-    label: String(i).padStart(2, "0"),
-    value: i,
+    label: String(i + minMin).padStart(2, "0"),
+    value: i + minMin,
   }));
 }
 
@@ -282,9 +282,14 @@ export function DurationPickerModal({
   const [draftM, setDraftM] = useState(value % 60);
 
   // When at the max hour, cap available minutes; otherwise full 0-59
+  // When at hour 0, start from 1 to prevent selecting 0:00
   const maxMinForHour = draftH >= maxH ? max % 60 : 59;
-  const minutes = draftH >= maxH ? makeMinutes(maxMinForHour) : MINUTES_60;
-  const canInfiniteScroll = draftH < maxH;
+  const minMinForHour = draftH === 0 ? 1 : 0;
+  const minutes =
+    draftH >= maxH || draftH === 0
+      ? makeMinutes(maxMinForHour, minMinForHour)
+      : MINUTES_60;
+  const canInfiniteScroll = draftH > 0 && draftH < maxH;
 
   useEffect(() => {
     if (visible) {
@@ -293,14 +298,14 @@ export function DurationPickerModal({
     }
   }, [visible, value]);
 
-  // Clamp minutes if hour changed and current minutes exceed new cap
+  // Clamp minutes into the valid range for the current hour
   useEffect(() => {
-    if (draftH === 0 && draftM === 0) {
-      setDraftM(1);
+    if (draftM < minMinForHour) {
+      setDraftM(minMinForHour);
     } else if (draftM > maxMinForHour) {
       setDraftM(maxMinForHour);
     }
-  }, [draftH, draftM, maxMinForHour]);
+  }, [draftM, minMinForHour, maxMinForHour]);
 
   return (
     <PickerModal
