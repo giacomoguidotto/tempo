@@ -13,6 +13,7 @@ export const rhythmSchema = z.object({
   intervalMinutes: z.number().min(1).max(1440),
   intensity: intensityLevel,
   enabled: z.boolean(),
+  sortOrder: z.number().int().min(0),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -22,6 +23,7 @@ export type Rhythm = z.infer<typeof rhythmSchema>;
 export const createRhythmSchema = rhythmSchema.omit({
   id: true,
   createdAt: true,
+  sortOrder: true,
   updatedAt: true,
 });
 
