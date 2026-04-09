@@ -78,7 +78,7 @@ export default function RhythmsScreen() {
   const hasUpcomingAlarms = nextAlarm !== "--:--";
   const hasRhythms = rhythms.length > 0;
 
-  const targetCardY = screenHeight * 0.45;
+  const targetCardY = screenHeight * 0.5;
   const contentAboveCards =
     STICKY_TITLE_HEIGHT + (hasRhythms ? VUMETER_SECTION_HEIGHT : 0);
   const headerBottomPadding = Math.max(
@@ -205,7 +205,7 @@ export default function RhythmsScreen() {
           className="absolute items-center gap-5 pt-7 pb-6"
           style={[
             {
-              top: insets.top + STICKY_TITLE_HEIGHT,
+              top: insets.top + STICKY_TITLE_HEIGHT + headerBottomPadding / 2,
               left: 0,
               right: 0,
             },
