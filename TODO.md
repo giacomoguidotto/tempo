@@ -149,7 +149,8 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Unit tests for alarm scheduling logic (pure functions)
   - [x] Unit tests for Zod schemas
   - [x] Unit tests for CRUD operations
-  - [ ] Manual testing checklist for alarm reliability
+  - [x] Manual testing checklist for alarm reliability
+  - [ ] Run the alarm reliability checklist on a production build
 
 ### v1 — Capture built in
 > Goal: When a beat fires, you can log your activity right there. No more spreadsheet.
@@ -222,6 +223,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 - [ ] Shared `pkgs/config` workspace package once cross-project config reuse becomes worth it
 - [ ] iOS support (implement iOS adapters)
 - [ ] Extract a platform adapter interface for alarm scheduling when iOS support starts
+- [ ] Refactor the alarm engine behind a uniform command/event interface so UI, background handlers, and future platform adapters all speak the same API
 - [ ] i18n (English + Italian, following Blueprint's next-intl pattern)
 - [ ] Optional manual theme override (dark/light/system)
 - [ ] Interval timer mode (work/break phases, Pomodoro-style)
