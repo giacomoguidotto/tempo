@@ -22,10 +22,16 @@ function formatPresetLabel(minutes: number): string {
   }
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  if (m === 0) {
-    return `${h}h`;
+  return m === 0 ? `${h}h` : `${h}h ${m}`;
+}
+
+function formatIntervalDisplay(minutes: number): string {
+  if (minutes < 60) {
+    return `${minutes} min`;
   }
-  return `${h}h ${m}`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 const SLIDER_MAX = MINUTES_PER_DAY - 1;
 
@@ -348,7 +354,7 @@ const IntervalField = memo(function IntervalField({
             paddingBottom: 4,
           }}
         >
-          {interval} min
+          {formatIntervalDisplay(interval)}
         </Text>
       </Pressable>
       <ScrollView
