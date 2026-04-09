@@ -38,7 +38,7 @@ const WHEEL_STYLE = {
 const ITEM_STYLE = {
   fontFamily: "IBMPlexMono_500Medium",
   fontSize: 22,
-  color: "#C06730",
+  color: "#EDE6DA",
 };
 
 const OVERLAY_STYLE = {
