@@ -1,6 +1,6 @@
 import notifee from "@notifee/react-native";
 import { getRhythm } from "@/features/rhythm/operations";
-import { getAlarmDebugPayload, logAlarmEvent } from "./debug";
+import { beat, extractBeatPayload } from "@/lib/logger";
 import { scheduleRhythm } from "./engine";
 
 export async function topOffRhythmSchedule(
@@ -10,7 +10,7 @@ export async function topOffRhythmSchedule(
   const rhythm = getRhythm(rhythmId);
 
   if (!rhythm) {
-    logAlarmEvent("schedule_skipped", {
+    beat.warn("schedule_skipped", {
       source,
       detail: "rhythm-not-found",
       rhythmId,
@@ -19,7 +19,7 @@ export async function topOffRhythmSchedule(
   }
 
   if (!rhythm.enabled) {
-    logAlarmEvent("schedule_skipped", {
+    beat.warn("schedule_skipped", {
       source,
       detail: "rhythm-disabled",
       rhythmId,
@@ -31,7 +31,7 @@ export async function topOffRhythmSchedule(
   try {
     await scheduleRhythm(rhythm, source);
   } catch (error) {
-    logAlarmEvent("schedule_failed", {
+    beat.error("schedule_failed", {
       source,
       detail: error instanceof Error ? error.message : String(error),
       rhythmId: rhythm.id,
@@ -47,7 +47,7 @@ export async function supersedeOlderNotifications(
   source: string
 ): Promise<void> {
   if (!currentNotificationId) {
-    logAlarmEvent("schedule_skipped", {
+    beat.warn("schedule_skipped", {
       source,
       detail: "missing-current-notification-id",
       rhythmId,
@@ -73,8 +73,8 @@ export async function supersedeOlderNotifications(
     }
 
     await notifee.cancelNotification(notificationId);
-    logAlarmEvent("superseded", {
-      ...getAlarmDebugPayload(notification, source),
+    beat.info("superseded", {
+      ...extractBeatPayload(notification, source),
       detail: `superseded-by:${currentNotificationId}`,
     });
   }

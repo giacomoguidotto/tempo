@@ -103,6 +103,12 @@ vi.mock("@/lib/schema", () => ({
   },
 }));
 
+vi.mock("@/lib/logger", () => {
+  // biome-ignore lint/suspicious/noEmptyBlockStatements: test stub
+  const noop = () => {};
+  return { rhythm: { info: noop, warn: noop, error: noop } };
+});
+
 import {
   createRhythm,
   deleteRhythm,

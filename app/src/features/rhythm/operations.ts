@@ -1,5 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { rhythm as rhythmLog } from "@/lib/logger";
 import { rhythms } from "@/lib/schema";
 import type { CreateRhythm, Rhythm } from "./schemas";
 
@@ -31,6 +32,7 @@ export function createRhythm(input: CreateRhythm): Rhythm {
     updatedAt: now,
   };
   db.insert(rhythms).values(row).run();
+  rhythmLog.info("create", { rhythmId: id, name: input.name });
   return deserialize(row);
 }
 
@@ -63,6 +65,12 @@ export function updateRhythm(
   }
 
   db.update(rhythms).set(updates).where(eq(rhythms.id, id)).run();
+  rhythmLog.info("update", {
+    rhythmId: id,
+    fields: Object.keys(input).filter(
+      (k) => input[k as keyof typeof input] !== undefined
+    ),
+  });
   return getRhythm(id);
 }
 
@@ -71,13 +79,16 @@ export function toggleRhythm(id: string, enabled: boolean): void {
     .set({ enabled, updatedAt: new Date().toISOString() })
     .where(eq(rhythms.id, id))
     .run();
+  rhythmLog.info("toggle", { rhythmId: id, enabled });
 }
 
 export function deleteRhythm(id: string): void {
   db.delete(rhythms).where(eq(rhythms.id, id)).run();
+  rhythmLog.info("delete", { rhythmId: id });
 }
 
 export function reorderRhythms(orderedIds: string[]): void {
+  rhythmLog.info("reorder", { count: orderedIds.length });
   for (let i = 0; i < orderedIds.length; i++) {
     db.update(rhythms)
       .set({ sortOrder: i })

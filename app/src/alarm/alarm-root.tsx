@@ -1,7 +1,7 @@
 import notifee from "@notifee/react-native";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { logAlarmEvent } from "@/features/beat/debug";
+import { beat } from "@/lib/logger";
 import TempoAlarmModule, {
   type AlarmLaunchPayload,
 } from "../../modules/tempo-alarm";
@@ -103,7 +103,7 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
         return;
       }
 
-      logAlarmEvent("schedule_failed", {
+      beat.error("schedule_failed", {
         source: "alarm-screen-hydrate",
         detail: error instanceof Error ? error.message : String(error),
       });
@@ -125,7 +125,7 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
   );
 
   async function handleDismiss() {
-    logAlarmEvent("dismissed", {
+    beat.info("dismissed", {
       source: "alarm-screen-dismiss",
       alarmInstanceId,
       notificationId,
@@ -137,7 +137,7 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
     if (notificationId) {
       await notifee.cancelNotification(notificationId);
     } else {
-      logAlarmEvent("schedule_skipped", {
+      beat.warn("schedule_skipped", {
         source: "alarm-screen-dismiss",
         detail: "missing-notification-id",
         alarmInstanceId,
@@ -152,7 +152,7 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
   }
 
   async function handleOpenTempo() {
-    logAlarmEvent("opened", {
+    beat.info("opened", {
       source: "alarm-screen-open-tempo",
       alarmInstanceId,
       notificationId,

@@ -6,8 +6,8 @@ import notifee, {
 } from "@notifee/react-native";
 import type { Rhythm } from "@/features/rhythm/schemas";
 import { getUpcomingBeatDates } from "@/features/rhythm/time-range";
+import { beat } from "@/lib/logger";
 import { CHANNEL_IDS } from "./channels";
-import { logAlarmEvent } from "./debug";
 import { syncStatusNotification } from "./status";
 
 const SCHEDULE_AHEAD_COUNT = 5;
@@ -36,7 +36,7 @@ export async function scheduleRhythm(
 
   const nextBeats = computeNextBeats(rhythm, SCHEDULE_AHEAD_COUNT);
   if (nextBeats.length === 0) {
-    logAlarmEvent("schedule_skipped", {
+    beat.warn("schedule_skipped", {
       source,
       detail: "no-future-beats",
       rhythmId: rhythm.id,
@@ -99,7 +99,7 @@ export async function scheduleRhythm(
     );
   }
 
-  logAlarmEvent(source.includes("delivered") ? "top_off" : "schedule", {
+  beat.info(source.includes("delivered") ? "top_off" : "schedule", {
     source,
     detail: nextBeats.map((beat) => beat.toISOString()).join(","),
     intensity: rhythm.intensity,

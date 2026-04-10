@@ -1,6 +1,6 @@
 import notifee, { EventType } from "@notifee/react-native";
+import { beat, extractBeatPayload } from "@/lib/logger";
 import { disableRhythmFromStatusNotification } from "./commands";
-import { getAlarmDebugPayload, logAlarmEvent } from "./debug";
 import { supersedeOlderNotifications, topOffRhythmSchedule } from "./runtime";
 import {
   getStatusNotificationActionId,
@@ -31,10 +31,10 @@ export function registerNotificationHandlers() {
     }
 
     const rhythmId = detail.notification?.data?.rhythmId as string | undefined;
-    const payload = getAlarmDebugPayload(detail.notification, "foreground");
+    const payload = extractBeatPayload(detail.notification, "foreground");
 
     if (type === EventType.DELIVERED && rhythmId) {
-      logAlarmEvent("delivered", payload);
+      beat.info("delivered", payload);
       await supersedeOlderNotifications(
         rhythmId,
         detail.notification?.id,
@@ -48,7 +48,7 @@ export function registerNotificationHandlers() {
       type === EventType.ACTION_PRESS &&
       detail.pressAction?.id === "dismiss"
     ) {
-      logAlarmEvent("dismissed", {
+      beat.info("dismissed", {
         ...payload,
         source: "foreground-action-dismiss",
       });
@@ -57,7 +57,7 @@ export function registerNotificationHandlers() {
     }
 
     if (type === EventType.DISMISSED) {
-      logAlarmEvent("dismissed", {
+      beat.info("dismissed", {
         ...payload,
         source: "foreground-swipe",
       });
@@ -65,7 +65,7 @@ export function registerNotificationHandlers() {
     }
 
     if (type === EventType.PRESS) {
-      logAlarmEvent("opened", {
+      beat.info("opened", {
         ...payload,
         source: "foreground-press",
       });
@@ -83,9 +83,9 @@ export async function handleInitialNotification() {
     return;
   }
 
-  logAlarmEvent(
+  beat.info(
     "opened",
-    getAlarmDebugPayload(initial.notification, "initial-notification")
+    extractBeatPayload(initial.notification, "initial-notification")
   );
 
   if (initial.notification?.id) {

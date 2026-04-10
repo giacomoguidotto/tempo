@@ -16,6 +16,12 @@ vi.mock("../rhythm/operations", () => ({
   getAllRhythms: vi.fn(() => []),
 }));
 
+vi.mock("@/lib/logger", () => {
+  // biome-ignore lint/suspicious/noEmptyBlockStatements: test stub
+  const noop = () => {};
+  return { beat: { info: noop, warn: noop, error: noop } };
+});
+
 function makeRhythm(overrides: Partial<Rhythm> = {}): Rhythm {
   return {
     createdAt: "2026-04-08T10:00:00.000Z",
