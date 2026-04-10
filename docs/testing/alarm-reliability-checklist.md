@@ -18,10 +18,17 @@ Useful follow-up passes:
 1. Install the production build.
 2. Remove any existing rhythms.
 3. Create short test rhythms with a 1-minute interval so failures are visible quickly.
-4. Keep optional logs running if available:
+4. Keep structured logs running:
 
 ```sh
-adb logcat | rg "\[alarm-debug\]"
+# All Tempo logs
+adb logcat | rg "tempo"
+
+# Beat domain only (scheduling, delivery, status)
+adb logcat | rg "tempo:beat"
+
+# Rhythm domain only (CRUD operations)
+adb logcat | rg "tempo:rhythm"
 ```
 
 ## Baseline fixtures
@@ -74,11 +81,13 @@ Prepare these rhythms before running the checklist:
 
 ### Observability
 
-- [ ] `adb logcat` shows `[alarm-debug]` entries for delivered beats.
-- [ ] Interacting with a notification produces the expected `opened` or `dismissed` debug events.
-- [ ] Superseding an older notification produces a `superseded` debug event.
-- [ ] Delivery top-off behavior produces `top_off` or equivalent schedule continuation logs.
-- [ ] No unexpected `schedule_failed` events appear during a clean pass.
+- [ ] `adb logcat | rg "tempo:beat"` shows `delivered` entries for fired beats.
+- [ ] Interacting with a notification produces `opened` or `dismissed` events with `level: "info"`.
+- [ ] Superseding an older notification produces a `superseded` event.
+- [ ] Delivery top-off behavior produces `top_off` schedule continuation logs.
+- [ ] No `schedule_failed` events (level `"error"`) appear during a clean pass.
+- [ ] Creating, editing, deleting, and toggling rhythms produce `[tempo:rhythm]` events.
+- [ ] Status notification sync produces `status_sync` events with `rhythmCount`.
 
 ## Release sign-off
 
