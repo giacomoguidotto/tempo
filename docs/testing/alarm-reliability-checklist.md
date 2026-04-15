@@ -5,11 +5,13 @@ Use this checklist to validate Tempo's alarm behavior on a physical Android devi
 ## When to run it
 
 Primary pass:
+
 - after a production build
 - on a real Android device
 - with a fresh app install when possible
 
 Useful follow-up passes:
+
 - after any alarm engine or permission flow change
 - after Notifee, Expo, React Native, or Android target SDK upgrades
 
@@ -43,7 +45,7 @@ Prepare these rhythms before running the checklist:
 
 ### Permission flow
 
-- [ ] Fresh install: creating or enabling a `Pulse` rhythm asks for the required permissions only when needed.
+- [x] Fresh install: creating or enabling a `Pulse` rhythm asks for the required permissions only when needed.
 - [ ] Denying notification permission prevents Tempo from pretending the rhythm is fully armed.
 - [ ] Denying exact alarm access prevents Tempo from pretending the rhythm is fully armed.
 - [ ] Denying full-screen intent access prevents Tempo from pretending `Pulse` is fully armed.
