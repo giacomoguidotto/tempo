@@ -151,6 +151,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Unit tests for CRUD operations
   - [x] Manual testing checklist for alarm reliability
   - [ ] Run the alarm reliability checklist on a production build
+  - [ ] Upload ProGuard/R8 mapping files with production builds for crash deobfuscation
 
 ### v1 — Capture built in
 > Goal: When a beat fires, you can log your activity right there. No more spreadsheet.
