@@ -36,6 +36,12 @@
       "expo-sqlite",
       "./plugins/with-notifee",
       "./plugins/with-alarm-activity"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c56191c8-5720-474e-ab1b-d8ed99e47549"
+      }
+    }
   }
 }

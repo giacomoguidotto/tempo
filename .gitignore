@@ -4,11 +4,14 @@ node_modules/
 # Turborepo
 .turbo/
 
-# Expo
+# Expo — generated platform projects
 .expo/
-android/
-ios/
+/app/android/
+/app/ios/
 dist/
+
+# Expo native module build artifacts (source is tracked)
+app/modules/**/android/build/
 
 # Build
 build/
