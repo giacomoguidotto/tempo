@@ -13,5 +13,21 @@
   "platformAutomerge": true,
   "lockFileMaintenance": {
     "enabled": true
-  }
+  },
+  "packageRules": [
+    {
+      "description": "Expo SDK pins these — bump via `bunx expo install --fix` on SDK upgrades",
+      "matchFileNames": ["app/package.json"],
+      "matchPackageNames": [
+        "expo",
+        "react",
+        "react-native",
+        "/^expo-/",
+        "/^@expo\\//",
+        "/^react-native-/",
+        "/^@react-native(-community)?\\//"
+      ],
+      "enabled": false
+    }
+  ]
 }
