@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { View } from "react-native";
 import Animated, {
   interpolateColor,
@@ -6,6 +6,8 @@ import Animated, {
   useAnimatedStyle,
   useFrameCallback,
   useSharedValue,
+  withDelay,
+  withSequence,
   withTiming,
 } from "react-native-reanimated";
 
@@ -27,6 +29,10 @@ const COLOR_IDLE = "rgba(192, 103, 48, 0.15)";
 const COLOR_DIM = "#3D2E22";
 const COLOR_BRIGHT = "#C06730";
 const TRANSITION_MS = 1500;
+
+const SHOCKWAVE_DURATION = 600;
+const SHOCKWAVE_MAX_SCALE = 2.2;
+const SHOCKWAVE_COLOR = "rgba(192, 103, 48, 0.35)";
 
 function toScreenX(index: number, phaseVal: number): number {
   "worklet";
@@ -95,6 +101,24 @@ function AnimatedBar({
   );
 }
 
+function Shockwave({ trigger }: { trigger: SharedValue<number> }) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    position: "absolute",
+    width: VISIBLE_W,
+    height: MAX_HEIGHT,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: SHOCKWAVE_COLOR,
+    opacity: trigger.value,
+    transform: [
+      { scaleX: 1 + (SHOCKWAVE_MAX_SCALE - 1) * (1 - trigger.value) },
+      { scaleY: 1 + (SHOCKWAVE_MAX_SCALE - 1) * 0.4 * (1 - trigger.value) },
+    ],
+  }));
+
+  return <Animated.View pointerEvents="none" style={animatedStyle} />;
+}
+
 export function VuMeter({
   active = true,
   moving = true,
@@ -106,6 +130,8 @@ export function VuMeter({
   const position = useSharedValue(0);
   const velocity = useSharedValue(moving ? 1 : 0);
   const progress = useSharedValue(active ? 1 : 0);
+  const shockwave = useSharedValue(0);
+  const wasActive = useRef(active);
 
   // Frame callback: advance position by velocity each frame
   useFrameCallback((info) => {
@@ -122,10 +148,18 @@ export function VuMeter({
     velocity.value = withTiming(moving ? 1 : 0, { duration: TRANSITION_MS });
   }, [moving, velocity]);
 
-  // Height/color/opacity
+  // Height/color/opacity + shockwave on activation
   useEffect(() => {
     progress.value = withTiming(active ? 1 : 0, { duration: TRANSITION_MS });
-  }, [active, progress]);
+
+    if (active && !wasActive.current) {
+      shockwave.value = withSequence(
+        withTiming(1, { duration: 0 }),
+        withDelay(200, withTiming(0, { duration: SHOCKWAVE_DURATION }))
+      );
+    }
+    wasActive.current = active;
+  }, [active, progress, shockwave]);
 
   return (
     <View
@@ -133,22 +167,33 @@ export function VuMeter({
       style={{ height: MAX_HEIGHT + 8 }}
     >
       <View
+        className="items-center justify-center"
         style={{
           width: VISIBLE_W,
           height: MAX_HEIGHT,
           position: "relative",
-          overflow: "hidden",
+          overflow: "visible",
         }}
       >
-        {Array.from({ length: TOTAL }).map((_, i) => (
-          <AnimatedBar
-            index={i}
-            // biome-ignore lint/suspicious/noArrayIndexKey: static bar list
-            key={i}
-            position={position}
-            progress={progress}
-          />
-        ))}
+        <View
+          style={{
+            width: VISIBLE_W,
+            height: MAX_HEIGHT,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {Array.from({ length: TOTAL }).map((_, i) => (
+            <AnimatedBar
+              index={i}
+              // biome-ignore lint/suspicious/noArrayIndexKey: static bar list
+              key={i}
+              position={position}
+              progress={progress}
+            />
+          ))}
+        </View>
+        <Shockwave trigger={shockwave} />
       </View>
     </View>
   );
