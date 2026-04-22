@@ -402,12 +402,13 @@ const IntervalField = memo(function IntervalField({
     <View style={{ paddingVertical: 16, gap: 12 }}>
       <Label>Every</Label>
       <PressableScale
+        className="self-start"
         disabled={onceADay}
         onPress={onOpenDurationPicker}
         scale={0.95}
       >
         <Text
-          className="self-start text-[32px] text-foreground tracking-[2px]"
+          className="text-[32px] text-foreground tracking-[2px]"
           style={{
             fontFamily: "IBMPlexMono_500Medium",
             borderBottomWidth: onceADay ? 0 : 1.5,
