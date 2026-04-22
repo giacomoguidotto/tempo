@@ -5,13 +5,8 @@ const WheelPicker = WheelPickerBase as React.ComponentType<
 >;
 
 import { useEffect, useState } from "react";
-import {
-  Modal,
-  Pressable,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { Modal, Text, TouchableWithoutFeedback, View } from "react-native";
+import { PressableScale } from "./pressable-scale";
 
 const HOURS_24 = Array.from({ length: 24 }, (_, i) => ({
   label: String(i).padStart(2, "0"),
@@ -123,7 +118,7 @@ function PickerModal({
               paddingHorizontal: 4,
             }}
           >
-            <Pressable
+            <PressableScale
               onPress={onClose}
               style={{ paddingVertical: 8, paddingHorizontal: 12 }}
             >
@@ -138,8 +133,8 @@ function PickerModal({
               >
                 Cancel
               </Text>
-            </Pressable>
-            <Pressable
+            </PressableScale>
+            <PressableScale
               onPress={onConfirm}
               style={{ paddingVertical: 8, paddingHorizontal: 12 }}
             >
@@ -154,7 +149,7 @@ function PickerModal({
               >
                 OK
               </Text>
-            </Pressable>
+            </PressableScale>
           </View>
         </View>
       </View>

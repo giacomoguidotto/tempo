@@ -1,5 +1,6 @@
 import { Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PressableScale } from "./pressable-scale";
 
 interface ConfirmDialogProps {
   actions: {
@@ -94,7 +95,7 @@ export function ConfirmDialog({
 
           <View style={{ gap: 10 }}>
             {primary.map((action) => (
-              <Pressable
+              <PressableScale
                 className="items-center justify-center rounded-[14px]"
                 key={action.label}
                 onPress={action.onPress}
@@ -127,7 +128,7 @@ export function ConfirmDialog({
                 >
                   {action.label}
                 </Text>
-              </Pressable>
+              </PressableScale>
             ))}
 
             {secondary.length > 0 && (
@@ -138,7 +139,7 @@ export function ConfirmDialog({
             )}
 
             {secondary.map((action) => (
-              <Pressable
+              <PressableScale
                 className="items-center justify-center"
                 key={action.label}
                 onPress={action.onPress}
@@ -150,7 +151,7 @@ export function ConfirmDialog({
                 >
                   {action.label}
                 </Text>
-              </Pressable>
+              </PressableScale>
             ))}
           </View>
         </View>

@@ -13,9 +13,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { SheetBackdrop } from "@/components/ui/sheet-backdrop";
 import { SheetHandle } from "@/components/ui/sheet-handle";
 import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
@@ -294,7 +295,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
         className="px-7 pt-3"
         style={{ paddingBottom: Math.max(insets.bottom, 32) }}
       >
-        <Pressable
+        <PressableScale
           className={`items-center rounded-2xl py-5 ${canSave ? "bg-accent" : "bg-border"}`}
           disabled={!canSave}
           onPress={handleSave}
@@ -305,7 +306,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
           >
             Create Rhythm
           </Text>
-        </Pressable>
+        </PressableScale>
       </View>
 
       {showTimePicker && (

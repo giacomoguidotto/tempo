@@ -1,7 +1,9 @@
+import { ImpactFeedbackStyle, impactAsync } from "expo-haptics";
 import { Trash2 } from "lucide-react-native";
 import { useRef } from "react";
-import { Animated, Pressable, Switch, Text, View } from "react-native";
+import { Animated, Switch, Text, View } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import type { Rhythm } from "../schemas";
 import { getRelevantWindowBeats, getUpcomingBeatDates } from "../time-range";
 
@@ -135,11 +137,14 @@ export function RhythmCard({
         renderRightActions={renderRightActions}
         rightThreshold={40}
       >
-        <Pressable
+        <PressableScale
           className={`gap-3 rounded-[14px] border bg-surface px-5 py-[18px] ${
             isDragging ? "border-accent" : "border-border"
           }`}
-          onLongPress={onLongPress}
+          onLongPress={() => {
+            impactAsync(ImpactFeedbackStyle.Light);
+            onLongPress?.();
+          }}
           onPress={() => onPress(rhythm.id)}
         >
           <View className="flex-row items-center justify-between">
@@ -192,7 +197,7 @@ export function RhythmCard({
               {done}/{total}
             </Text>
           </View>
-        </Pressable>
+        </PressableScale>
       </Swipeable>
     </Animated.View>
   );

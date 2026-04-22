@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Text, useWindowDimensions, View } from "react-native";
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
 import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
@@ -176,6 +177,7 @@ export default function RhythmsScreen() {
       {/* Sticky title — pinned above the scrolling list */}
       <View
         className="absolute z-10 gap-1 px-7"
+        pointerEvents="none"
         style={{
           top: insets.top,
           left: 0,
@@ -203,6 +205,7 @@ export default function RhythmsScreen() {
       {hasRhythms && (
         <Animated.View
           className="absolute items-center gap-5 pt-7 pb-6"
+          pointerEvents="none"
           style={[
             {
               top: insets.top + STICKY_TITLE_HEIGHT + headerBottomPadding / 2,
@@ -274,7 +277,7 @@ export default function RhythmsScreen() {
       />
 
       {/* FAB — 64px, equal 24px inset from corner */}
-      <Pressable
+      <PressableScale
         className="absolute h-16 w-16 items-center justify-center rounded-full bg-accent"
         onPress={handleOpenCreate}
         style={{
@@ -288,7 +291,7 @@ export default function RhythmsScreen() {
         }}
       >
         <Plus color="#EDE6DA" size={26} strokeWidth={2} />
-      </Pressable>
+      </PressableScale>
       {permissionDialog}
     </View>
   );
