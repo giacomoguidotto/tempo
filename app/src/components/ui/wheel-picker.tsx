@@ -1,59 +1,190 @@
-import WheelPickerBase from "@quidone/react-native-wheel-picker";
-
-const WheelPicker = WheelPickerBase as React.ComponentType<
-  Record<string, unknown>
->;
-
-import { useEffect, useState } from "react";
-import { Modal, Text, TouchableWithoutFeedback, View } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  Modal,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { PressableScale } from "./pressable-scale";
 
-const HOURS_24 = Array.from({ length: 24 }, (_, i) => ({
-  label: String(i).padStart(2, "0"),
-  value: i,
-}));
+// ── Constants ──────────────────────────────────────────────────────────────────
 
-const MINUTES_60 = Array.from({ length: 60 }, (_, i) => ({
-  label: String(i).padStart(2, "0"),
-  value: i,
-}));
+const ITEM_H = 44;
+const VISIBLE = 3;
+const WHEEL_H = ITEM_H * VISIBLE;
+const COL_W = 80;
+const PAD = Math.floor(VISIBLE / 2); // 1 empty slot above & below
+const BG = "#1A1714";
+const FADE_OPACITY = 0.65;
 
-function makeHours(max: number) {
-  return Array.from({ length: max + 1 }, (_, i) => ({
-    label: String(i).padStart(2, "0"),
-    value: i,
-  }));
+interface WheelItem {
+  label: string;
+  value: number;
 }
 
-const WHEEL_STYLE = {
-  width: 80,
-  height: 160,
-};
+// ── WheelColumn ────────────────────────────────────────────────────────────────
 
-const ITEM_STYLE = {
-  fontFamily: "IBMPlexMono_500Medium",
-  fontSize: 22,
-  color: "#EDE6DA",
-};
+const getItemLayout = (_: unknown, index: number) => ({
+  index,
+  length: ITEM_H,
+  offset: ITEM_H * index,
+});
 
-const OVERLAY_STYLE = {
-  borderTopWidth: 1,
-  borderBottomWidth: 1,
-  borderColor: "#3D352E",
-};
+const ItemCell = React.memo(function ItemCell({
+  item,
+}: {
+  item: WheelItem | null;
+}) {
+  return (
+    <View
+      style={{ height: ITEM_H, justifyContent: "center", alignItems: "center" }}
+    >
+      {item && (
+        <Text
+          style={{
+            fontFamily: "IBMPlexMono_500Medium",
+            fontSize: 22,
+            color: "#EDE6DA",
+          }}
+        >
+          {item.label}
+        </Text>
+      )}
+    </View>
+  );
+});
+
+function WheelColumn({
+  data,
+  onValueChange,
+  value,
+}: {
+  data: WheelItem[];
+  onValueChange: (v: number) => void;
+  value: number;
+}) {
+  const listRef = useRef<FlatList>(null);
+  const isUserScroll = useRef(false);
+  const hasMounted = useRef(false);
+
+  const valueIndex = Math.max(
+    0,
+    data.findIndex((d) => d.value === value)
+  );
+
+  const paddedData: (WheelItem | null)[] = [null, ...data, null];
+
+  const handleScrollEnd = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
+      const clamped = Math.max(0, Math.min(idx, data.length - 1));
+      isUserScroll.current = true;
+      onValueChange(data[clamped].value);
+    },
+    [data, onValueChange]
+  );
+
+  useEffect(() => {
+    const idx = data.findIndex((d) => d.value === value);
+    if (idx < 0) {
+      return;
+    }
+
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+
+    if (isUserScroll.current) {
+      isUserScroll.current = false;
+      return;
+    }
+
+    listRef.current?.scrollToOffset({ offset: idx * ITEM_H, animated: true });
+  }, [value, data]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: WheelItem | null }) => <ItemCell item={item} />,
+    []
+  );
+
+  return (
+    <View style={{ width: COL_W, height: WHEEL_H, overflow: "hidden" }}>
+      <FlatList
+        data={paddedData}
+        decelerationRate="fast"
+        getItemLayout={getItemLayout}
+        initialNumToRender={VISIBLE + 2}
+        initialScrollIndex={valueIndex}
+        maxToRenderPerBatch={VISIBLE + 2}
+        onMomentumScrollEnd={handleScrollEnd}
+        ref={listRef}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={ITEM_H}
+        windowSize={3}
+      />
+      {/* Top fade */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: ITEM_H,
+          backgroundColor: BG,
+          opacity: FADE_OPACITY,
+        }}
+      />
+      {/* Bottom fade */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: ITEM_H,
+          backgroundColor: BG,
+          opacity: FADE_OPACITY,
+        }}
+      />
+      {/* Selection indicator */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          top: PAD * ITEM_H,
+          left: 0,
+          right: 0,
+          height: ITEM_H,
+          borderTopWidth: 1,
+          borderBottomWidth: 1,
+          borderColor: "#3D352E",
+        }}
+      />
+    </View>
+  );
+}
+
+// ── PickerModal ────────────────────────────────────────────────────────────────
 
 function PickerModal({
-  visible,
-  title,
-  onClose,
   children,
+  onClose,
   onConfirm,
+  title,
+  visible,
 }: {
-  visible: boolean;
-  title: string;
-  onClose: () => void;
   children: React.ReactNode;
+  onClose: () => void;
   onConfirm: () => void;
+  title: string;
+  visible: boolean;
 }) {
   return (
     <Modal
@@ -83,7 +214,7 @@ function PickerModal({
         </TouchableWithoutFeedback>
         <View
           style={{
-            backgroundColor: "#1A1714",
+            backgroundColor: BG,
             borderRadius: 20,
             paddingTop: 20,
             paddingBottom: 12,
@@ -159,7 +290,17 @@ function PickerModal({
   );
 }
 
-// --- Time Picker Modal (for FROM / TO) ---
+// ── Time Picker Modal (FROM / TO) ──────────────────────────────────────────────
+
+const HOURS_24: WheelItem[] = Array.from({ length: 24 }, (_, i) => ({
+  label: String(i).padStart(2, "0"),
+  value: i,
+}));
+
+const MINUTES_60: WheelItem[] = Array.from({ length: 60 }, (_, i) => ({
+  label: String(i).padStart(2, "0"),
+  value: i,
+}));
 
 interface TimePickerModalProps {
   onClose: () => void;
@@ -169,10 +310,10 @@ interface TimePickerModalProps {
 }
 
 export function TimePickerModal({
-  visible,
-  value,
-  onConfirm,
   onClose,
+  onConfirm,
+  value,
+  visible,
 }: TimePickerModalProps) {
   const [h, m] = value.split(":").map(Number);
   const [draftH, setDraftH] = useState(h);
@@ -205,20 +346,7 @@ export function TimePickerModal({
           justifyContent: "center",
         }}
       >
-        <WheelPicker
-          data={HOURS_24}
-          infiniteScroll
-          itemHeight={44}
-          itemTextStyle={ITEM_STYLE}
-          onValueChanged={({ item }: { item: { value: number } }) =>
-            setDraftH(item.value)
-          }
-          overlayItemStyle={OVERLAY_STYLE}
-          selectedIndicatorStyle={{ backgroundColor: "transparent" }}
-          value={draftH}
-          visibleItemCount={3}
-          width={WHEEL_STYLE.width}
-        />
+        <WheelColumn data={HOURS_24} onValueChange={setDraftH} value={draftH} />
         <Text
           style={{
             fontFamily: "IBMPlexMono_500Medium",
@@ -228,26 +356,17 @@ export function TimePickerModal({
         >
           :
         </Text>
-        <WheelPicker
+        <WheelColumn
           data={MINUTES_60}
-          infiniteScroll
-          itemHeight={44}
-          itemTextStyle={ITEM_STYLE}
-          onValueChanged={({ item }: { item: { value: number } }) =>
-            setDraftM(item.value)
-          }
-          overlayItemStyle={OVERLAY_STYLE}
-          selectedIndicatorStyle={{ backgroundColor: "transparent" }}
+          onValueChange={setDraftM}
           value={draftM}
-          visibleItemCount={3}
-          width={WHEEL_STYLE.width}
         />
       </View>
     </PickerModal>
   );
 }
 
-// --- Duration Picker Modal (for interval) ---
+// ── Duration Picker Modal (interval) ───────────────────────────────────────────
 
 interface DurationPickerModalProps {
   max?: number;
@@ -257,7 +376,14 @@ interface DurationPickerModalProps {
   visible: boolean;
 }
 
-function makeMinutes(maxMin: number, minMin = 0) {
+function makeHours(max: number): WheelItem[] {
+  return Array.from({ length: max + 1 }, (_, i) => ({
+    label: String(i).padStart(2, "0"),
+    value: i,
+  }));
+}
+
+function makeMinutes(maxMin: number, minMin = 0): WheelItem[] {
   const count = Math.min(maxMin + 1, 60) - minMin;
   return Array.from({ length: count }, (_, i) => ({
     label: String(i + minMin).padStart(2, "0"),
@@ -267,18 +393,16 @@ function makeMinutes(maxMin: number, minMin = 0) {
 
 export function DurationPickerModal({
   max = 480,
-  visible,
-  value,
-  onConfirm,
   onClose,
+  onConfirm,
+  value,
+  visible,
 }: DurationPickerModalProps) {
   const hours = makeHours(Math.floor(Math.max(max, 1) / 60));
 
   const [draftH, setDraftH] = useState(Math.floor(value / 60));
   const [draftM, setDraftM] = useState(value % 60);
 
-  // When at the max hour, cap available minutes; otherwise full 0-59
-  // When at hour 0, start from 1 to prevent selecting 0:00
   const effectiveMax = Math.max(max, 1);
   const effectiveMaxH = Math.floor(effectiveMax / 60);
   const maxMinForHour = draftH >= effectiveMaxH ? effectiveMax % 60 : 59;
@@ -287,7 +411,6 @@ export function DurationPickerModal({
     draftH >= effectiveMaxH || draftH === 0
       ? makeMinutes(maxMinForHour, minMinForHour)
       : MINUTES_60;
-  const canInfiniteScroll = draftH > 0 && draftH < effectiveMaxH;
 
   useEffect(() => {
     if (visible) {
@@ -296,7 +419,6 @@ export function DurationPickerModal({
     }
   }, [visible, value]);
 
-  // Clamp minutes into the valid range for the current hour
   useEffect(() => {
     if (draftM < minMinForHour) {
       setDraftM(minMinForHour);
@@ -322,19 +444,7 @@ export function DurationPickerModal({
           justifyContent: "center",
         }}
       >
-        <WheelPicker
-          data={hours}
-          itemHeight={44}
-          itemTextStyle={ITEM_STYLE}
-          onValueChanged={({ item }: { item: { value: number } }) =>
-            setDraftH(item.value)
-          }
-          overlayItemStyle={OVERLAY_STYLE}
-          selectedIndicatorStyle={{ backgroundColor: "transparent" }}
-          value={draftH}
-          visibleItemCount={3}
-          width={WHEEL_STYLE.width}
-        />
+        <WheelColumn data={hours} onValueChange={setDraftH} value={draftH} />
         <Text
           style={{
             fontFamily: "IBMPlexMono_500Medium",
@@ -344,20 +454,7 @@ export function DurationPickerModal({
         >
           :
         </Text>
-        <WheelPicker
-          data={minutes}
-          infiniteScroll={canInfiniteScroll}
-          itemHeight={44}
-          itemTextStyle={ITEM_STYLE}
-          onValueChanged={({ item }: { item: { value: number } }) =>
-            setDraftM(item.value)
-          }
-          overlayItemStyle={OVERLAY_STYLE}
-          selectedIndicatorStyle={{ backgroundColor: "transparent" }}
-          value={draftM}
-          visibleItemCount={3}
-          width={WHEEL_STYLE.width}
-        />
+        <WheelColumn data={minutes} onValueChange={setDraftM} value={draftM} />
       </View>
     </PickerModal>
   );
