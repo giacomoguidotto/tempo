@@ -343,13 +343,13 @@ const TimeRangeField = memo(function TimeRangeField({
       <View className="flex-row justify-between">
         <View style={{ gap: 4 }}>
           <Label>From</Label>
-          <PressableScale onPress={onOpenStartTimePicker}>
+          <PressableScale onPress={onOpenStartTimePicker} scale={0.93}>
             <TimeValue>{startTime}</TimeValue>
           </PressableScale>
         </View>
         <View style={{ gap: 4, alignItems: "flex-end" }}>
           <Label>{wraps ? "To (next day)" : "To"}</Label>
-          <PressableScale onPress={onOpenEndTimePicker}>
+          <PressableScale onPress={onOpenEndTimePicker} scale={0.93}>
             <TimeValue>{endTime}</TimeValue>
           </PressableScale>
         </View>
@@ -435,6 +435,7 @@ const IntervalField = memo(function IntervalField({
                 disabled={disabled}
                 key={minutes}
                 onPress={() => onIntervalChange(minutes)}
+                scale={0.93}
                 style={{
                   paddingVertical: 5,
                   paddingHorizontal: 12,
@@ -482,6 +483,7 @@ const IntensityField = memo(function IntensityField({
           <PressableScale
             key={value}
             onPress={() => onIntensityChange(value)}
+            scale={0.93}
             style={{
               flex: 1,
               paddingVertical: 10,
