@@ -334,19 +334,21 @@ export const EditRhythmSheet = forwardRef(function EditRhythmSheet(
         />
       )}
 
-      <DurationPickerModal
-        max={
-          crossesMidnight(startTime, endTime)
-            ? MINUTES_PER_DAY -
-              timeToMinutes(startTime) +
-              timeToMinutes(endTime)
-            : timeToMinutes(endTime) - timeToMinutes(startTime)
-        }
-        onClose={() => setShowDurationWheel(false)}
-        onConfirm={setInterval}
-        value={interval}
-        visible={showDurationWheel}
-      />
+      {showDurationWheel && (
+        <DurationPickerModal
+          max={
+            crossesMidnight(startTime, endTime)
+              ? MINUTES_PER_DAY -
+                timeToMinutes(startTime) +
+                timeToMinutes(endTime)
+              : timeToMinutes(endTime) - timeToMinutes(startTime)
+          }
+          onClose={() => setShowDurationWheel(false)}
+          onConfirm={setInterval}
+          value={interval}
+          visible
+        />
+      )}
 
       {permissionDialog}
 
