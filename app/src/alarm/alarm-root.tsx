@@ -1,10 +1,23 @@
 import notifee from "@notifee/react-native";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
 import { beat } from "@/lib/logger";
 import TempoAlarmModule, {
   type AlarmLaunchPayload,
 } from "../../modules/tempo-alarm";
+
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+const RIPPLE_MAX = Math.hypot(SCREEN_W, SCREEN_H);
+const RIPPLE_COUNT = 3;
+const RIPPLE_DURATION = 900;
+const RIPPLE_STAGGER = 180;
 
 function formatScheduledAt(scheduledAt: string | null): string {
   if (!scheduledAt) {
@@ -20,6 +33,35 @@ function formatScheduledAt(scheduledAt: string | null): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function RippleRing({ delay }: { delay: number }) {
+  const scale = useSharedValue(0);
+  const opacity = useSharedValue(0.45);
+
+  useEffect(() => {
+    scale.value = withDelay(
+      delay,
+      withTiming(1, { duration: RIPPLE_DURATION })
+    );
+    opacity.value = withDelay(
+      delay,
+      withTiming(0, { duration: RIPPLE_DURATION })
+    );
+  }, [delay, scale, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    position: "absolute",
+    width: RIPPLE_MAX,
+    height: RIPPLE_MAX,
+    borderRadius: RIPPLE_MAX / 2,
+    borderWidth: 1.5,
+    borderColor: "rgba(192, 103, 48, 0.5)",
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return <Animated.View style={animatedStyle} />;
 }
 
 export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
@@ -174,7 +216,20 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
         paddingHorizontal: 28,
       }}
     >
-      <View
+      {/* Ripple rings expanding from center */}
+      <View pointerEvents="none" style={styles.rippleContainer}>
+        {Array.from({ length: RIPPLE_COUNT }).map((_, i) => (
+          <RippleRing
+            delay={i * RIPPLE_STAGGER}
+            // biome-ignore lint/suspicious/noArrayIndexKey: static ring list
+            key={i}
+          />
+        ))}
+      </View>
+
+      {/* Card fades in after ripples start */}
+      <Animated.View
+        entering={FadeIn.delay(RIPPLE_STAGGER * 2).duration(500)}
         style={{
           borderWidth: 1,
           borderColor: "#3D352E",
@@ -185,7 +240,8 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
           gap: 12,
         }}
       >
-        <Text
+        <Animated.Text
+          entering={FadeIn.delay(500).duration(400)}
           style={{
             color: "#7A6F63",
             fontSize: 12,
@@ -194,8 +250,9 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
           }}
         >
           Pulse Alert
-        </Text>
-        <Text
+        </Animated.Text>
+        <Animated.Text
+          entering={FadeIn.delay(600).duration(400)}
           style={{
             color: "#EDE6DA",
             fontSize: 36,
@@ -203,8 +260,9 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
           }}
         >
           {rhythmName}
-        </Text>
-        <Text
+        </Animated.Text>
+        <Animated.Text
+          entering={FadeIn.delay(700).duration(400)}
           style={{
             color: "#9C8E80",
             fontSize: 16,
@@ -212,17 +270,21 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
           }}
         >
           Time to check in.
-        </Text>
-        <Text
+        </Animated.Text>
+        <Animated.Text
+          entering={FadeIn.delay(800).duration(400)}
           style={{
             color: "#C4BAB0",
             fontSize: 14,
           }}
         >
           Scheduled for {formatScheduledAt(scheduledAt)}
-        </Text>
+        </Animated.Text>
 
-        <View style={{ gap: 12, marginTop: 24 }}>
+        <Animated.View
+          entering={FadeIn.delay(950).duration(400)}
+          style={{ gap: 12, marginTop: 24 }}
+        >
           <Pressable
             onPress={handleDismiss}
             style={{
@@ -265,8 +327,16 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
               Open Tempo
             </Text>
           </Pressable>
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  rippleContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
