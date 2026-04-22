@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
-import { CalendarDays, Clock, Settings } from "lucide-react-native";
+import { Activity, SlidersVertical } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TempoLogoIcon } from "@/components/ui/tempo-logo-icon";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -31,7 +32,9 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Rhythms",
-          tabBarIcon: ({ color, size }) => <Clock color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <TempoLogoIcon color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -39,7 +42,7 @@ export default function TabLayout() {
         options={{
           title: "History",
           tabBarIcon: ({ color, size }) => (
-            <CalendarDays color={color} size={size} />
+            <Activity color={color} size={size} />
           ),
         }}
       />
@@ -48,7 +51,7 @@ export default function TabLayout() {
         options={{
           title: "Settings",
           tabBarIcon: ({ color, size }) => (
-            <Settings color={color} size={size} />
+            <SlidersVertical color={color} size={size} />
           ),
         }}
       />
