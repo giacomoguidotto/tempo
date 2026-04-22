@@ -146,7 +146,7 @@ export function RhythmCard({
             onLongPress?.();
           }}
           onPress={() => onPress(rhythm.id)}
-          scale={0.985}
+          scale={0.97}
         >
           <View className="flex-row items-center justify-between">
             <View className="mr-3 flex-1 gap-[3px]">

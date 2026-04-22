@@ -15,7 +15,7 @@ const RELEASE_DURATION = 200;
 const EASING = Easing.inOut(Easing.ease);
 
 interface PressableScaleProps extends Omit<PressableProps, "style"> {
-  /** Pressed scale — lower = more visible. Default 0.96. */
+  /** Pressed scale — lower = more visible. Default 0.92. */
   scale?: number;
   style?: StyleProp<ViewStyle>;
 }
@@ -24,7 +24,7 @@ export function PressableScale({
   onPressIn,
   onPressOut,
   disabled,
-  scale: scaleDown = 0.96,
+  scale: scaleDown = 0.92,
   style,
   children,
   ...rest

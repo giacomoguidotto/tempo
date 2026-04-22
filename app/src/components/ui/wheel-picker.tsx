@@ -120,7 +120,7 @@ function PickerModal({
           >
             <PressableScale
               onPress={onClose}
-              scale={0.93}
+              scale={0.88}
               style={{ paddingVertical: 8, paddingHorizontal: 12 }}
             >
               <Text
@@ -137,7 +137,7 @@ function PickerModal({
             </PressableScale>
             <PressableScale
               onPress={onConfirm}
-              scale={0.93}
+              scale={0.88}
               style={{ paddingVertical: 8, paddingHorizontal: 12 }}
             >
               <Text
