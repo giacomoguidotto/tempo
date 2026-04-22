@@ -13,21 +13,19 @@ const EASE = Easing.inOut(Easing.sin);
 const VIEWBOX = 24;
 const BAR_W = 2;
 const BAR_R = 1;
+const BAR_BOTTOM = 20;
 
 interface BarDef {
   base: number;
   delay: number;
   max: number;
-  min: number;
   x: number;
 }
 
 const BARS: BarDef[] = [
-  { x: 2, base: 10, min: 6, max: 16, delay: 0 },
-  { x: 6.5, base: 16, min: 10, max: 22, delay: 60 },
-  { x: 11, base: 20, min: 14, max: 24, delay: 120 },
-  { x: 15.5, base: 16, min: 10, max: 22, delay: 180 },
-  { x: 20, base: 10, min: 6, max: 16, delay: 240 },
+  { x: 6, base: 4, max: 8, delay: 0 },
+  { x: 12, base: 10, max: 14, delay: 60 },
+  { x: 18, base: 16, max: 20, delay: 120 },
 ];
 
 function Bar({
@@ -49,14 +47,10 @@ function Bar({
         config.delay,
         withSequence(
           withTiming(config.max / config.base, {
-            duration: 200,
+            duration: 350,
             easing: EASE,
           }),
-          withTiming(config.min / config.base, {
-            duration: 300,
-            easing: EASE,
-          }),
-          withTiming(1, { duration: 250, easing: EASE })
+          withTiming(1, { duration: 450, easing: EASE })
         )
       );
     }
@@ -71,12 +65,13 @@ function Bar({
       style={[
         {
           position: "absolute",
-          left: config.x * s,
+          left: (config.x - BAR_W / 2) * s,
+          bottom: (VIEWBOX - BAR_BOTTOM) * s,
           width: BAR_W * s,
           height: config.base * s,
-          top: (VIEWBOX / 2 - config.base / 2) * s,
           borderRadius: BAR_R * s,
           backgroundColor: color,
+          transformOrigin: "bottom",
         },
         animStyle,
       ]}
@@ -84,7 +79,7 @@ function Bar({
   );
 }
 
-export function TempoLogoIcon({
+export function BarChartIcon({
   beat = 0,
   color,
   size,
