@@ -1,6 +1,6 @@
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { memo, useRef } from "react";
-import { Platform, Pressable, Text, useColorScheme, View } from "react-native";
+import { Platform, Text, useColorScheme, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -8,6 +8,13 @@ import {
   type PanGestureHandlerEventPayload,
   ScrollView,
 } from "react-native-gesture-handler";
+import Animated, {
+  type SharedValue,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { RangeSlider } from "@/components/ui/range-slider";
 import { colors } from "@/constants/tokens";
 import type { IntensityLevel } from "../schemas";
@@ -166,6 +173,48 @@ const NameField = memo(function NameField({
   );
 });
 
+const DAY_SPRING = { damping: 20, stiffness: 300 };
+const DAY_SCALE_DOWN = 0.97;
+
+function DayCircle({
+  activeDayIndex,
+  index,
+  label,
+  selected,
+}: {
+  activeDayIndex: SharedValue<number>;
+  index: number;
+  label: string;
+  selected: boolean;
+}) {
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        scale: withSpring(
+          activeDayIndex.value === index ? DAY_SCALE_DOWN : 1,
+          DAY_SPRING
+        ),
+      },
+    ],
+  }));
+
+  return (
+    <Animated.View
+      className={`h-10 w-10 items-center justify-center rounded-full ${
+        selected ? "bg-accent" : "border border-border"
+      }`}
+      style={animStyle}
+    >
+      <Text
+        className={`text-xs ${selected ? "text-foreground" : "text-secondary"}`}
+        style={{ fontFamily: "IBMPlexMono_500Medium" }}
+      >
+        {label}
+      </Text>
+    </Animated.View>
+  );
+}
+
 const DaysField = memo(function DaysField({
   onSetDay,
   selectedDays,
@@ -177,6 +226,7 @@ const DaysField = memo(function DaysField({
   const layoutRef = useRef({ width: 0, x: 0 });
   const visitedDaysRef = useRef<Set<number>>(new Set());
   const gestureActionRef = useRef<boolean | null>(null);
+  const activeDayIndex = useSharedValue(-1);
 
   function measure() {
     rowRef.current?.measureInWindow((x, _y, width) => {
@@ -208,7 +258,13 @@ const DaysField = memo(function DaysField({
 
   function applyTouchedDay(absoluteX: number) {
     const dayIndex = resolveDayIndex(absoluteX);
-    if (dayIndex === null || visitedDaysRef.current.has(dayIndex)) {
+    if (dayIndex === null) {
+      return;
+    }
+
+    activeDayIndex.value = dayIndex;
+
+    if (visitedDaysRef.current.has(dayIndex)) {
       return;
     }
 
@@ -236,6 +292,7 @@ const DaysField = memo(function DaysField({
     .onFinalize(() => {
       visitedDaysRef.current = new Set();
       gestureActionRef.current = null;
+      activeDayIndex.value = -1;
     });
 
   return (
@@ -248,22 +305,14 @@ const DaysField = memo(function DaysField({
           ref={rowRef}
         >
           {DAYS.map((label, index) => (
-            <View
-              className={`h-10 w-10 items-center justify-center rounded-full ${
-                selectedDays.includes(index)
-                  ? "bg-accent"
-                  : "border border-border"
-              }`}
+            <DayCircle
+              activeDayIndex={activeDayIndex}
+              index={index}
               // biome-ignore lint/suspicious/noArrayIndexKey: static day list
               key={index}
-            >
-              <Text
-                className={`text-xs ${selectedDays.includes(index) ? "text-foreground" : "text-secondary"}`}
-                style={{ fontFamily: "IBMPlexMono_500Medium" }}
-              >
-                {label}
-              </Text>
-            </View>
+              label={label}
+              selected={selectedDays.includes(index)}
+            />
           ))}
         </View>
       </GestureDetector>
@@ -294,15 +343,15 @@ const TimeRangeField = memo(function TimeRangeField({
       <View className="flex-row justify-between">
         <View style={{ gap: 4 }}>
           <Label>From</Label>
-          <Pressable onPress={onOpenStartTimePicker}>
+          <PressableScale onPress={onOpenStartTimePicker}>
             <TimeValue>{startTime}</TimeValue>
-          </Pressable>
+          </PressableScale>
         </View>
         <View style={{ gap: 4, alignItems: "flex-end" }}>
           <Label>{wraps ? "To (next day)" : "To"}</Label>
-          <Pressable onPress={onOpenEndTimePicker}>
+          <PressableScale onPress={onOpenEndTimePicker}>
             <TimeValue>{endTime}</TimeValue>
-          </Pressable>
+          </PressableScale>
         </View>
       </View>
 
@@ -352,7 +401,7 @@ const IntervalField = memo(function IntervalField({
   return (
     <View style={{ paddingVertical: 16, gap: 12 }}>
       <Label>Every</Label>
-      <Pressable disabled={onceADay} onPress={onOpenDurationPicker}>
+      <PressableScale disabled={onceADay} onPress={onOpenDurationPicker}>
         <Text
           className="self-start text-[32px] text-foreground tracking-[2px]"
           style={{
@@ -364,7 +413,7 @@ const IntervalField = memo(function IntervalField({
         >
           {onceADay ? "Once a day" : formatIntervalDisplay(interval)}
         </Text>
-      </Pressable>
+      </PressableScale>
       {!onceADay && (
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 28, gap: 6 }}
@@ -382,7 +431,7 @@ const IntervalField = memo(function IntervalField({
               borderColor = "transparent";
             }
             return (
-              <Pressable
+              <PressableScale
                 disabled={disabled}
                 key={minutes}
                 onPress={() => onIntervalChange(minutes)}
@@ -404,7 +453,7 @@ const IntervalField = memo(function IntervalField({
                 >
                   {formatPresetLabel(minutes)}
                 </Text>
-              </Pressable>
+              </PressableScale>
             );
           })}
         </ScrollView>
@@ -430,7 +479,7 @@ const IntensityField = memo(function IntensityField({
       <Label>Intensity</Label>
       <View className="flex-row gap-2">
         {INTENSITIES.map(({ value, label }) => (
-          <Pressable
+          <PressableScale
             key={value}
             onPress={() => onIntensityChange(value)}
             style={{
@@ -452,7 +501,7 @@ const IntensityField = memo(function IntensityField({
             >
               {label}
             </Text>
-          </Pressable>
+          </PressableScale>
         ))}
       </View>
       {selectedIntensity ? (
