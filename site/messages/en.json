@@ -1,0 +1,43 @@
+{
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: April 23, 2026",
+    "overview": {
+      "title": "Overview",
+      "body": "Tempo is a repeating alarm and productivity app for Android. Your privacy matters — Tempo is designed to work entirely on your device with no data leaving your phone."
+    },
+    "dataCollection": {
+      "title": "Data Collection",
+      "body": "Tempo does not collect, transmit, or store any personal data on external servers. There are no analytics, no tracking, no advertising SDKs, and no network requests to third-party services."
+    },
+    "localStorage": {
+      "title": "Local Storage",
+      "body": "All data is stored locally on your device:",
+      "item1": "Rhythm configurations and alarm schedules (SQLite database)",
+      "item2": "User preferences and settings (MMKV key-value storage)"
+    },
+    "thirdParty": {
+      "title": "Third-Party Services",
+      "body": "Tempo does not integrate with any third-party analytics, advertising, or data processing services. The app uses Android's built-in alarm and notification systems to deliver alerts."
+    },
+    "permissions": {
+      "title": "Permissions",
+      "body": "Tempo requests only the permissions necessary for alarm functionality:",
+      "item1": "Exact alarms — to fire alarms at the scheduled time",
+      "item2": "Notifications — to display alarm alerts",
+      "item3": "Full-screen intent — to show the alarm screen over the lock screen (Pulse intensity only)"
+    },
+    "children": {
+      "title": "Children's Privacy",
+      "body": "Tempo is not directed at children under 13. We do not knowingly collect any information from children."
+    },
+    "changes": {
+      "title": "Changes to This Policy",
+      "body": "If this privacy policy changes, the updated version will be posted on this page with a new date. Since Tempo collects no data, changes are unlikely."
+    },
+    "contact": {
+      "title": "Contact",
+      "body": "Questions about this privacy policy? Reach out at tempo@guidotto.dev."
+    }
+  }
+}

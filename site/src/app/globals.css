@@ -1,0 +1,29 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@theme {
+  /* Warm Analog — Light */
+  --color-background: #f7f3ee;
+  --color-surface: #ffffff;
+  --color-border: #e8e2da;
+  --color-foreground: #2a2420;
+  --color-secondary: #9c8e80;
+  --color-muted: #c4bab0;
+  --color-accent: #c06730;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-background: #1a1714;
+    --color-surface: #2a2420;
+    --color-border: #3d352e;
+    --color-foreground: #ede6da;
+    --color-secondary: #8a7d70;
+    --color-muted: #6b6058;
+    --color-accent: #c06730;
+  }
+}
