@@ -2,6 +2,7 @@
 node = "latest"
 bun = "latest"
 java = "17"
+"npm:eas-cli" = "latest"
 
 [env]
 ANDROID_HOME = "{{ env.HOME }}/Library/Android/sdk"

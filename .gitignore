@@ -22,6 +22,10 @@ build/
 .env.local
 .env.*.local
 
+# Google Service Account keys
+*.gserviceaccount.json
+tempo-*.json
+
 # IDE
 .vscode/
 .idea/
