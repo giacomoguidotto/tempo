@@ -4,7 +4,7 @@
     "lastUpdated": "Last updated: April 23, 2026",
     "overview": {
       "title": "Overview",
-      "body": "Tempo is a repeating alarm and productivity app for Android. Your privacy matters — Tempo is designed to work entirely on your device with no data leaving your phone."
+      "body": "Tempo is a repeating alarm and productivity app for Android. Your privacy matters. Tempo is designed to work entirely on your device with no data leaving your phone."
     },
     "dataCollection": {
       "title": "Data Collection",
@@ -23,9 +23,9 @@
     "permissions": {
       "title": "Permissions",
       "body": "Tempo requests only the permissions necessary for alarm functionality:",
-      "item1": "Exact alarms — to fire alarms at the scheduled time",
-      "item2": "Notifications — to display alarm alerts",
-      "item3": "Full-screen intent — to show the alarm screen over the lock screen (Pulse intensity only)"
+      "item1": "Exact alarms: to fire alarms at the scheduled time",
+      "item2": "Notifications: to display alarm alerts",
+      "item3": "Full-screen intent: to show the alarm screen over the lock screen (Pulse intensity only)"
     },
     "children": {
       "title": "Children's Privacy",

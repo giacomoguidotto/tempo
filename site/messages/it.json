@@ -4,7 +4,7 @@
     "lastUpdated": "Ultimo aggiornamento: 23 aprile 2026",
     "overview": {
       "title": "Panoramica",
-      "body": "Tempo è un'app di sveglie ricorrenti e produttività per Android. La tua privacy è importante — Tempo è progettata per funzionare interamente sul tuo dispositivo, senza che i dati escano dal tuo telefono."
+      "body": "Tempo è un'app di sveglie ricorrenti e produttività per Android. La tua privacy è importante. Tempo è progettata per funzionare interamente sul tuo dispositivo, senza che i dati escano dal tuo telefono."
     },
     "dataCollection": {
       "title": "Raccolta Dati",
@@ -23,9 +23,9 @@
     "permissions": {
       "title": "Permessi",
       "body": "Tempo richiede solo i permessi necessari per il funzionamento delle sveglie:",
-      "item1": "Sveglie esatte — per far suonare le sveglie all'orario programmato",
-      "item2": "Notifiche — per visualizzare gli avvisi delle sveglie",
-      "item3": "Intent a schermo intero — per mostrare la schermata della sveglia sopra il blocco schermo (solo intensità Pulse)"
+      "item1": "Sveglie esatte: per far suonare le sveglie all'orario programmato",
+      "item2": "Notifiche: per visualizzare gli avvisi delle sveglie",
+      "item3": "Intent a schermo intero: per mostrare la schermata della sveglia sopra il blocco schermo (solo intensità Pulse)"
     },
     "children": {
       "title": "Privacy dei Minori",
