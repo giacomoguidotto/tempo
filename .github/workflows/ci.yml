@@ -79,10 +79,34 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build:
-    name: Build & Submit
+  changes:
+    name: Detect App Changes
     needs: release
     if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compare with previous tag
+        id: diff
+        run: |
+          CURRENT_TAG="v${{ needs.release.outputs.version }}"
+          PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -1)
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$PREVIOUS_TAG" "$CURRENT_TAG" -- app/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build & Submit
+    needs: [release, changes]
+    if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -113,8 +137,8 @@ jobs:
 
   apk:
     name: Upload APK to GitHub Release
-    needs: release
-    if: needs.release.outputs.released == 'true'
+    needs: [release, changes]
+    if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
