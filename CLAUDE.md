@@ -21,6 +21,14 @@ Repeating alarm & productivity time-audit app for Android, built with Expo.
   - `src/constants/` — brand tokens, config
 - `site/` — placeholder for future marketing site
 
+## Commits
+
+Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`.
+
+`fix:` and `feat:` **trigger a release** via semantic-release — only use them when the change genuinely warrants one. For internal changes (refactors, docs, tests, CI, config, site tweaks), use `chore:`, `docs:`, `refactor:`, or `test:`.
+
+**Never** use `BREAKING CHANGE` or the `!` suffix (e.g. `feat!:`, `fix!:`) — these trigger a major release. Only use with explicit user authorization.
+
 ## Agent guidelines
 
 - [Manifesto](docs/agents/manifesto.md) - cross-project working principles
