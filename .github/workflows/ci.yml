@@ -59,10 +59,33 @@ jobs:
           HUSKY: "0"
       - run: bun run test
 
-  release:
-    name: Release
+  app-changes:
+    name: Detect App Changes
     needs: [lint, typecheck, test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compare with last tag
+        id: diff
+        run: |
+          LATEST_TAG=$(git tag --sort=-v:refname | head -1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$LATEST_TAG" HEAD -- app/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    name: Release
+    needs: app-changes
+    if: needs.app-changes.outputs.changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -79,34 +102,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  changes:
-    name: Detect App Changes
-    needs: release
-    if: needs.release.outputs.released == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      app: ${{ steps.diff.outputs.changed }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Compare with previous tag
-        id: diff
-        run: |
-          CURRENT_TAG="v${{ needs.release.outputs.version }}"
-          PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -1)
-          if [ -z "$PREVIOUS_TAG" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          elif git diff --quiet "$PREVIOUS_TAG" "$CURRENT_TAG" -- app/; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
   build:
     name: Build & Submit
-    needs: [release, changes]
-    if: needs.changes.outputs.app == 'true'
+    needs: release
+    if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -137,8 +136,8 @@ jobs:
 
   apk:
     name: Upload APK to GitHub Release
-    needs: [release, changes]
-    if: needs.changes.outputs.app == 'true'
+    needs: release
+    if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
