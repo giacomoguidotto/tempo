@@ -1,4 +1,4 @@
-// App version — injected by CI or defaults to 0.1.0
+// App version injected by CI
 const version = process.env.APP_VERSION ?? "0.1.0";
 const [major = 0, minor = 0, patch = 0] = version.split(".").map(Number);
 const versionCode = major * 10_000 + minor * 100 + patch;
