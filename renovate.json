@@ -28,6 +28,11 @@
         "/^@react-native(-community)?\\//"
       ],
       "enabled": false
+    },
+    {
+      "description": "Pinned — newer versions break react-native-css serialization",
+      "matchPackageNames": ["lightningcss"],
+      "enabled": false
     }
   ]
 }
