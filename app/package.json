@@ -17,7 +17,7 @@
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo/vector-icons": "^15.1.1",
-    "@gorhom/bottom-sheet": "^5.1.4",
+    "@gorhom/bottom-sheet": "^5.2.10",
     "@notifee/react-native": "^9.1.8",
     "@react-native-community/datetimepicker": "^8.4.1",
     "drizzle-orm": "^0.45.2",
@@ -32,8 +32,8 @@
     "expo-sqlite": "~55.0.11",
     "expo-status-bar": "~55.0.4",
     "expo-system-ui": "~55.0.16",
-    "jotai": "^2.19.0",
-    "lucide-react-native": "^1.7.0",
+    "jotai": "^2.19.1",
+    "lucide-react-native": "^1.11.0",
     "nativewind": "preview",
     "react": "19.2.0",
     "react-native": "0.83.6",
@@ -49,13 +49,13 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.4",
     "@types/react": "~19.2.14",
     "drizzle-kit": "^0.31.10",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.2.2",
-    "typescript": "~5.9.2",
-    "vitest": "^4.1.2"
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.4",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.5"
   },
   "expo": {
     "doctor": {
