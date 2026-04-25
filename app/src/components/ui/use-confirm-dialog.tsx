@@ -24,14 +24,16 @@ export function useConfirmDialog() {
     });
   }, []);
 
-  const confirm = useCallback((request: ConfirmDialogRequest) => {
-    return new Promise<boolean>((resolve) => {
-      setPendingRequest({
-        ...request,
-        resolve,
-      });
-    });
-  }, []);
+  const confirm = useCallback(
+    (request: ConfirmDialogRequest) =>
+      new Promise<boolean>((resolve) => {
+        setPendingRequest({
+          ...request,
+          resolve,
+        });
+      }),
+    []
+  );
 
   const dialog = useMemo(
     () => (
