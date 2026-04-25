@@ -16,7 +16,7 @@
   },
   "packageRules": [
     {
-      "description": "Expo SDK pins these — bump via `bunx expo install --fix` on SDK upgrades",
+      "description": "Expo SDK pins these — auto-fixed by expo-fix.yml workflow on Renovate PRs",
       "matchFileNames": ["app/package.json"],
       "matchPackageNames": [
         "expo",

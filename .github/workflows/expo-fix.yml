@@ -1,0 +1,41 @@
+name: Expo Fix
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - app/package.json
+      - bun.lock
+
+permissions:
+  contents: write
+
+jobs:
+  expo-fix:
+    name: Fix Expo SDK Versions
+    if: github.actor == 'renovate[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.PAT }}
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install
+        env:
+          HUSKY: "0"
+      - name: Fix Expo SDK version mismatches
+        working-directory: app
+        run: bunx expo install --fix
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --staged --quiet || git commit -m "chore: fix expo doctor version mismatches"
+          git push
