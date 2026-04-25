@@ -21,11 +21,27 @@
       "matchPackageNames": [
         "expo",
         "react",
+        "react-dom",
         "react-native",
+        "typescript",
+        "@babel/core",
+        "@types/react",
+        "@types/react-dom",
+        "@types/jest",
+        "babel-preset-expo",
+        "eslint-config-expo",
+        "jest",
+        "jest-expo",
+        "metro",
+        "@sentry/react-native",
+        "@shopify/flash-list",
+        "@shopify/react-native-skia",
+        "@stripe/stripe-react-native",
+        "lottie-react-native",
         "/^expo-/",
         "/^@expo\\//",
         "/^react-native-/",
-        "/^@react-native(-community)?\\//"
+        "/^@react-native[^/]*\\//"
       ],
       "enabled": false
     },
