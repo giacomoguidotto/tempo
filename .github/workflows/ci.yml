@@ -59,9 +59,27 @@ jobs:
           HUSKY: "0"
       - run: bun run test
 
+  bundle:
+    name: Bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+        env:
+          HUSKY: "0"
+      - name: Bundle Android
+        working-directory: app
+        run: bunx expo export --platform android
+
   app-changes:
     name: Detect App Changes
-    needs: [lint, typecheck, test]
+    needs: [lint, typecheck, test, bundle]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
