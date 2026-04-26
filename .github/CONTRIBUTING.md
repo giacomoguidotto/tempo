@@ -4,12 +4,14 @@ Thanks for wanting to contribute to Tempo! Please read our [Code of Conduct](COD
 
 ## Setup
 
-1. Fork and clone the repo, then install runtimes and dependencies:
+1. Fork and clone the repo, then install dependencies:
 
     ```sh
-    mise install        # node, bun, java 17
     bun install
     ```
+
+    > **Optional:** If you use [mise](https://mise.jdx.dev), run `mise install` first to
+    > provision the pinned `node`, `bun`, and `java` versions from `.mise.toml`.
 
 2. Start the Expo dev server:
 
