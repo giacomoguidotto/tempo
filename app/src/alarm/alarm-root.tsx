@@ -12,6 +12,7 @@ import { beat } from "@/lib/logger";
 import TempoAlarmModule, {
   type AlarmLaunchPayload,
 } from "../../modules/tempo-alarm";
+import { resolveAlarmPayload } from "./resolve-payload";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const RIPPLE_MAX = Math.hypot(SCREEN_W, SCREEN_H);
@@ -78,66 +79,22 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
     let cancelled = false;
 
     async function hydratePayload() {
-      const nativePayload = TempoAlarmModule.getInitialAlarmPayload();
-      const initial = await notifee.getInitialNotification();
-      const displayed = await notifee.getDisplayedNotifications();
-      const latestDisplayed = displayed
-        .map((entry) => entry.notification)
-        .filter(Boolean)
-        .sort((left, right) => {
-          const leftAt = left?.data?.scheduledAt
-            ? new Date(String(left.data.scheduledAt)).getTime()
-            : 0;
-          const rightAt = right?.data?.scheduledAt
-            ? new Date(String(right.data.scheduledAt)).getTime()
-            : 0;
-          return rightAt - leftAt;
-        })[0];
+      const native = TempoAlarmModule.getInitialAlarmPayload();
+      const initialNotification = await notifee.getInitialNotification();
+      const displayedNotifications = await notifee.getDisplayedNotifications();
 
       if (cancelled) {
         return;
       }
 
-      setResolvedPayload((current) => ({
-        alarmInstanceId:
-          current.alarmInstanceId ??
-          nativePayload.alarmInstanceId ??
-          (initial?.notification?.data?.alarmInstanceId as
-            | string
-            | undefined) ??
-          latestDisplayed?.id ??
-          null,
-        intensity:
-          current.intensity ??
-          nativePayload.intensity ??
-          (initial?.notification?.data?.intensity as string | undefined) ??
-          (latestDisplayed?.data?.intensity as string | undefined) ??
-          null,
-        notificationId:
-          current.notificationId ??
-          nativePayload.notificationId ??
-          initial?.notification?.id ??
-          latestDisplayed?.id ??
-          null,
-        rhythmId:
-          current.rhythmId ??
-          nativePayload.rhythmId ??
-          (initial?.notification?.data?.rhythmId as string | undefined) ??
-          (latestDisplayed?.data?.rhythmId as string | undefined) ??
-          null,
-        rhythmName:
-          current.rhythmName ??
-          nativePayload.rhythmName ??
-          (initial?.notification?.data?.rhythmName as string | undefined) ??
-          (latestDisplayed?.data?.rhythmName as string | undefined) ??
-          null,
-        scheduledAt:
-          current.scheduledAt ??
-          nativePayload.scheduledAt ??
-          (initial?.notification?.data?.scheduledAt as string | undefined) ??
-          (latestDisplayed?.data?.scheduledAt as string | undefined) ??
-          null,
-      }));
+      setResolvedPayload((current) =>
+        resolveAlarmPayload({
+          props: current,
+          native,
+          initialNotification,
+          displayedNotifications,
+        })
+      );
     }
 
     hydratePayload().catch((error) => {
