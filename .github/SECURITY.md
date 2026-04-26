@@ -4,4 +4,4 @@ If you believe you have found a security vulnerability, we encourage you to let 
 
 We will investigate all legitimate reports and do our best to quickly fix the problem.
 
-Please report any vulnerabilities in our open source repositories to [giacomo.guidotto@gmail.com](mailto:giacomo.guidotto@gmail.com).
+Please report any vulnerabilities in our open source repositories to [tempo@guidotto.dev](mailto:tempo@guidotto.dev).
