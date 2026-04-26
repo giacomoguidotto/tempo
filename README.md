@@ -27,24 +27,16 @@ Most reminder apps send you a notification and hope you notice. Tempo gives you 
   <img src="docs/play-store/screenshots/full-screen-alarm.jpg" alt="Full-screen alarm" width="200" />
 </p>
 
-## 🎚️ Intensity Levels
+## 🚀 Get Started
 
-| Level       | What happens                                                    | Use case                     |
-| ----------- | --------------------------------------------------------------- | ---------------------------- |
-| **Whisper** | Silent vibration pulse. You feel it, nobody else does           | Hydration, posture check     |
-| **Nudge**   | Short vibration + sound notification                            | Break a focus trance         |
-| **Pulse**   | Sound, vibration, and a full-screen overlay on your lock screen | Medication, time-boxed tasks |
-| **Call**    | Persistent sound and vibration until you physically dismiss it  | The things you cannot miss   |
+<a href="https://play.google.com/store/apps/details?id=dev.guidotto.tempo"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80"></a>
 
-## 📥 Install
-
-<!-- TODO: Play Store link -->
-
-Download the APK from [GitHub Releases](https://github.com/giacomoguidotto/tempo/releases).
+...or download the APK from [GitHub Releases](https://github.com/giacomoguidotto/tempo/releases)!
 
 ## ✨ Features
 
 - **Rhythms, not one-off alarms.** Set the days, time window, and interval. Tempo repeats it for you.
+- **Four intensity levels.** From a silent vibration (Whisper) to a persistent alarm you must dismiss (Call).
 - **A live VU meter.** See your next beat approaching in real time on the home screen.
 - **Alarms that actually fire.** Exact Android alarms, foreground services, battery-optimization bypasses. Survives Doze mode, app kills, and device restarts.
 - **No accounts. No cloud. No ads.** Your data stays on your device. Nothing leaves your phone.
