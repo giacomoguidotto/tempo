@@ -10,6 +10,7 @@
     "format": "turbo run format",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "ci": "turbo run lint typecheck test",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -18,7 +18,7 @@
 
 ## Checklist
 
-- [ ] `bun run lint && bun run typecheck && bun run test` passed
+- [ ] `bun run ci` passed (lint, typecheck, test)
 - [ ] No `any` types introduced
 - [ ] No `console.log` or `debugger` statements
 - [ ] UI uses design system primitives from `components/ui/`
