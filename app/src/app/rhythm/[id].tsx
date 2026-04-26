@@ -1,9 +1,9 @@
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
 import {
-  EditRhythmSheet,
-  type EditRhythmSheetHandle,
-} from "@/features/rhythm/components/edit-rhythm-sheet";
+  RhythmSheet,
+  type RhythmSheetHandle,
+} from "@/features/rhythm/components/rhythm-sheet";
 import { getRhythm } from "@/features/rhythm/operations";
 
 export default function EditRhythmScreen() {
@@ -11,7 +11,7 @@ export default function EditRhythmScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const rhythm = useMemo(() => (id ? getRhythm(id) : undefined), [id]);
-  const sheetRef = useRef<EditRhythmSheetHandle>(null);
+  const sheetRef = useRef<RhythmSheetHandle>(null);
   const allowRemoveRef = useRef(false);
   const pendingActionRef = useRef<unknown>(null);
 
@@ -19,10 +19,7 @@ export default function EditRhythmScreen() {
     if (!rhythm) {
       allowRemoveRef.current = true;
       router.back();
-      return;
     }
-
-    sheetRef.current?.open(rhythm);
   }, [rhythm, router]);
 
   useEffect(() => {
@@ -44,7 +41,7 @@ export default function EditRhythmScreen() {
   }
 
   return (
-    <EditRhythmSheet
+    <RhythmSheet
       onDismiss={() => {
         allowRemoveRef.current = true;
 
@@ -56,6 +53,7 @@ export default function EditRhythmScreen() {
         router.back();
       }}
       ref={sheetRef}
+      rhythm={rhythm}
     />
   );
 }

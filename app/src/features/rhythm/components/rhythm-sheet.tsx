@@ -5,10 +5,12 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useSetAtom } from "jotai";
+import { Trash2 } from "lucide-react-native";
 import {
   forwardRef,
   type Ref,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -24,11 +26,17 @@ import {
   DurationPickerModal,
   TimePickerModal,
 } from "@/components/ui/wheel-picker";
-import { scheduleRhythm } from "@/features/beat/engine";
+import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
-import { createRhythm, getAllRhythms } from "../operations";
+import { syncStatusNotification } from "@/features/beat/status";
+import {
+  createRhythm,
+  deleteRhythm,
+  getAllRhythms,
+  updateRhythm,
+} from "../operations";
 import { randomPreset } from "../presets";
-import type { IntensityLevel } from "../schemas";
+import type { IntensityLevel, Rhythm } from "../schemas";
 import { rhythmsAtom } from "../store/atoms";
 import {
   crossesMidnight,
@@ -38,27 +46,37 @@ import {
 } from "../time-range";
 import { RhythmFormFields } from "./rhythm-form-fields";
 
-export interface CreateRhythmSheetHandle {
+export interface RhythmSheetHandle {
   dismiss: () => void;
-  present: () => void;
   requestClose: () => void;
 }
 
-interface CreateRhythmSheetProps {
+interface RhythmSheetProps {
   onDismiss?: () => void;
+  rhythm?: Rhythm;
+}
+
+interface Baseline {
+  days: string;
+  endTime: string;
+  intensity: string;
+  interval: number;
+  name: string;
+  startTime: string;
 }
 
 const SNAP_POINTS = ["60%", "90%"];
 
-export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
-  { onDismiss }: CreateRhythmSheetProps,
-  ref: Ref<CreateRhythmSheetHandle>
+export const RhythmSheet = forwardRef(function RhythmSheet(
+  { onDismiss, rhythm }: RhythmSheetProps,
+  ref: Ref<RhythmSheetHandle>
 ) {
+  const isEditing = rhythm !== undefined;
   const insets = useSafeAreaInsets();
   const setRhythms = useSetAtom(rhythmsAtom);
   const sheetRef = useRef<BottomSheetModal>(null);
   const nameRef = useRef("");
-  const initialRef = useRef({
+  const baselineRef = useRef<Baseline>({
     name: "",
     days: "",
     startTime: "",
@@ -85,13 +103,35 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
   const { confirm: presentPermissionPrompt, dialog: permissionDialog } =
     useConfirmDialog();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only initialization
+  useEffect(() => {
+    if (isEditing) {
+      setNameInputKey((current) => current + 1);
+      nameRef.current = rhythm.name;
+      baselineRef.current = {
+        name: rhythm.name,
+        days: JSON.stringify(rhythm.days),
+        startTime: rhythm.startTime,
+        endTime: rhythm.endTime,
+        interval: rhythm.intervalMinutes,
+        intensity: rhythm.intensity,
+      };
+      setHasName(rhythm.name.trim().length > 0);
+      setNameDirty(false);
+      setSelectedDays(rhythm.days);
+      setStartTime(rhythm.startTime);
+      setEndTime(rhythm.endTime);
+      setInterval(rhythm.intervalMinutes);
+      setIntensity(rhythm.intensity);
+    } else {
+      resetForm();
+    }
+    sheetRef.current?.present();
+  }, []);
+
   useImperativeHandle(ref, () => ({
     dismiss() {
       sheetRef.current?.dismiss();
-    },
-    present() {
-      resetForm();
-      sheetRef.current?.present();
     },
     requestClose() {
       handleClose();
@@ -100,33 +140,74 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
 
   const canSave = hasName && selectedDays.length > 0;
 
-  async function handleSave() {
-    if (!canSave) {
-      return;
-    }
-    const trimmedName = nameRef.current.trim();
-    if (!trimmedName) {
-      return;
-    }
-    const granted = await requestAlarmPermissions({
-      presentPrompt: presentPermissionPrompt,
-      requireFullScreen: intensity === "pulse" || intensity === "call",
-    });
-    if (!granted) {
-      return;
-    }
-    const created = createRhythm({
-      name: trimmedName,
+  function getFormValues() {
+    return {
+      name: nameRef.current.trim(),
       days: selectedDays,
       startTime,
       endTime,
       intervalMinutes: interval,
       intensity,
-      enabled: true,
+    };
+  }
+
+  async function saveEdit(): Promise<boolean> {
+    if (!isEditing) {
+      return true;
+    }
+    const updated = updateRhythm(rhythm.id, getFormValues());
+    if (!updated) {
+      return true;
+    }
+    if (updated.enabled) {
+      const granted = await requestAlarmPermissions({
+        presentPrompt: presentPermissionPrompt,
+        requireFullScreen:
+          updated.intensity === "pulse" || updated.intensity === "call",
+      });
+      if (!granted) {
+        return false;
+      }
+    }
+    await scheduleRhythm(updated, "edit-rhythm");
+    return true;
+  }
+
+  async function saveCreate(): Promise<boolean> {
+    const granted = await requestAlarmPermissions({
+      presentPrompt: presentPermissionPrompt,
+      requireFullScreen: intensity === "pulse" || intensity === "call",
     });
+    if (!granted) {
+      return false;
+    }
+    const created = createRhythm({ ...getFormValues(), enabled: true });
     await scheduleRhythm(created, "create-rhythm");
-    setRhythms(getAllRhythms());
     resetForm();
+    return true;
+  }
+
+  async function handleSave() {
+    if (!(canSave && nameRef.current.trim())) {
+      return;
+    }
+    const ok = isEditing ? await saveEdit() : await saveCreate();
+    if (!ok) {
+      return;
+    }
+    setRhythms(getAllRhythms());
+    allowDismissRef.current = true;
+    sheetRef.current?.dismiss();
+  }
+
+  async function handleDelete() {
+    if (!isEditing) {
+      return;
+    }
+    await cancelRhythm(rhythm.id);
+    deleteRhythm(rhythm.id);
+    setRhythms(getAllRhythms());
+    await syncStatusNotification("edit-delete");
     allowDismissRef.current = true;
     sheetRef.current?.dismiss();
   }
@@ -135,7 +216,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     const next = randomPreset();
     setNameInputKey((current) => current + 1);
     nameRef.current = next.name;
-    initialRef.current = {
+    baselineRef.current = {
       name: next.name,
       days: JSON.stringify(next.days),
       startTime: next.startTime,
@@ -152,13 +233,19 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     setIntensity(next.intensity);
   }
 
-  const isDirty =
-    nameDirty ||
-    JSON.stringify(selectedDays) !== initialRef.current.days ||
-    startTime !== initialRef.current.startTime ||
-    endTime !== initialRef.current.endTime ||
-    interval !== initialRef.current.interval ||
-    intensity !== initialRef.current.intensity;
+  const isDirty = isEditing
+    ? nameDirty ||
+      interval !== baselineRef.current.interval ||
+      startTime !== baselineRef.current.startTime ||
+      endTime !== baselineRef.current.endTime ||
+      intensity !== baselineRef.current.intensity ||
+      JSON.stringify(selectedDays) !== baselineRef.current.days
+    : nameDirty ||
+      JSON.stringify(selectedDays) !== baselineRef.current.days ||
+      startTime !== baselineRef.current.startTime ||
+      endTime !== baselineRef.current.endTime ||
+      interval !== baselineRef.current.interval ||
+      intensity !== baselineRef.current.intensity;
 
   isDirtyRef.current = isDirty;
 
@@ -215,7 +302,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
     const nextHasName = value.trim().length > 0;
     setHasName((current) => (current === nextHasName ? current : nextHasName));
 
-    const nextDirty = value !== initialRef.current.name;
+    const nextDirty = value !== baselineRef.current.name;
     setNameDirty((current) => (current === nextDirty ? current : nextDirty));
   }, []);
 
@@ -262,7 +349,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
           className="text-foreground text-lg"
           style={{ fontFamily: "Fraunces_600SemiBold" }}
         >
-          New Rhythm
+          {isEditing ? "Edit Rhythm" : "New Rhythm"}
         </Text>
       </View>
 
@@ -292,11 +379,19 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
       </BottomSheetScrollView>
 
       <View
-        className="px-7 pt-3"
+        className={`${isEditing ? "flex-row gap-3" : ""} px-7 pt-3`}
         style={{ paddingBottom: Math.max(insets.bottom, 32) }}
       >
+        {isEditing && (
+          <PressableScale
+            className="items-center justify-center rounded-2xl border border-border px-5 py-5"
+            onPress={handleDelete}
+          >
+            <Trash2 color="#7A6F63" size={20} />
+          </PressableScale>
+        )}
         <PressableScale
-          className={`items-center rounded-2xl py-5 ${canSave ? "bg-accent" : "bg-border"}`}
+          className={`${isEditing ? "flex-1" : ""} items-center rounded-2xl py-5 ${canSave ? "bg-accent" : "bg-border"}`}
           disabled={!canSave}
           onPress={handleSave}
         >
@@ -304,7 +399,7 @@ export const CreateRhythmSheet = forwardRef(function CreateRhythmSheet(
             className="text-foreground text-sm uppercase tracking-[2px]"
             style={{ fontFamily: "IBMPlexMono_500Medium" }}
           >
-            Create Rhythm
+            {isEditing ? "Save Changes" : "Create Rhythm"}
           </Text>
         </PressableScale>
       </View>

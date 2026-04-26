@@ -1,20 +1,16 @@
 import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 import {
-  CreateRhythmSheet,
-  type CreateRhythmSheetHandle,
-} from "@/features/rhythm/components/create-rhythm-sheet";
+  RhythmSheet,
+  type RhythmSheetHandle,
+} from "@/features/rhythm/components/rhythm-sheet";
 
 export default function NewRhythmScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const sheetRef = useRef<CreateRhythmSheetHandle>(null);
+  const sheetRef = useRef<RhythmSheetHandle>(null);
   const allowRemoveRef = useRef(false);
   const pendingActionRef = useRef<unknown>(null);
-
-  useEffect(() => {
-    sheetRef.current?.present();
-  }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (event) => {
@@ -31,7 +27,7 @@ export default function NewRhythmScreen() {
   }, [navigation]);
 
   return (
-    <CreateRhythmSheet
+    <RhythmSheet
       onDismiss={() => {
         allowRemoveRef.current = true;
 
