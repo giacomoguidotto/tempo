@@ -53,4 +53,4 @@ Download the APK from [GitHub Releases](https://github.com/giacomoguidotto/tempo
 
 Tempo is built with [Expo](https://expo.dev) and [React Native](https://reactnative.dev). Alarms are powered by [Notifee](https://notifee.app) with exact scheduling, foreground services, and full-screen intents for high-intensity levels. All data is stored locally using SQLite (via [Drizzle](https://orm.drizzle.team)) and [MMKV](https://github.com/mrousavy/react-native-mmkv).
 
-Free and open source. See [CONTRIBUTING.md](CONTRIBUTING.md) to get involved.
+Free and open source. See [CONTRIBUTING.md](.github/CONTRIBUTING.md) to get involved.
