@@ -2,8 +2,7 @@
   "branches": ["main"],
   "tagFormat": "v${version}",
   "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
+    "./.github/plugins/app-only-release.cjs",
     "@semantic-release/github"
   ]
 }
