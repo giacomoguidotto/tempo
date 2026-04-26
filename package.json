@@ -17,6 +17,8 @@
     "@biomejs/biome": "2.4.13",
     "@commitlint/cli": "^20.5.2",
     "@commitlint/config-conventional": "^20.5.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "husky": "^9.1.7",
     "turbo": "^2.9.6",
     "ultracite": "7.6.2"
