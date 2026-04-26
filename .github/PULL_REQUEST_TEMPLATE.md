@@ -8,10 +8,17 @@
 
 -
 
+## Type of Change
+
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+- [ ] Refactoring
+
 ## Checklist
 
-- [ ] `bun run lint` passed
-- [ ] TypeScript compiles without errors
+- [ ] `bun run lint && bun run typecheck && bun run test` passed
 - [ ] No `any` types introduced
 - [ ] No `console.log` or `debugger` statements
 - [ ] UI uses design system primitives from `components/ui/`
