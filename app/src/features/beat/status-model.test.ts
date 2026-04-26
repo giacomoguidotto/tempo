@@ -1,26 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Rhythm } from "@/features/rhythm/schemas";
-import { buildStatusNotificationModel } from "./status";
-
-vi.mock("@notifee/react-native", () => ({
-  AndroidStyle: {
-    INBOX: "inbox",
-  },
-  default: {
-    cancelNotification: vi.fn(),
-    displayNotification: vi.fn(),
-  },
-}));
+import { buildStatusNotificationModel } from "./status-model";
 
 vi.mock("../rhythm/operations", () => ({
   getAllRhythms: vi.fn(() => []),
 }));
-
-vi.mock("@/lib/logger", () => {
-  // biome-ignore lint/suspicious/noEmptyBlockStatements: test stub
-  const noop = () => {};
-  return { beat: { info: noop, warn: noop, error: noop } };
-});
 
 function makeRhythm(overrides: Partial<Rhythm> = {}): Rhythm {
   return {
