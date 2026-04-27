@@ -11,8 +11,8 @@ import {
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import { MarqueeText } from "@/components/ui/marquee-text";
 import { PressableScale } from "@/components/ui/pressable-scale";
+import { computeRhythmProgress } from "../rhythm-progress";
 import type { Rhythm } from "../schemas";
-import { getRelevantWindowBeats, getUpcomingBeatDates } from "../time-range";
 
 const DELETE_ANIM_DURATION = 250;
 const DISPLAY_TICKS = 10;
@@ -49,9 +49,8 @@ export function RhythmCard({
   const heightAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
-  const { done, total, currentProgress, allDoneForToday } =
-    computeProgress(rhythm);
-  const nextBeat = computeNextBeat(rhythm);
+  const { done, total, currentProgress, allDoneForToday, nextBeat } =
+    computeRhythmProgress(rhythm);
   const numTicks = Math.min(total, DISPLAY_TICKS);
 
   function handleDelete() {
@@ -291,58 +290,4 @@ function statusLabel(
   // Today not in schedule
   const nextDay = nextActiveDay(days);
   return nextDay ? `NEXT ${nextDay}` : "OFF";
-}
-
-function computeProgress(rhythm: Rhythm): {
-  done: number;
-  total: number;
-  currentProgress: number;
-  allDoneForToday: boolean;
-} {
-  const now = new Date();
-  const beats = getRelevantWindowBeats(rhythm, now);
-  const total = beats.length;
-
-  if (total === 0) {
-    return { done: 0, total: 0, currentProgress: 0, allDoneForToday: false };
-  }
-
-  const done = beats.filter((beat) => beat.getTime() <= now.getTime()).length;
-  if (done === 0) {
-    return { done: 0, total, currentProgress: 0, allDoneForToday: false };
-  }
-
-  const allDoneForToday = done >= total;
-  const lastBeatAt = beats[Math.min(done - 1, beats.length - 1)];
-  const elapsedMinutes = (now.getTime() - lastBeatAt.getTime()) / 60_000;
-
-  const currentProgress = allDoneForToday
-    ? 1
-    : Math.min(elapsedMinutes / rhythm.intervalMinutes, 1);
-
-  return {
-    done: Math.min(done, total),
-    total,
-    currentProgress,
-    allDoneForToday,
-  };
-}
-
-function computeNextBeat(rhythm: Rhythm): string | null {
-  const now = new Date();
-  const nextBeat = getUpcomingBeatDates(rhythm, 1, now)[0];
-  if (!nextBeat) {
-    return null;
-  }
-
-  const isSameDay =
-    nextBeat.getFullYear() === now.getFullYear() &&
-    nextBeat.getMonth() === now.getMonth() &&
-    nextBeat.getDate() === now.getDate();
-
-  if (!isSameDay) {
-    return null;
-  }
-
-  return `${String(nextBeat.getHours()).padStart(2, "0")}:${String(nextBeat.getMinutes()).padStart(2, "0")}`;
 }
