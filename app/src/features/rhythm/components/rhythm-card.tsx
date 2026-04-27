@@ -1,7 +1,13 @@
 import { ImpactFeedbackStyle, impactAsync } from "expo-haptics";
 import { Trash2 } from "lucide-react-native";
 import { useRef } from "react";
-import { Animated, Switch, Text, View } from "react-native";
+import {
+  type AccessibilityActionEvent,
+  Animated,
+  Switch,
+  Text,
+  View,
+} from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import type { Rhythm } from "../schemas";
@@ -21,6 +27,8 @@ interface RhythmCardProps {
   isDragging?: boolean;
   onDelete: (id: string) => void;
   onLongPress?: () => void;
+  onMoveDown?: () => void;
+  onMoveUp?: () => void;
   onPress: (id: string) => void;
   onToggle: (id: string, enabled: boolean) => void;
   rhythm: Rhythm;
@@ -33,6 +41,8 @@ export function RhythmCard({
   onPress,
   onDelete,
   onLongPress,
+  onMoveUp,
+  onMoveDown,
 }: RhythmCardProps) {
   const swipeableRef = useRef<Swipeable>(null);
   const heightAnim = useRef(new Animated.Value(1)).current;
@@ -117,8 +127,30 @@ export function RhythmCard({
     return COLOR_DIM;
   }
 
+  const a11yActions = [
+    ...(onMoveUp ? [{ name: "moveUp", label: "Move up" }] : []),
+    ...(onMoveDown ? [{ name: "moveDown", label: "Move down" }] : []),
+  ];
+
+  function handleAccessibilityAction(event: AccessibilityActionEvent) {
+    switch (event.nativeEvent.actionName) {
+      case "moveUp":
+        onMoveUp?.();
+        break;
+      case "moveDown":
+        onMoveDown?.();
+        break;
+      default:
+        break;
+    }
+  }
+
   return (
     <Animated.View
+      accessibilityActions={a11yActions.length > 0 ? a11yActions : undefined}
+      onAccessibilityAction={
+        a11yActions.length > 0 ? handleAccessibilityAction : undefined
+      }
       style={{
         opacity: opacityAnim,
         maxHeight: heightAnim.interpolate({

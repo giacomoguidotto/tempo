@@ -148,28 +148,53 @@ export default function RhythmsScreen() {
     [setRhythms]
   );
 
+  const handleA11yReorder = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const reordered = [...rhythms];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      setRhythms(reordered);
+      reorderRhythms(reordered.map((r) => r.id));
+      syncStatusNotification("tabs-reorder").catch(() => undefined);
+    },
+    [rhythms, setRhythms]
+  );
+
   const renderItem = useCallback(
-    ({ item, drag, isActive }: RenderItemParams<Rhythm>) => (
-      <ScaleDecorator>
-        <View style={{ paddingHorizontal: 28 }}>
-          <RhythmCard
-            isDragging={isActive}
-            onDelete={handleDelete}
-            onLongPress={drag}
-            onPress={() =>
-              router.push({
-                pathname: "/rhythm/[id]",
-                params: { id: item.id },
-              })
-            }
-            onToggle={handleToggle}
-            rhythm={item}
-          />
-        </View>
-      </ScaleDecorator>
-    ),
+    ({ item, drag, isActive, getIndex }: RenderItemParams<Rhythm>) => {
+      const index = getIndex() ?? 0;
+      return (
+        <ScaleDecorator>
+          <View style={{ paddingHorizontal: 28 }}>
+            <RhythmCard
+              isDragging={isActive}
+              onDelete={handleDelete}
+              onLongPress={drag}
+              onMoveDown={
+                index < rhythms.length - 1
+                  ? () => handleA11yReorder(index, index + 1)
+                  : undefined
+              }
+              onMoveUp={
+                index > 0
+                  ? () => handleA11yReorder(index, index - 1)
+                  : undefined
+              }
+              onPress={() =>
+                router.push({
+                  pathname: "/rhythm/[id]",
+                  params: { id: item.id },
+                })
+              }
+              onToggle={handleToggle}
+              rhythm={item}
+            />
+          </View>
+        </ScaleDecorator>
+      );
+    },
     // biome-ignore lint/correctness/useExhaustiveDependencies: stable callbacks
-    [handleDelete, handleToggle]
+    [handleDelete, handleToggle, rhythms.length, handleA11yReorder]
   );
 
   return (
