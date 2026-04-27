@@ -1,6 +1,14 @@
 import notifee from "@notifee/react-native";
-import { useEffect, useMemo, useState } from "react";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  Dimensions,
+  findNodeHandle,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -68,6 +76,7 @@ function RippleRing({ delay }: { delay: number }) {
 
 export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
   const reduceMotion = useReduceMotion();
+  const dismissRef = useRef<View>(null);
   const [resolvedPayload, setResolvedPayload] = useState<AlarmLaunchPayload>({
     alarmInstanceId: props.alarmInstanceId ?? null,
     intensity: props.intensity ?? null,
@@ -113,6 +122,16 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const node = findNodeHandle(dismissRef.current);
+      if (node) {
+        AccessibilityInfo.setAccessibilityFocus(node);
+      }
+    }, 1400);
+    return () => clearTimeout(timer);
   }, []);
 
   const alarmInstanceId = resolvedPayload.alarmInstanceId;
@@ -250,6 +269,7 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
             accessibilityLabel="Dismiss alarm"
             accessibilityRole="button"
             onPress={handleDismiss}
+            ref={dismissRef}
             style={{
               alignItems: "center",
               borderRadius: 18,

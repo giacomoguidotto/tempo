@@ -65,6 +65,8 @@ export function ConfirmDialog({
         />
 
         <View
+          accessibilityLabel={`${title}. ${message}`}
+          accessibilityRole="alert"
           className="bg-surface"
           onStartShouldSetResponder={() => true}
           style={{

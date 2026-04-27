@@ -344,7 +344,11 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
       ref={sheetRef}
       snapPoints={SNAP_POINTS}
     >
-      <View className="items-center px-7 py-3">
+      <View
+        accessibilityLabel={isEditing ? "Edit Rhythm" : "New Rhythm"}
+        accessibilityRole="header"
+        className="items-center px-7 py-3"
+      >
         <Text
           className="text-foreground text-lg"
           style={{ fontFamily: "Fraunces_600SemiBold" }}
