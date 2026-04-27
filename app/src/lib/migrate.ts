@@ -2,12 +2,29 @@ import { openDatabaseSync } from "expo-sqlite";
 
 let migrated = false;
 
-export function runMigrations() {
+/**
+ * Run versioned schema migrations using PRAGMA user_version.
+ * Returns true if migrations completed, false if the native module
+ * is not ready (hot reload). Throws on genuine database errors.
+ */
+export function runMigrations(): boolean {
   if (migrated) {
-    return;
+    return true;
   }
+
+  let db: ReturnType<typeof openDatabaseSync>;
   try {
-    const db = openDatabaseSync("tempo.db");
+    db = openDatabaseSync("tempo.db");
+  } catch {
+    // Native module not ready yet (hot reload) — caller can retry
+    return false;
+  }
+
+  const version =
+    db.getFirstSync<{ user_version: number }>("PRAGMA user_version")
+      ?.user_version ?? 0;
+
+  if (version < 1) {
     db.execSync(`
       CREATE TABLE IF NOT EXISTS rhythms (
         id TEXT PRIMARY KEY,
@@ -22,16 +39,20 @@ export function runMigrations() {
         updated_at TEXT NOT NULL
       );
     `);
-    // v2: add sort_order column (ignore if exists)
+    db.execSync("PRAGMA user_version = 1");
+  }
+
+  if (version < 2) {
     try {
       db.execSync(
         "ALTER TABLE rhythms ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;"
       );
     } catch {
-      // column already exists
+      // Column already exists — bridging from unversioned database
     }
-    migrated = true;
-  } catch {
-    // Native module not ready yet (hot reload) — will retry on next render
+    db.execSync("PRAGMA user_version = 2");
   }
+
+  migrated = true;
+  return true;
 }
