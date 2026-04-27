@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="app/assets/icon.png" alt="Tempo" width="160" />
+  <img src="assets/logo.png" alt="Tempo" width="160" />
 </p>
 
 <h1 align="center">Tempo</h1>
