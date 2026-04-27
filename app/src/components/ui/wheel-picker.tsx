@@ -53,6 +53,7 @@ const ItemCell = React.memo(function ItemCell({
       style={{ height: ITEM_H, justifyContent: "center", alignItems: "center" }}
     >
       <Text
+        maxFontSizeMultiplier={2}
         style={{
           fontFamily: "IBMPlexMono_500Medium",
           fontSize: 22,

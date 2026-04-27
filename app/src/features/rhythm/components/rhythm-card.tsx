@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
+import { MarqueeText } from "@/components/ui/marquee-text";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import type { Rhythm } from "../schemas";
 import { getRelevantWindowBeats, getUpcomingBeatDates } from "../time-range";
@@ -186,15 +187,23 @@ export function RhythmCard({
         >
           <View className="flex-row items-center justify-between">
             <View className="mr-3 flex-1 gap-[3px]">
-              <Text
-                className={`text-lg ${rhythm.enabled ? "text-foreground" : "text-secondary"}`}
-                style={{ fontFamily: "Fraunces_600SemiBold" }}
+              <MarqueeText
+                style={{
+                  fontFamily: "Fraunces_600SemiBold",
+                  fontSize: 18,
+                  color: rhythm.enabled ? "#EDE6DA" : "#9C8E80",
+                }}
               >
                 {rhythm.name}
-              </Text>
-              <Text
-                className="text-secondary text-xs uppercase tracking-[1.5px]"
-                style={{ fontFamily: "IBMPlexMono_400Regular" }}
+              </MarqueeText>
+              <MarqueeText
+                style={{
+                  fontFamily: "IBMPlexMono_400Regular",
+                  fontSize: 12,
+                  color: "#9C8E80",
+                  textTransform: "uppercase",
+                  letterSpacing: 1.5,
+                }}
               >
                 EVERY {rhythm.intervalMinutes} MIN ·{" "}
                 {statusLabel(
@@ -203,7 +212,7 @@ export function RhythmCard({
                   nextBeat,
                   rhythm.days
                 )}
-              </Text>
+              </MarqueeText>
             </View>
             <Switch
               accessibilityLabel={`${rhythm.name}, ${rhythm.enabled ? "active" : "inactive"}`}
