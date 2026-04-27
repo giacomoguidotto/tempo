@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import { useAtom } from "jotai";
 import { Plus } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
@@ -14,21 +13,11 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PressableScale } from "@/components/ui/pressable-scale";
-import { useConfirmDialog } from "@/components/ui/use-confirm-dialog";
-import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
-import { requestAlarmPermissions } from "@/features/beat/permissions";
-import { syncStatusNotification } from "@/features/beat/status";
 import { RhythmCard } from "@/features/rhythm/components/rhythm-card";
 import { VuMeter } from "@/features/rhythm/components/vu-meter";
 import { formatNextBeat } from "@/features/rhythm/next-beat";
-import {
-  deleteRhythm,
-  getAllRhythms,
-  reorderRhythms,
-  toggleRhythm,
-} from "@/features/rhythm/operations";
 import type { Rhythm } from "@/features/rhythm/schemas";
-import { rhythmsAtom } from "@/features/rhythm/store/atoms";
+import { useRhythmEngine } from "@/features/rhythm/use-rhythm-engine";
 
 const STICKY_TITLE_HEIGHT = 80;
 const VUMETER_SECTION_HEIGHT = 248;
@@ -37,28 +26,16 @@ const FADE_DISTANCE = 150;
 export default function RhythmsScreen() {
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
-  const [rhythms, setRhythms] = useAtom(rhythmsAtom);
-  const { confirm: presentPermissionPrompt, dialog: permissionDialog } =
-    useConfirmDialog();
+  const {
+    rhythms,
+    handleToggle,
+    handleDelete,
+    handleReorder,
+    permissionDialog,
+  } = useRhythmEngine();
   const scrollY = useSharedValue(0);
 
-  useEffect(() => {
-    async function hydrateRhythms() {
-      const loaded = getAllRhythms();
-      setRhythms(loaded);
-
-      for (const rhythm of loaded.filter((candidate) => candidate.enabled)) {
-        await scheduleRhythm(rhythm, "tabs-mount");
-      }
-
-      await syncStatusNotification("tabs-mount");
-    }
-
-    hydrateRhythms().catch(() => {
-      syncStatusNotification("tabs-mount-fallback").catch(() => undefined);
-    });
-  }, [setRhythms]);
-
+  // Minute ticker — forces re-render to keep countdown strings fresh
   const [, setTick] = useState(0);
   useEffect(() => {
     const msToNextMinute =
@@ -103,49 +80,15 @@ export default function RhythmsScreen() {
     return { opacity, transform: [{ scale }] };
   });
 
-  async function handleToggle(id: string, enabled: boolean) {
-    const currentRhythm = rhythms.find((r) => r.id === id);
-
-    if (enabled) {
-      const granted = await requestAlarmPermissions({
-        presentPrompt: presentPermissionPrompt,
-        requireFullScreen:
-          currentRhythm?.intensity === "pulse" ||
-          currentRhythm?.intensity === "call",
-      });
-      if (!granted) {
-        return;
-      }
-    }
-    toggleRhythm(id, enabled);
-    const updated = rhythms.map((r) =>
-      r.id === id ? { ...r, enabled, updatedAt: new Date().toISOString() } : r
-    );
-    setRhythms(updated);
-    const rhythm = updated.find((r) => r.id === id);
-    if (rhythm) {
-      scheduleRhythm(rhythm);
-    }
-  }
-
-  async function handleDelete(id: string) {
-    await cancelRhythm(id);
-    deleteRhythm(id);
-    setRhythms(getAllRhythms());
-    await syncStatusNotification("tabs-delete");
-  }
-
   const handleOpenCreate = useCallback(() => {
     router.push("/rhythm/new");
   }, []);
 
   const handleDragEnd = useCallback(
     ({ data }: { data: Rhythm[] }) => {
-      setRhythms(data);
-      reorderRhythms(data.map((r) => r.id));
-      syncStatusNotification("tabs-reorder").catch(() => undefined);
+      handleReorder(data);
     },
-    [setRhythms]
+    [handleReorder]
   );
 
   const handleA11yReorder = useCallback(
@@ -153,11 +96,9 @@ export default function RhythmsScreen() {
       const reordered = [...rhythms];
       const [moved] = reordered.splice(fromIndex, 1);
       reordered.splice(toIndex, 0, moved);
-      setRhythms(reordered);
-      reorderRhythms(reordered.map((r) => r.id));
-      syncStatusNotification("tabs-reorder").catch(() => undefined);
+      handleReorder(reordered);
     },
-    [rhythms, setRhythms]
+    [rhythms, handleReorder]
   );
 
   const renderItem = useCallback(
@@ -193,7 +134,6 @@ export default function RhythmsScreen() {
         </ScaleDecorator>
       );
     },
-    // biome-ignore lint/correctness/useExhaustiveDependencies: stable callbacks
     [handleDelete, handleToggle, rhythms.length, handleA11yReorder]
   );
 
