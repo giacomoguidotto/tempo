@@ -1,10 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Rhythm } from "@/features/rhythm/schemas";
 import { buildStatusNotificationModel } from "./status-model";
-
-vi.mock("../rhythm/operations", () => ({
-  getAllRhythms: vi.fn(() => []),
-}));
 
 function makeRhythm(overrides: Partial<Rhythm> = {}): Rhythm {
   return {

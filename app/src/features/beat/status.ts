@@ -1,5 +1,6 @@
 import notifee, { AndroidStyle } from "@notifee/react-native";
 import { beat } from "@/lib/logger";
+import { getAllRhythms } from "../rhythm/operations";
 import { CHANNEL_IDS } from "./channels";
 import {
   buildStatusNotificationModel,
@@ -44,7 +45,10 @@ export function isStatusNotification(
 }
 
 export async function syncStatusNotification(source = "manual"): Promise<void> {
-  const model = buildStatusNotificationModel(getStatusRhythmCandidates());
+  const rhythms = getAllRhythms();
+  const model = buildStatusNotificationModel(
+    getStatusRhythmCandidates(rhythms)
+  );
 
   if (!model) {
     beat.info("status_cancel", { source });
@@ -84,7 +88,7 @@ export async function syncStatusNotification(source = "manual"): Promise<void> {
 
   beat.info("status_sync", {
     source,
-    rhythmCount: getStatusRhythmCandidates().length,
+    rhythmCount: getStatusRhythmCandidates(rhythms).length,
   });
   scheduleRefresh();
 }

@@ -1,4 +1,3 @@
-import { getAllRhythms } from "../rhythm/operations";
 import type { Rhythm } from "../rhythm/schemas";
 import { getUpcomingBeatDates, MINUTES_PER_DAY } from "../rhythm/time-range";
 
@@ -85,9 +84,10 @@ export function buildStatusNotificationModel(
 }
 
 export function getStatusRhythmCandidates(
+  rhythms: Rhythm[],
   now = new Date()
 ): StatusRhythmCandidate[] {
-  return getAllRhythms()
+  return rhythms
     .filter((rhythm) => rhythm.enabled)
     .map((rhythm) => ({
       rhythm,
