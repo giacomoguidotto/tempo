@@ -4,6 +4,7 @@ import {
   Modal,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  Pressable,
   Text,
   TouchableWithoutFeedback,
   View,
@@ -35,25 +36,32 @@ const getItemLayout = (_: unknown, index: number) => ({
 
 const ItemCell = React.memo(function ItemCell({
   item,
+  onSelect,
 }: {
   item: WheelItem | null;
+  onSelect?: (value: number) => void;
 }) {
+  if (!item) {
+    return <View style={{ height: ITEM_H }} />;
+  }
+
   return (
-    <View
+    <Pressable
+      accessibilityLabel={item.label}
+      accessibilityRole="button"
+      onPress={() => onSelect?.(item.value)}
       style={{ height: ITEM_H, justifyContent: "center", alignItems: "center" }}
     >
-      {item && (
-        <Text
-          style={{
-            fontFamily: "IBMPlexMono_500Medium",
-            fontSize: 22,
-            color: "#EDE6DA",
-          }}
-        >
-          {item.label}
-        </Text>
-      )}
-    </View>
+      <Text
+        style={{
+          fontFamily: "IBMPlexMono_500Medium",
+          fontSize: 22,
+          color: "#EDE6DA",
+        }}
+      >
+        {item.label}
+      </Text>
+    </Pressable>
   );
 });
 
@@ -106,9 +114,26 @@ function WheelColumn({
     listRef.current?.scrollToOffset({ offset: idx * ITEM_H, animated: true });
   }, [value, data]);
 
+  const handleSelect = useCallback(
+    (v: number) => {
+      isUserScroll.current = true;
+      onValueChange(v);
+      const idx = data.findIndex((d) => d.value === v);
+      if (idx >= 0) {
+        listRef.current?.scrollToOffset({
+          offset: idx * ITEM_H,
+          animated: true,
+        });
+      }
+    },
+    [data, onValueChange]
+  );
+
   const renderItem = useCallback(
-    ({ item }: { item: WheelItem | null }) => <ItemCell item={item} />,
-    []
+    ({ item }: { item: WheelItem | null }) => (
+      <ItemCell item={item} onSelect={handleSelect} />
+    ),
+    [handleSelect]
   );
 
   return (
