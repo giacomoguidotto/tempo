@@ -145,6 +145,24 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] USE_FULL_SCREEN_INTENT (for Pulse/Call levels)
   - [x] Permission request flow (on first toggle/create, only when not granted)
 
+- [ ] **Accessibility**
+  - [ ] Add `accessibilityLabel` and `accessibilityRole` to all interactive elements (toggles, FAB, tab icons, slider knobs, day chips)
+  - [ ] Ensure all touch targets are at least 48dp
+  - [ ] Provide text alternative for VU meter animation (TalkBack should announce rhythm status, not silence)
+  - [ ] Verify `allowFontScaling` is not disabled — text must respect system font size
+  - [ ] Test full flow with TalkBack enabled
+
+- [ ] **Play Store compliance**
+  - [ ] Privacy policy page on tempo.guidotto.dev (required for Play Store listing)
+  - [ ] Data Safety section — declare all data stays on-device, no collection
+  - [ ] Global "Delete all data" option in settings (Play Store data deletion policy)
+  - [ ] 12-tester closed track testing for 14 consecutive days (required before production access for personal dev accounts)
+
+- [ ] **Android platform compliance**
+  - [ ] Enable predictive back gesture (`android:enableOnBackInvokedCallback="true"`) — audit bottom sheets, modals, and confirmation dialogs for custom back handling
+  - [ ] Edge-to-edge audit — verify all screens handle insets correctly (full-screen alert, bottom sheets, list content behind nav bar)
+  - [ ] Monochrome adaptive icon layer (`<monochrome>` in `ic_launcher.xml`) for themed icons on Android 13+
+
 - [ ] **Testing**
   - [x] Unit tests for alarm scheduling logic (pure functions)
   - [x] Unit tests for Zod schemas
@@ -158,6 +176,14 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 
 - [ ] Reintroduce the fourth urgency level to the UI after `Pulse` is reliable
 - [ ] Rename the current `Call` concept before reintroducing it in product copy, tokens, and UI
+
+- [ ] **Onboarding**
+  - [ ] First-launch guided rhythm creation — skip the empty state, walk the user straight into creating their first rhythm with sensible defaults pre-filled
+  - [ ] Inline permission grants woven into the creation flow (notifications when saving, exact alarm when toggling on) — no up-front permission wall
+  - [ ] Intensity explainer shown once during first rhythm creation — brief, visual comparison of Whisper / Nudge / Pulse with haptic previews
+  - [ ] "Try it now" test beat — fire a single demo beat immediately after first rhythm is saved so the user sees what to expect before waiting for the real schedule
+  - [ ] Contextual reliability nudges — surface battery optimization / DND warnings only after the user has experienced a real beat, not during setup
+  - [ ] Re-entry awareness — if the user kills the app before finishing onboarding, resume where they left off (persist onboarding stage in MMKV)
 
 - [ ] **Alarm controls & reliability**
   - [ ] Snooze actions on notifications
@@ -176,6 +202,21 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 - [ ] **Settings**
   - [ ] Default intensity level
   - [ ] About / version info
+  - [ ] Global "Delete all data" with confirmation (Play Store data deletion requirement)
+
+- [ ] **Crash reporting**
+  - [ ] Integrate Sentry (first-class Expo/RN support, source maps, session replay)
+  - [ ] Upload ProGuard/R8 mapping files to Sentry for native crash deobfuscation
+
+- [ ] **Backup & restore**
+  - [ ] Configure explicit Android Auto Backup rules (include SQLite + MMKV, exclude caches)
+  - [ ] Manual export/import of all data (JSON) from settings for device migration
+
+- [ ] **App shortcuts**
+  - [ ] Static launcher shortcuts: "Create new rhythm", "Start most recent rhythm"
+
+- [ ] **In-app review**
+  - [ ] Prompt via Google Play In-App Review API after meaningful usage milestone (e.g. 7 days of active beats)
 
 - [ ] **Quick capture flow**
   - [ ] Notification action: quick-reply text input for activity note
@@ -224,6 +265,14 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [ ] VuMeter animation synced to beat timing (countdown approach animation, beat-moment pulse)
   - [ ] Connect VU meter to beat engine's real-time schedule
 
+- [ ] **Accessibility — advanced**
+  - [ ] Respect `reduceMotion` system setting — skip or simplify VU meter, icon beat animations, and card transitions
+  - [ ] High-contrast mode support
+
+- [ ] **Performance**
+  - [ ] Establish cold start budget (<500ms to first frame), measure and track
+  - [ ] ANR monitoring via Sentry
+
 - [ ] **Charts & analytics**
   - [ ] Daily breakdown (pie/donut chart by category)
   - [ ] Weekly trends (stacked bar chart)
@@ -243,8 +292,11 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 - [ ] iOS support (implement iOS adapters)
 - [ ] Extract a platform adapter interface for alarm scheduling when iOS support starts
 - [ ] Refactor the alarm engine behind a uniform command/event interface so UI, background handlers, and future platform adapters all speak the same API
-- [ ] i18n (English + Italian, following Blueprint's next-intl pattern)
+- [ ] i18n — extract all user-facing strings into translation files early; English + Italian first (following Blueprint's next-intl pattern)
+- [ ] RTL layout audit — replace hardcoded `left`/`right` with `start`/`end` in NativeWind styles
 - [ ] Optional manual theme override (dark/light/system)
+- [ ] MMKV encryption for stored preferences
+- [ ] Verified Android App Links (`https://tempo.guidotto.dev/...`) for sharing rhythms
 - [ ] Interval timer mode (work/break phases, Pomodoro-style)
 - [ ] Chain timer mode (sequence of different durations)
 - [ ] Stopwatch with lap alerts
