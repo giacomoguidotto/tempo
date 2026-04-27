@@ -168,7 +168,6 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Confirm dialog announced as alert role with title and message
   - [x] MarqueeText on rhythm card name/subtitle (ellipsis fallback when reduceMotion is on)
   - [x] Font scaling capped at 2x on tight layouts (wheel picker)
-  - [ ] Test full flow with TalkBack enabled
 
 - [ ] **Play Store compliance**
   - [x] Privacy policy page on tempo.guidotto.dev (required for Play Store listing)
@@ -184,13 +183,15 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Edge-to-edge audit — added SafeAreaProvider and inset padding to alarm screen
   - [ ] Monochrome adaptive icon layer (`<monochrome>` in `ic_launcher.xml`) for themed icons on Android 13+
 
-- [ ] **Testing**
+- [x] **Automated testing**
   - [x] Unit tests for alarm scheduling logic (pure functions)
   - [x] Unit tests for Zod schemas
   - [x] Unit tests for CRUD operations
+
+- [ ] **Manual testing**
   - [x] Manual testing checklist for alarm reliability
   - [ ] Run the alarm reliability checklist on a production build
-  - [ ] Upload ProGuard/R8 mapping files with production builds for crash deobfuscation
+  - [ ] Test full accessibility flow with TalkBack enabled
 
 ### v1 — Capture built in
 
