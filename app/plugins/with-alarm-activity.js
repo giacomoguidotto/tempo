@@ -13,8 +13,9 @@ function createAlarmActivitySource(packageName) {
   return `package ${packageName}
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
+
+import androidx.activity.OnBackPressedCallback
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -31,6 +32,13 @@ class TempoAlarmActivity : ReactActivity() {
       intent?.getStringExtra(TempoAlarmStateStore.EXTRA_ALARM_INSTANCE_ID)
     )
     super.onCreate(null)
+
+    // Predictive back compatible: register callback via onBackPressedDispatcher
+    onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+      override fun handleOnBackPressed() {
+        finish()
+      }
+    })
   }
 
   override fun getMainComponentName(): String = "alarm"
@@ -61,10 +69,6 @@ class TempoAlarmActivity : ReactActivity() {
     recreate()
   }
 
-  override fun invokeDefaultOnBackPressed() {
-    finish()
-  }
-
   override fun onDestroy() {
     TempoAlarmStateStore.clearActiveAlarmInstanceIfMatches(
       applicationContext,
@@ -89,6 +93,9 @@ module.exports = function withAlarmActivity(config) {
     }
 
     mainApp.activity ||= [];
+
+    // Enable predictive back gesture (SDK 35+)
+    mainApp.$["android:enableOnBackInvokedCallback"] = "true";
 
     const mainActivity = mainApp.activity.find(
       (a) => a.$?.["android:name"] === ".MainActivity"

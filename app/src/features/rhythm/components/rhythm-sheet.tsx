@@ -15,7 +15,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Text, View } from "react-native";
+import { BackHandler, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PressableScale } from "@/components/ui/pressable-scale";
@@ -260,6 +260,21 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
   const handleCloseRef = useRef(handleClose);
   handleCloseRef.current = handleClose;
 
+  // Intercept hardware back when form is dirty (predictive back compatible)
+  useEffect(() => {
+    if (!isDirty) {
+      return;
+    }
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        setShowConfirm(true);
+        return true;
+      }
+    );
+    return () => subscription.remove();
+  }, [isDirty]);
+
   const setDay = useCallback((day: number, selected: boolean) => {
     setSelectedDays((prev) => {
       const has = prev.includes(day);
@@ -326,17 +341,11 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
       backdropComponent={BackdropComponent}
       backgroundStyle={{ backgroundColor: "#1A1714" }}
       enableDynamicSizing={false}
-      enablePanDownToClose
+      enablePanDownToClose={!isDirty}
       handleComponent={HandleComponent}
       index={1}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
-      onAnimate={(_fromIndex, toIndex) => {
-        if (toIndex === -1 && isDirtyRef.current && !allowDismissRef.current) {
-          sheetRef.current?.snapToIndex(0);
-          setShowConfirm(true);
-        }
-      }}
       onDismiss={() => {
         allowDismissRef.current = false;
         onDismiss?.();

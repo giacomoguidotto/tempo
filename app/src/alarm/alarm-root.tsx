@@ -16,6 +16,10 @@ import Animated, {
   withDelay,
   withTiming,
 } from "react-native-reanimated";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { beat } from "@/lib/logger";
 import { useReduceMotion } from "@/lib/use-reduce-motion";
 import TempoAlarmModule, {
@@ -75,7 +79,16 @@ function RippleRing({ delay }: { delay: number }) {
 }
 
 export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
+  return (
+    <SafeAreaProvider>
+      <AlarmContent {...props} />
+    </SafeAreaProvider>
+  );
+}
+
+function AlarmContent(props: Partial<AlarmLaunchPayload>) {
   const reduceMotion = useReduceMotion();
+  const insets = useSafeAreaInsets();
   const dismissRef = useRef<View>(null);
   const [resolvedPayload, setResolvedPayload] = useState<AlarmLaunchPayload>({
     alarmInstanceId: props.alarmInstanceId ?? null,
@@ -192,6 +205,8 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
         justifyContent: "center",
         backgroundColor: "#1A1714",
         paddingHorizontal: 28,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
       }}
     >
       {/* Ripple rings expanding from center */}
