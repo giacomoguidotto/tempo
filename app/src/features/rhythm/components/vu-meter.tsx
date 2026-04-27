@@ -171,6 +171,7 @@ export function VuMeter({
   return (
     <View
       className="items-center justify-end"
+      importantForAccessibility="no-hide-descendants"
       style={{ height: MAX_HEIGHT + 8 }}
     >
       <View
