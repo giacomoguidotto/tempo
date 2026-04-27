@@ -1,6 +1,6 @@
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { memo, useRef } from "react";
-import { Platform, Text, useColorScheme, View } from "react-native";
+import { Platform, Pressable, Text, useColorScheme, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -21,6 +21,15 @@ import type { IntensityLevel } from "../schemas";
 import { crossesMidnight, MINUTES_PER_DAY, timeToMinutes } from "../time-range";
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const DAY_FULL_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 const INTERVAL_PRESETS = [5, 15, 25, 30, 45, 60, 90, 120, 180, 240, 360, 480];
 
 function formatPresetLabel(minutes: number): string {
@@ -181,11 +190,13 @@ function DayCircle({
   activeDayIndex,
   index,
   label,
+  onToggle,
   selected,
 }: {
   activeDayIndex: SharedValue<number>;
   index: number;
   label: string;
+  onToggle: () => void;
   selected: boolean;
 }) {
   const animStyle = useAnimatedStyle(() => ({
@@ -200,19 +211,26 @@ function DayCircle({
   }));
 
   return (
-    <Animated.View
-      className={`h-10 w-10 items-center justify-center rounded-full ${
-        selected ? "bg-accent" : "border border-border"
-      }`}
-      style={animStyle}
+    <Pressable
+      accessibilityLabel={DAY_FULL_NAMES[index]}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: selected }}
+      onPress={onToggle}
     >
-      <Text
-        className={`text-xs ${selected ? "text-foreground" : "text-secondary"}`}
-        style={{ fontFamily: "IBMPlexMono_500Medium" }}
+      <Animated.View
+        className={`h-12 w-12 items-center justify-center rounded-full ${
+          selected ? "bg-accent" : "border border-border"
+        }`}
+        style={animStyle}
       >
-        {label}
-      </Text>
-    </Animated.View>
+        <Text
+          className={`text-xs ${selected ? "text-foreground" : "text-secondary"}`}
+          style={{ fontFamily: "IBMPlexMono_500Medium" }}
+        >
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
   );
 }
 
@@ -312,6 +330,7 @@ const DaysField = memo(function DaysField({
               // biome-ignore lint/suspicious/noArrayIndexKey: static day list
               key={index}
               label={label}
+              onToggle={() => onSetDay(index, !selectedDays.includes(index))}
               selected={selectedDays.includes(index)}
             />
           ))}

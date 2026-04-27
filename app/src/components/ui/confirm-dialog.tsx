@@ -98,6 +98,8 @@ export function ConfirmDialog({
           <View style={{ gap: 10 }}>
             {primary.map((action) => (
               <PressableScale
+                accessibilityLabel={action.label}
+                accessibilityRole="button"
                 className="items-center justify-center rounded-[14px]"
                 key={action.label}
                 onPress={action.onPress}
@@ -142,10 +144,12 @@ export function ConfirmDialog({
 
             {secondary.map((action) => (
               <PressableScale
+                accessibilityLabel={action.label}
+                accessibilityRole="button"
                 className="items-center justify-center"
                 key={action.label}
                 onPress={action.onPress}
-                style={{ height: 40 }}
+                style={{ height: 48 }}
               >
                 <Text
                   className="text-secondary text-xs uppercase tracking-[1px]"
