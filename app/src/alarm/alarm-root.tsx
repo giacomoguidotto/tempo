@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { beat } from "@/lib/logger";
+import { useReduceMotion } from "@/lib/use-reduce-motion";
 import TempoAlarmModule, {
   type AlarmLaunchPayload,
 } from "../../modules/tempo-alarm";
@@ -66,6 +67,7 @@ function RippleRing({ delay }: { delay: number }) {
 }
 
 export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
+  const reduceMotion = useReduceMotion();
   const [resolvedPayload, setResolvedPayload] = useState<AlarmLaunchPayload>({
     alarmInstanceId: props.alarmInstanceId ?? null,
     intensity: props.intensity ?? null,
@@ -174,15 +176,17 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
       }}
     >
       {/* Ripple rings expanding from center */}
-      <View pointerEvents="none" style={styles.rippleContainer}>
-        {Array.from({ length: RIPPLE_COUNT }).map((_, i) => (
-          <RippleRing
-            delay={i * RIPPLE_STAGGER}
-            // biome-ignore lint/suspicious/noArrayIndexKey: static ring list
-            key={i}
-          />
-        ))}
-      </View>
+      {!reduceMotion && (
+        <View pointerEvents="none" style={styles.rippleContainer}>
+          {Array.from({ length: RIPPLE_COUNT }).map((_, i) => (
+            <RippleRing
+              delay={i * RIPPLE_STAGGER}
+              // biome-ignore lint/suspicious/noArrayIndexKey: static ring list
+              key={i}
+            />
+          ))}
+        </View>
+      )}
 
       {/* Card fades in after ripples start */}
       <Animated.View

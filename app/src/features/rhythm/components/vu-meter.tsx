@@ -10,6 +10,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
+import { useReduceMotion } from "@/lib/use-reduce-motion";
 
 const VISIBLE = 11;
 const TOTAL = VISIBLE * 3;
@@ -126,6 +127,8 @@ export function VuMeter({
   active?: boolean;
   moving?: boolean;
 }) {
+  const reduceMotion = useReduceMotion();
+
   // Position accumulates on the UI thread — no JS/UI sync issues
   const position = useSharedValue(0);
   const velocity = useSharedValue(moving ? 1 : 0);
@@ -141,25 +144,29 @@ export function VuMeter({
     }
     const dt = info.timeSincePreviousFrame / 1000; // seconds
     position.value = (position.value + SPEED * velocity.value * dt) % TOTAL;
-  });
+  }, !reduceMotion);
 
   // Smoothly ramp velocity for start/stop
   useEffect(() => {
+    if (reduceMotion) {
+      velocity.value = 0;
+      return;
+    }
     velocity.value = withTiming(moving ? 1 : 0, { duration: TRANSITION_MS });
-  }, [moving, velocity]);
+  }, [moving, velocity, reduceMotion]);
 
   // Height/color/opacity + shockwave on activation
   useEffect(() => {
-    progress.value = withTiming(active ? 1 : 0, { duration: TRANSITION_MS });
+    progress.value = active ? 1 : 0;
 
-    if (active && !wasActive.current) {
+    if (!reduceMotion && active && !wasActive.current) {
       shockwave.value = withSequence(
         withTiming(1, { duration: 0 }),
         withDelay(200, withTiming(0, { duration: SHOCKWAVE_DURATION }))
       );
     }
     wasActive.current = active;
-  }, [active, progress, shockwave]);
+  }, [active, progress, shockwave, reduceMotion]);
 
   return (
     <View
