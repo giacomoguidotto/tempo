@@ -4,6 +4,7 @@ import { ConfirmDialog } from "./confirm-dialog";
 interface ConfirmDialogRequest {
   cancelLabel?: string;
   confirmLabel?: string;
+  confirmStyle?: "accent" | "destructive";
   message: string;
   title: string;
 }
@@ -46,7 +47,7 @@ export function useConfirmDialog() {
           {
             label: pendingRequest?.confirmLabel ?? "Confirm",
             onPress: () => close(true),
-            style: "accent",
+            style: pendingRequest?.confirmStyle ?? "accent",
           },
         ]}
         message={pendingRequest?.message ?? ""}
