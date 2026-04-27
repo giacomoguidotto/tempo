@@ -5,6 +5,7 @@ A repeating alarm & productivity time-audit tool for Android.
 ## Decisions Log
 
 ### Product
+
 - **Core concept:** Repeating alarm/timer that doubles as a productivity micro-journal
 - **Target platform:** Android-only (architecture abstracted for future iOS)
 - **Data:** Local-first (expo-sqlite for structured data, MMKV for settings)
@@ -12,12 +13,14 @@ A repeating alarm & productivity time-audit tool for Android.
 - **Tagline:** "Find your rhythm" / "Conduct your day"
 
 ### Architecture
+
 - **Monorepo:** Bun workspaces + Turborepo
 - **Structure:** `app/` (Expo), `site/` (Next.js marketing), `pkgs/` (shared config)
 - **Feature folders with platform adapters** (business logic decoupled from platform)
 - **No backend, no auth, no cloud sync** (v0/v1)
 
 ### Tech Stack — Mobile App (`app/`)
+
 - Expo SDK (latest) with development build
 - Expo Router (file-based navigation)
 - NativeWind (Tailwind for React Native)
@@ -29,11 +32,13 @@ A repeating alarm & productivity time-audit tool for Android.
 - lucide-react-native (icons)
 
 ### Tech Stack — Marketing Site (`site/`)
+
 - Next.js (latest) with App Router
 - Blueprint patterns (Tailwind, Biome, TypeScript strict)
 - Deployed to Vercel at tempo.guidotto.dev
 
 ### DX Tooling (from Blueprint)
+
 - Bun (package manager + scripts)
 - Biome + Ultracite (linting/formatting)
 - Husky (pre-commit hooks)
@@ -44,24 +49,28 @@ A repeating alarm & productivity time-audit tool for Android.
 - GitHub Actions CI (lint, typecheck, test, build)
 
 ### Alert Intensity Levels
-| Level      | Name      | Vibration    | Sound            | Full-screen | Notification   |
-|------------|-----------|--------------|------------------|-------------|----------------|
-| **Gentle** | *Whisper* | Short pulse  | No               | No          | Yes (silent)   |
-| **Medium** | *Nudge*   | Short pulse  | Short sound      | No          | Yes            |
-| **Strong** | *Pulse*   | Short pulse  | Short sound      | Yes         | Yes            |
-| **Urgent** | *Call*    | Long vibrate | Persistent sound | Yes         | Yes            |
+
+| Level      | Name      | Vibration    | Sound            | Full-screen | Notification |
+| ---------- | --------- | ------------ | ---------------- | ----------- | ------------ |
+| **Gentle** | _Whisper_ | Short pulse  | No               | No          | Yes (silent) |
+| **Medium** | _Nudge_   | Short pulse  | Short sound      | No          | Yes          |
+| **Strong** | _Pulse_   | Short pulse  | Short sound      | Yes         | Yes          |
+| **Urgent** | _Call_    | Long vibrate | Persistent sound | Yes         | Yes          |
 
 All levels respect system sound mode (silent/vibrate/ring). Default intensity configurable in settings.
+
 - `v0` focus: expose `Whisper`, `Nudge`, and `Pulse` only while stabilizing the urgent alarm flow.
 - The current fourth level (`Call`) is deferred from the UI and should be reintroduced in `v1` under a new name.
 
 ### Alarm Reliability Guards
+
 - **Hard guard** = a system condition Tempo requires in order to honestly promise the intended `Pulse` behavior.
 - If a hard guard is missing or later revoked, Tempo should mark the rhythm as unhealthy and avoid arming `Pulse`. Do not silently downgrade intensity or disable the rhythm behind the user's back.
 - **v0 hard guards for `Pulse`:** notification permission granted, exact alarm access granted, full-screen notification access granted where required, `Pulse` channel exists and is enabled, `Pulse` channel importance remains high.
 - **Not hard guards in v0:** battery optimization, DND override, OEM background restrictions. These should be surfaced as reliability warnings, not blockers.
 
 ### Musical Naming Convention
+
 - **Rhythm** = a configured alarm schedule
 - **Beat** = a single alarm firing
 - **Note** = an activity log entry at a beat
@@ -73,6 +82,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 ## Roadmap
 
 ### v0 — Replace the ugly app
+
 > Goal: A beautiful, ad-free alarm app that reliably fires repeating alarms.
 > You still log in your spreadsheet. But the alarm works perfectly.
 
@@ -145,22 +155,33 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] USE_FULL_SCREEN_INTENT (for Pulse/Call levels)
   - [x] Permission request flow (on first toggle/create, only when not granted)
 
-- [ ] **Accessibility**
-  - [ ] Add `accessibilityLabel` and `accessibilityRole` to all interactive elements (toggles, FAB, tab icons, slider knobs, day chips)
-  - [ ] Ensure all touch targets are at least 48dp
-  - [ ] Provide text alternative for VU meter animation (TalkBack should announce rhythm status, not silence)
-  - [ ] Verify `allowFontScaling` is not disabled — text must respect system font size
+- [x] **Accessibility**
+  - [x] Add `accessibilityLabel` and `accessibilityRole` to all interactive elements (toggles, FAB, tab icons, slider knobs, day chips)
+  - [x] Ensure all touch targets are at least 48dp (day chips, confirm dialog secondary buttons)
+  - [x] Hide VU meter from screen readers (`importantForAccessibility="no-hide-descendants"`)
+  - [x] Respect `reduceMotion` — freeze VU meter, shockwave, alarm ripples when enabled
+  - [x] Make day chips individually pressable with checkbox role and full day name labels
+  - [x] Make wheel picker items tappable to select (alternative to scroll-only interaction)
+  - [x] Add move up/down accessibility actions to rhythm cards (alternative to drag-to-reorder)
+  - [x] Bottom sheet heading announced as header role
+  - [x] Alarm screen auto-focuses dismiss button for TalkBack
+  - [x] Confirm dialog announced as alert role with title and message
+  - [x] MarqueeText on rhythm card name/subtitle (ellipsis fallback when reduceMotion is on)
+  - [x] Font scaling capped at 2x on tight layouts (wheel picker)
   - [ ] Test full flow with TalkBack enabled
 
 - [ ] **Play Store compliance**
-  - [ ] Privacy policy page on tempo.guidotto.dev (required for Play Store listing)
-  - [ ] Data Safety section — declare all data stays on-device, no collection
-  - [ ] Global "Delete all data" option in settings (Play Store data deletion policy)
-  - [ ] 12-tester closed track testing for 14 consecutive days (required before production access for personal dev accounts)
+  - [x] Privacy policy page on tempo.guidotto.dev (required for Play Store listing)
+  - [x] Data Safety section — declare all data stays on-device, no collection
+  - [x] All 11 policy declarations actioned (advertising ID, full-screen intent, health, financial, government, data safety, privacy policy, target audience, content ratings, ads, app access)
+  - [x] Global "Delete all data" option in settings (Play Store data deletion policy)
+  - [ ] 12-tester closed track testing for 14 consecutive days
 
 - [ ] **Android platform compliance**
-  - [ ] Enable predictive back gesture (`android:enableOnBackInvokedCallback="true"`) — audit bottom sheets, modals, and confirmation dialogs for custom back handling
-  - [ ] Edge-to-edge audit — verify all screens handle insets correctly (full-screen alert, bottom sheets, list content behind nav bar)
+  - [x] Enable predictive back gesture (`android:enableOnBackInvokedCallback="true"`) via config plugin
+  - [x] Replace alarm activity `invokeDefaultOnBackPressed` with `OnBackPressedCallback`
+  - [x] Rework bottom sheet unsaved-changes guard from `onAnimate` interceptor to `BackHandler`
+  - [x] Edge-to-edge audit — added SafeAreaProvider and inset padding to alarm screen
   - [ ] Monochrome adaptive icon layer (`<monochrome>` in `ic_launcher.xml`) for themed icons on Android 13+
 
 - [ ] **Testing**
@@ -172,6 +193,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [ ] Upload ProGuard/R8 mapping files with production builds for crash deobfuscation
 
 ### v1 — Capture built in
+
 > Goal: When a beat fires, you can log your activity right there. No more spreadsheet.
 
 - [ ] Reintroduce the fourth urgency level to the UI after `Pulse` is reliable
@@ -202,7 +224,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 - [ ] **Settings**
   - [ ] Default intensity level
   - [ ] About / version info
-  - [ ] Global "Delete all data" with confirmation (Play Store data deletion requirement)
+  - [x] Global "Delete all data" with confirmation (Play Store data deletion requirement)
 
 - [ ] **Crash reporting**
   - [ ] Integrate Sentry (first-class Expo/RN support, source maps, session replay)
@@ -244,6 +266,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [ ] Test: create rhythm → wait for beat → capture note → verify in today view
 
 ### v2 — Review & insights
+
 > Goal: Replace the spreadsheet entirely. See where your time goes.
 
 - [ ] **Weekly table view**
@@ -288,6 +311,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [ ] Search notes
 
 ### Future ideas (unscoped)
+
 - [ ] Shared `pkgs/config` workspace package once cross-project config reuse becomes worth it
 - [ ] iOS support (implement iOS adapters)
 - [ ] Extract a platform adapter interface for alarm scheduling when iOS support starts

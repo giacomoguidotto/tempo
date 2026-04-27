@@ -27,6 +27,8 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`.
 
 `fix:` and `feat:` **trigger a release** via semantic-release — only use them when the change genuinely warrants one. For internal changes (refactors, docs, tests, CI, config, site tweaks), use `chore:`, `docs:`, `refactor:`, or `test:`.
 
+**Always ask before using `fix:` or `feat:`** — these trigger a release. Confirm with the user before committing with a release-triggering prefix.
+
 **Never** use `BREAKING CHANGE` or the `!` suffix (e.g. `feat!:`, `fix!:`) — these trigger a major release. Only use with explicit user authorization.
 
 ## Agent guidelines
