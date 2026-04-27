@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="55%">
+      <stop offset="0%" stop-color="#262119"/>
+      <stop offset="100%" stop-color="#1A1714"/>
+    </radialGradient>
+    <linearGradient id="copper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7A4220"/>
+      <stop offset="6%" stop-color="#C68548"/>
+      <stop offset="22%" stop-color="#EFB97A"/>
+      <stop offset="42%" stop-color="#DCA060"/>
+      <stop offset="62%" stop-color="#B97840"/>
+      <stop offset="82%" stop-color="#7A4220"/>
+      <stop offset="100%" stop-color="#3A180A"/>
+    </linearGradient>
+    <linearGradient id="copperSoft" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#C88858"/>
+      <stop offset="15%" stop-color="#DC9A65"/>
+      <stop offset="32%" stop-color="#E2A570"/>
+      <stop offset="55%" stop-color="#C48652"/>
+      <stop offset="78%" stop-color="#A06D40"/>
+      <stop offset="100%" stop-color="#7E5430"/>
+    </linearGradient>
+    <linearGradient id="rimGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFC880"/>
+      <stop offset="100%" stop-color="#FFC880"/>
+    </linearGradient>
+    <linearGradient id="haloGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D08040"/>
+      <stop offset="100%" stop-color="#D08040"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3D2818"/>
+      <stop offset="50%" stop-color="#1A0E08"/>
+      <stop offset="100%" stop-color="#2A1A10"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="32%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="58%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
+    </linearGradient>
+    <radialGradient id="cap" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF6DC" stop-opacity="0.92"/>
+      <stop offset="45%" stop-color="#FFD898" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#FFD898" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="halo" x="-40%" y="-25%" width="180%" height="150%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+    <filter id="rim" x="-25%" y="-12%" width="150%" height="124%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#1A1714"/>
+  <rect x="62" y="62" width="900" height="900" rx="200" fill="url(#bg)"/>
+
+  <g filter="url(#halo)" opacity="0.55">
+    <rect x="213" y="417" width="70" height="190" rx="35" fill="url(#haloGrad)"/>
+    <rect x="345" y="307" width="70" height="410" rx="35" fill="url(#haloGrad)"/>
+    <rect x="477" y="142" width="70" height="740" rx="35" fill="url(#haloGrad)"/>
+    <rect x="609" y="257" width="70" height="510" rx="35" fill="url(#haloGrad)"/>
+    <rect x="741" y="409" width="70" height="206" rx="35" fill="url(#haloGrad)"/>
+  </g>
+
+  <g filter="url(#rim)" opacity="0.95">
+    <rect x="213" y="417" width="70" height="190" rx="35" fill="url(#rimGrad)"/>
+    <rect x="345" y="307" width="70" height="410" rx="35" fill="url(#rimGrad)"/>
+    <rect x="477" y="142" width="70" height="740" rx="35" fill="url(#rimGrad)"/>
+    <rect x="609" y="257" width="70" height="510" rx="35" fill="url(#rimGrad)"/>
+    <rect x="741" y="409" width="70" height="206" rx="35" fill="url(#rimGrad)"/>
+  </g>
+
+  <rect x="213" y="417" width="70" height="190" rx="35" fill="url(#ringGrad)"/>
+  <rect x="345" y="307" width="70" height="410" rx="35" fill="url(#ringGrad)"/>
+  <rect x="477" y="142" width="70" height="740" rx="35" fill="url(#ringGrad)"/>
+  <rect x="609" y="257" width="70" height="510" rx="35" fill="url(#ringGrad)"/>
+  <rect x="741" y="409" width="70" height="206" rx="35" fill="url(#ringGrad)"/>
+
+  <rect x="218" y="422" width="60" height="180" rx="30" fill="url(#copperSoft)"/>
+  <rect x="218" y="422" width="60" height="180" rx="30" fill="url(#sheen)"/>
+
+  <rect x="350" y="312" width="60" height="400" rx="30" fill="url(#copper)"/>
+  <rect x="350" y="312" width="60" height="400" rx="30" fill="url(#sheen)"/>
+
+  <rect x="482" y="147" width="60" height="730" rx="30" fill="url(#copper)"/>
+  <rect x="482" y="147" width="60" height="730" rx="30" fill="url(#sheen)"/>
+
+  <rect x="614" y="262" width="60" height="500" rx="30" fill="url(#copper)"/>
+  <rect x="614" y="262" width="60" height="500" rx="30" fill="url(#sheen)"/>
+
+  <rect x="746" y="414" width="60" height="196" rx="30" fill="url(#copperSoft)"/>
+  <rect x="746" y="414" width="60" height="196" rx="30" fill="url(#sheen)"/>
+</svg>

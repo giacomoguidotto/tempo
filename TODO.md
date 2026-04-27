@@ -174,7 +174,6 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Data Safety section — declare all data stays on-device, no collection
   - [x] All 11 policy declarations actioned (advertising ID, full-screen intent, health, financial, government, data safety, privacy policy, target audience, content ratings, ads, app access)
   - [x] Global "Delete all data" option in settings (Play Store data deletion policy)
-  - [ ] 12-tester closed track testing for 14 consecutive days
 
 - [ ] **Android platform compliance**
   - [x] Enable predictive back gesture (`android:enableOnBackInvokedCallback="true"`) via config plugin
@@ -192,6 +191,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [x] Manual testing checklist for alarm reliability
   - [ ] Run the alarm reliability checklist on a production build
   - [ ] Test full accessibility flow with TalkBack enabled
+  - [ ] 12-tester closed track testing for 14 consecutive days
 
 ### v1 — Capture built in
 
