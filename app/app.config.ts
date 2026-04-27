@@ -19,13 +19,14 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
+        foregroundImage: "./assets/icon-adaptive.png",
+        monochromeImage: "./assets/icon-monochrome.png",
         backgroundColor: "#1A1714",
       },
       package: "dev.guidotto.tempo",
       versionCode,
       permissions: [
-        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
         "POST_NOTIFICATIONS",
         "FOREGROUND_SERVICE",
         "WAKE_LOCK",
