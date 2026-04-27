@@ -48,6 +48,8 @@ export function ConfirmDialog({
       visible={visible}
     >
       <Pressable
+        accessibilityLabel="Dismiss"
+        accessibilityRole="button"
         onPress={onClose}
         style={{ flex: 1, justifyContent: "flex-end" }}
       >

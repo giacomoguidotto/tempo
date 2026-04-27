@@ -148,6 +148,7 @@ const NameField = memo(function NameField({
     <View style={{ paddingVertical: 16, gap: 6 }}>
       <Label>Name</Label>
       <BottomSheetTextInput
+        accessibilityLabel="Rhythm name"
         autoCorrect={false}
         cursorColor={theme.accent}
         defaultValue={initialName}
@@ -343,13 +344,23 @@ const TimeRangeField = memo(function TimeRangeField({
       <View className="flex-row justify-between">
         <View style={{ gap: 4 }}>
           <Label>From</Label>
-          <PressableScale onPress={onOpenStartTimePicker} scale={0.95}>
+          <PressableScale
+            accessibilityLabel={`Start time, ${startTime}`}
+            accessibilityRole="button"
+            onPress={onOpenStartTimePicker}
+            scale={0.95}
+          >
             <TimeValue>{startTime}</TimeValue>
           </PressableScale>
         </View>
         <View style={{ gap: 4, alignItems: "flex-end" }}>
           <Label>{wraps ? "To (next day)" : "To"}</Label>
-          <PressableScale onPress={onOpenEndTimePicker} scale={0.95}>
+          <PressableScale
+            accessibilityLabel={`End time, ${endTime}`}
+            accessibilityRole="button"
+            onPress={onOpenEndTimePicker}
+            scale={0.95}
+          >
             <TimeValue>{endTime}</TimeValue>
           </PressableScale>
         </View>
@@ -402,6 +413,8 @@ const IntervalField = memo(function IntervalField({
     <View style={{ paddingVertical: 16, gap: 12 }}>
       <Label>Every</Label>
       <PressableScale
+        accessibilityLabel={`Interval, ${onceADay ? "once a day" : formatIntervalDisplay(interval)}`}
+        accessibilityRole="button"
         className="self-start"
         disabled={onceADay}
         onPress={onOpenDurationPicker}
@@ -437,6 +450,9 @@ const IntervalField = memo(function IntervalField({
             }
             return (
               <PressableScale
+                accessibilityLabel={formatIntervalDisplay(minutes)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected, disabled }}
                 disabled={disabled}
                 key={minutes}
                 onPress={() => onIntervalChange(minutes)}
@@ -484,8 +500,12 @@ const IntensityField = memo(function IntensityField({
     <View style={{ paddingVertical: 16, gap: 10 }}>
       <Label>Intensity</Label>
       <View className="flex-row gap-2">
-        {INTENSITIES.map(({ value, label }) => (
+        {INTENSITIES.map(({ value, label, description }) => (
           <PressableScale
+            accessibilityHint={description}
+            accessibilityLabel={label}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: intensity === value }}
             key={value}
             onPress={() => onIntensityChange(value)}
             scale={0.88}

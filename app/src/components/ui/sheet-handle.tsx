@@ -37,6 +37,8 @@ export function SheetHandle({ animatedIndex, onPress }: SheetHandleProps) {
 
   return (
     <Pressable
+      accessibilityLabel="Close"
+      accessibilityRole="button"
       onPress={onPress}
       style={{ alignItems: "center", paddingVertical: 12 }}
     >

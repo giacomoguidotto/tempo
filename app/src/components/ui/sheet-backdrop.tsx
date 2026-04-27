@@ -25,7 +25,14 @@ export function SheetBackdrop({
 
   return (
     <Animated.View style={[style, { backgroundColor: "#000" }, animatedStyle]}>
-      {onPress ? <Pressable onPress={onPress} style={{ flex: 1 }} /> : null}
+      {onPress ? (
+        <Pressable
+          accessibilityLabel="Dismiss"
+          accessibilityRole="button"
+          onPress={onPress}
+          style={{ flex: 1 }}
+        />
+      ) : null}
     </Animated.View>
   );
 }

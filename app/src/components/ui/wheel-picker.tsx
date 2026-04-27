@@ -200,7 +200,11 @@ function PickerModal({
           alignItems: "center",
         }}
       >
-        <TouchableWithoutFeedback onPress={onClose}>
+        <TouchableWithoutFeedback
+          accessibilityLabel="Dismiss"
+          accessibilityRole="button"
+          onPress={onClose}
+        >
           <View
             style={{
               position: "absolute",
@@ -250,6 +254,8 @@ function PickerModal({
             }}
           >
             <PressableScale
+              accessibilityLabel="Cancel"
+              accessibilityRole="button"
               onPress={onClose}
               scale={0.88}
               style={{ paddingVertical: 8, paddingHorizontal: 12 }}
@@ -267,6 +273,8 @@ function PickerModal({
               </Text>
             </PressableScale>
             <PressableScale
+              accessibilityLabel="Confirm"
+              accessibilityRole="button"
               onPress={onConfirm}
               scale={0.88}
               style={{ paddingVertical: 8, paddingHorizontal: 12 }}

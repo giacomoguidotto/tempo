@@ -154,6 +154,8 @@ export function RangeSlider({
   return (
     <GestureDetector gesture={panGesture}>
       <View
+        accessibilityLabel="Time range slider"
+        accessibilityRole="adjustable"
         onLayout={measure}
         ref={viewRef}
         style={{ height: THUMB_SIZE + HIT_SLOP * 2, justifyContent: "center" }}

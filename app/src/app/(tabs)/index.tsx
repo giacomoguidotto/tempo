@@ -278,6 +278,8 @@ export default function RhythmsScreen() {
 
       {/* FAB — 64px, equal 24px inset from corner */}
       <PressableScale
+        accessibilityLabel="Create new rhythm"
+        accessibilityRole="button"
         className="absolute h-16 w-16 items-center justify-center rounded-full bg-accent"
         onPress={handleOpenCreate}
         style={{

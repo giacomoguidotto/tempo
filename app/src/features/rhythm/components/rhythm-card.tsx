@@ -73,6 +73,8 @@ export function RhythmCard({
 
     return (
       <RectButton
+        accessibilityLabel={`Delete ${rhythm.name}`}
+        accessibilityRole="button"
         onPress={handleDelete}
         style={{
           backgroundColor: "#3D2E28",
@@ -138,6 +140,8 @@ export function RhythmCard({
         rightThreshold={40}
       >
         <PressableScale
+          accessibilityLabel={`${rhythm.name}, every ${rhythm.intervalMinutes} minutes`}
+          accessibilityRole="button"
           className={`gap-3 rounded-[14px] border bg-surface px-5 py-[18px] ${
             isDragging ? "border-accent" : "border-border"
           }`}
@@ -170,6 +174,8 @@ export function RhythmCard({
               </Text>
             </View>
             <Switch
+              accessibilityLabel={`${rhythm.name}, ${rhythm.enabled ? "active" : "inactive"}`}
+              accessibilityRole="switch"
               onValueChange={(value) => onToggle(rhythm.id, value)}
               thumbColor={rhythm.enabled ? "#EDE6DA" : "#6B6058"}
               trackColor={{ false: "#2A2420", true: "#C06730" }}
@@ -177,7 +183,12 @@ export function RhythmCard({
             />
           </View>
 
-          <View className="flex-row items-center">
+          <View
+            accessibilityLabel={`${done} of ${total} beats completed`}
+            accessibilityRole="progressbar"
+            accessibilityValue={{ min: 0, max: total, now: done }}
+            className="flex-row items-center"
+          >
             {Array.from({ length: numTicks }).map((_, i) => (
               <View
                 key={`t-${String(i)}`}

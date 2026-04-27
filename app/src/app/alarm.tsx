@@ -24,6 +24,8 @@ export default function AlarmScreen() {
         Time to check in
       </Text>
       <Pressable
+        accessibilityLabel="Dismiss alarm"
+        accessibilityRole="button"
         className="mt-10 rounded-full bg-accent px-10 py-5"
         onPress={handleDismiss}
       >

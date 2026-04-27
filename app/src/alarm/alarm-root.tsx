@@ -247,6 +247,8 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
           style={{ gap: 12, marginTop: 24 }}
         >
           <Pressable
+            accessibilityLabel="Dismiss alarm"
+            accessibilityRole="button"
             onPress={handleDismiss}
             style={{
               alignItems: "center",
@@ -268,6 +270,8 @@ export default function AlarmRoot(props: Partial<AlarmLaunchPayload>) {
           </Pressable>
 
           <Pressable
+            accessibilityLabel="Open Tempo"
+            accessibilityRole="button"
             onPress={handleOpenTempo}
             style={{
               alignItems: "center",

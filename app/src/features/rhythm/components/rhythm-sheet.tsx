@@ -384,6 +384,8 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
       >
         {isEditing && (
           <PressableScale
+            accessibilityLabel="Delete rhythm"
+            accessibilityRole="button"
             className="items-center justify-center rounded-2xl border border-border px-5 py-5"
             onPress={handleDelete}
           >
@@ -391,6 +393,9 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
           </PressableScale>
         )}
         <PressableScale
+          accessibilityLabel={isEditing ? "Save changes" : "Create rhythm"}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canSave }}
           className={`${isEditing ? "flex-1" : ""} items-center rounded-2xl py-5 ${canSave ? "bg-accent" : "bg-border"}`}
           disabled={!canSave}
           onPress={handleSave}
