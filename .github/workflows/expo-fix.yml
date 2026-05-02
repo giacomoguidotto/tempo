@@ -32,10 +32,48 @@ jobs:
       - name: Fix Expo SDK version mismatches
         working-directory: app
         run: bunx expo install --fix
-      - name: Commit if changed
+      - name: Commit if changed (via API for verified signature)
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --staged --quiet || git commit -m "chore: fix expo doctor version mismatches"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          REPO="${{ github.repository }}"
+          BRANCH="${{ github.head_ref }}"
+          HEAD_SHA=$(git rev-parse HEAD)
+          BASE_TREE=$(git rev-parse HEAD^{tree})
+
+          # Upload changed files as blobs
+          TREE_ENTRIES="[]"
+          while IFS= read -r file; do
+            BLOB_SHA=$(gh api "repos/${REPO}/git/blobs" \
+              -f content="$(base64 -w 0 < "$file")" \
+              -f encoding=base64 --jq '.sha')
+            TREE_ENTRIES=$(echo "$TREE_ENTRIES" | jq \
+              --arg path "$file" --arg sha "$BLOB_SHA" \
+              '. + [{"path": $path, "mode": "100644", "type": "blob", "sha": $sha}]')
+          done < <(git diff --cached --name-only --diff-filter=d)
+
+          # Create tree
+          TREE_SHA=$(jq -n \
+            --arg base "$BASE_TREE" --argjson tree "$TREE_ENTRIES" \
+            '{"base_tree": $base, "tree": $tree}' \
+            | gh api "repos/${REPO}/git/trees" --input - --jq '.sha')
+
+          # Create commit (GitHub auto-signs → verified)
+          COMMIT_SHA=$(jq -n \
+            --arg msg "chore: fix expo doctor version mismatches" \
+            --arg tree "$TREE_SHA" --arg parent "$HEAD_SHA" \
+            '{"message": $msg, "tree": $tree, "parents": [$parent]}' \
+            | gh api "repos/${REPO}/git/commits" --input - --jq '.sha')
+
+          # Fast-forward the branch
+          jq -n --arg sha "$COMMIT_SHA" '{"sha": $sha}' \
+            | gh api "repos/${REPO}/git/refs/heads/${BRANCH}" \
+              --method PATCH --input -
+
+          echo "Created verified commit ${COMMIT_SHA:0:7}"
