@@ -12,16 +12,6 @@ import { syncStatusNotification } from "./status";
 
 const SCHEDULE_AHEAD_COUNT = 5;
 
-/**
- * Compute the next N beat timestamps for a rhythm from now.
- */
-export function computeNextBeats(rhythm: Rhythm, count = 1): Date[] {
-  return getUpcomingBeatDates(rhythm, count);
-}
-
-/**
- * Schedule the next few alarms for a rhythm.
- */
 export async function scheduleRhythm(
   rhythm: Rhythm,
   source = "manual"
@@ -34,7 +24,7 @@ export async function scheduleRhythm(
     return;
   }
 
-  const nextBeats = computeNextBeats(rhythm, SCHEDULE_AHEAD_COUNT);
+  const nextBeats = getUpcomingBeatDates(rhythm, SCHEDULE_AHEAD_COUNT);
   if (nextBeats.length === 0) {
     beat.warn("schedule_skipped", {
       source,
