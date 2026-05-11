@@ -36,7 +36,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT }}
         run: |
-          git add -A
+          git add app/package.json bun.lock
           if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
@@ -50,9 +50,9 @@ jobs:
           # Upload changed files as blobs
           TREE_ENTRIES="[]"
           while IFS= read -r file; do
-            BLOB_SHA=$(gh api "repos/${REPO}/git/blobs" \
-              -f content="$(base64 -w 0 < "$file")" \
-              -f encoding=base64 --jq '.sha')
+            BLOB_SHA=$(base64 -w 0 < "$file" \
+              | jq -Rs '{"content": ., "encoding": "base64"}' \
+              | gh api "repos/${REPO}/git/blobs" --input - --jq '.sha')
             TREE_ENTRIES=$(echo "$TREE_ENTRIES" | jq \
               --arg path "$file" --arg sha "$BLOB_SHA" \
               '. + [{"path": $path, "mode": "100644", "type": "blob", "sha": $sha}]')
