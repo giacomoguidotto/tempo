@@ -1,11 +1,10 @@
-import notifee from "@notifee/react-native";
 import { router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import { alarmScheduler } from "@/features/beat";
 
 export default function AlarmScreen() {
   async function handleDismiss() {
-    // Cancel all displayed notifications
-    await notifee.cancelAllNotifications();
+    await alarmScheduler.cancelAll();
     router.back();
   }
 

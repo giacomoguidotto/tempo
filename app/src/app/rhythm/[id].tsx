@@ -1,16 +1,19 @@
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
+import { rhythmRepository } from "@/features/rhythm";
 import {
   RhythmSheet,
   type RhythmSheetHandle,
 } from "@/features/rhythm/components/rhythm-sheet";
-import { getRhythm } from "@/features/rhythm/operations";
 
 export default function EditRhythmScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const navigation = useNavigation();
-  const rhythm = useMemo(() => (id ? getRhythm(id) : undefined), [id]);
+  const rhythm = useMemo(
+    () => (id ? rhythmRepository.get(id) : undefined),
+    [id]
+  );
   const sheetRef = useRef<RhythmSheetHandle>(null);
   const allowRemoveRef = useRef(false);
   const pendingActionRef = useRef<unknown>(null);

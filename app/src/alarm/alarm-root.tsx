@@ -1,4 +1,3 @@
-import notifee from "@notifee/react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -20,12 +19,12 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { alarmScheduler } from "@/features/beat";
 import { beat } from "@/lib/logger";
 import { useReduceMotion } from "@/lib/use-reduce-motion";
 import TempoAlarmModule, {
   type AlarmLaunchPayload,
 } from "../../modules/tempo-alarm";
-import { resolveAlarmPayload } from "./resolve-payload";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const RIPPLE_MAX = Math.hypot(SCREEN_W, SCREEN_H);
@@ -103,22 +102,20 @@ function AlarmContent(props: Partial<AlarmLaunchPayload>) {
     let cancelled = false;
 
     async function hydratePayload() {
-      const native = TempoAlarmModule.getInitialAlarmPayload();
-      const initialNotification = await notifee.getInitialNotification();
-      const displayedNotifications = await notifee.getDisplayedNotifications();
+      const resolved = await alarmScheduler.resolveInitialAlarm();
 
-      if (cancelled) {
+      if (cancelled || !resolved) {
         return;
       }
 
-      setResolvedPayload((current) =>
-        resolveAlarmPayload({
-          props: current,
-          native,
-          initialNotification,
-          displayedNotifications,
-        })
-      );
+      setResolvedPayload((current) => ({
+        alarmInstanceId: current.alarmInstanceId ?? resolved.alarmInstanceId,
+        intensity: current.intensity ?? resolved.intensity,
+        notificationId: current.notificationId ?? resolved.notificationId,
+        rhythmId: current.rhythmId ?? resolved.rhythmId,
+        rhythmName: current.rhythmName ?? resolved.rhythmName,
+        scheduledAt: current.scheduledAt ?? resolved.scheduledAt,
+      }));
     }
 
     hydratePayload().catch((error) => {
@@ -168,7 +165,7 @@ function AlarmContent(props: Partial<AlarmLaunchPayload>) {
     });
 
     if (notificationId) {
-      await notifee.cancelNotification(notificationId);
+      await alarmScheduler.dismiss(notificationId);
     } else {
       beat.warn("schedule_skipped", {
         source: "alarm-screen-dismiss",

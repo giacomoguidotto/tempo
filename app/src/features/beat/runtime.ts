@@ -1,5 +1,5 @@
 import notifee from "@notifee/react-native";
-import { getRhythm } from "@/features/rhythm/operations";
+import { rhythmRepository } from "@/features/rhythm";
 import { beat, extractBeatPayload } from "@/lib/logger";
 import { scheduleRhythm } from "./engine";
 
@@ -7,7 +7,7 @@ export async function topOffRhythmSchedule(
   rhythmId: string,
   source: string
 ): Promise<void> {
-  const rhythm = getRhythm(rhythmId);
+  const rhythm = rhythmRepository.get(rhythmId);
 
   if (!rhythm) {
     beat.warn("schedule_skipped", {

@@ -1,6 +1,7 @@
 import notifee, { type Event, EventType } from "@notifee/react-native";
+import { rhythmRepository } from "@/features/rhythm";
 import { beat, extractBeatPayload } from "@/lib/logger";
-import { disableRhythmFromStatusNotification } from "./commands";
+import { cancelRhythm } from "./engine";
 import { supersedeOlderNotifications, topOffRhythmSchedule } from "./runtime";
 import {
   getStatusNotificationActionId,
@@ -8,10 +9,6 @@ import {
   syncStatusNotification,
 } from "./status";
 
-/**
- * Build the shared notification event handler.
- * Context determines the source prefix used in logs ("foreground" or "background").
- */
 export function buildBeatEventRouter(
   context: "foreground" | "background"
 ): (event: Event) => Promise<void> {
@@ -21,10 +18,10 @@ export function buildBeatEventRouter(
         type === EventType.ACTION_PRESS &&
         detail.pressAction?.id === getStatusNotificationActionId()
       ) {
-        await disableRhythmFromStatusNotification(
-          detail.notification?.data?.primaryRhythmId as string | undefined,
-          `${context}-status-disable`
-        );
+        const rhythmId = detail.notification?.data?.primaryRhythmId as
+          | string
+          | undefined;
+        await disableRhythmFromStatus(rhythmId, `${context}-status-disable`);
       }
       if (type === EventType.DISMISSED) {
         await syncStatusNotification(`${context}-status-dismissed`);
@@ -73,4 +70,36 @@ export function buildBeatEventRouter(
       });
     }
   };
+}
+
+async function disableRhythmFromStatus(
+  rhythmId: string | undefined,
+  source: string
+): Promise<void> {
+  if (!rhythmId) {
+    beat.warn("schedule_skipped", { source, detail: "missing-rhythm-id" });
+    await syncStatusNotification(source);
+    return;
+  }
+
+  const rhythm = rhythmRepository.get(rhythmId);
+  if (!rhythm) {
+    beat.warn("schedule_skipped", {
+      source,
+      detail: "rhythm-not-found",
+      rhythmId,
+    });
+    await syncStatusNotification(source);
+    return;
+  }
+
+  beat.info("dismissed", {
+    source,
+    rhythmId,
+    rhythmName: rhythm.name,
+    detail: "disabled-from-status",
+  });
+  rhythmRepository.toggle(rhythmId, false);
+  await cancelRhythm(rhythmId);
+  await syncStatusNotification(source);
 }

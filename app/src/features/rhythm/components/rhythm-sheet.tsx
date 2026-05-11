@@ -4,7 +4,6 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import { useSetAtom } from "jotai";
 import { Trash2 } from "lucide-react-native";
 import {
   forwardRef,
@@ -26,18 +25,10 @@ import {
   DurationPickerModal,
   TimePickerModal,
 } from "@/components/ui/wheel-picker";
-import { cancelRhythm, scheduleRhythm } from "@/features/beat/engine";
 import { requestAlarmPermissions } from "@/features/beat/permissions";
-import { syncStatusNotification } from "@/features/beat/status";
-import {
-  createRhythm,
-  deleteRhythm,
-  getAllRhythms,
-  updateRhythm,
-} from "../operations";
+import { rhythmStore } from "@/store/rhythm";
 import { randomPreset } from "../presets";
 import type { IntensityLevel, Rhythm } from "../schemas";
-import { rhythmsAtom } from "../store/atoms";
 import {
   crossesMidnight,
   MINUTES_PER_DAY,
@@ -73,7 +64,6 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
 ) {
   const isEditing = rhythm !== undefined;
   const insets = useSafeAreaInsets();
-  const setRhythms = useSetAtom(rhythmsAtom);
   const sheetRef = useRef<BottomSheetModal>(null);
   const nameRef = useRef("");
   const baselineRef = useRef<Baseline>({
@@ -155,21 +145,18 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
     if (!isEditing) {
       return true;
     }
-    const updated = updateRhythm(rhythm.id, getFormValues());
-    if (!updated) {
-      return true;
-    }
-    if (updated.enabled) {
+    const formValues = getFormValues();
+    if (rhythm.enabled) {
       const granted = await requestAlarmPermissions({
         presentPrompt: presentPermissionPrompt,
         requireFullScreen:
-          updated.intensity === "pulse" || updated.intensity === "call",
+          formValues.intensity === "pulse" || formValues.intensity === "call",
       });
       if (!granted) {
         return false;
       }
     }
-    await scheduleRhythm(updated, "edit-rhythm");
+    await rhythmStore.update(rhythm.id, formValues);
     return true;
   }
 
@@ -181,8 +168,7 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
     if (!granted) {
       return false;
     }
-    const created = createRhythm({ ...getFormValues(), enabled: true });
-    await scheduleRhythm(created, "create-rhythm");
+    await rhythmStore.create({ ...getFormValues(), enabled: true });
     resetForm();
     return true;
   }
@@ -195,7 +181,6 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
     if (!ok) {
       return;
     }
-    setRhythms(getAllRhythms());
     allowDismissRef.current = true;
     sheetRef.current?.dismiss();
   }
@@ -204,10 +189,7 @@ export const RhythmSheet = forwardRef(function RhythmSheet(
     if (!isEditing) {
       return;
     }
-    await cancelRhythm(rhythm.id);
-    deleteRhythm(rhythm.id);
-    setRhythms(getAllRhythms());
-    await syncStatusNotification("edit-delete");
+    await rhythmStore.delete(rhythm.id);
     allowDismissRef.current = true;
     sheetRef.current?.dismiss();
   }

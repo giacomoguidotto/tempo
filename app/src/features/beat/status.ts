@@ -1,6 +1,6 @@
 import notifee, { AndroidStyle } from "@notifee/react-native";
+import { rhythmRepository } from "@/features/rhythm";
 import { beat } from "@/lib/logger";
-import { getAllRhythms } from "../rhythm/operations";
 import { CHANNEL_IDS } from "./channels";
 import {
   buildStatusNotificationModel,
@@ -45,7 +45,7 @@ export function isStatusNotification(
 }
 
 export async function syncStatusNotification(source = "manual"): Promise<void> {
-  const rhythms = getAllRhythms();
+  const rhythms = rhythmRepository.getAll();
   const model = buildStatusNotificationModel(
     getStatusRhythmCandidates(rhythms)
   );
