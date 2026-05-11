@@ -222,6 +222,9 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
   - [ ] Configurable beat duration (how long the alert vibrates/sounds/shows full-screen)
   - [ ] Per-rhythm duration override independent of intensity level
 
+- [ ] **Design system enhancements**
+  - [ ] Android dynamic colors support (Material You theming on Android 12+)
+
 - [ ] **Settings**
   - [ ] Default intensity level
   - [ ] About / version info
@@ -320,6 +323,7 @@ All levels respect system sound mode (silent/vibrate/ring). Default intensity co
 - [ ] i18n — extract all user-facing strings into translation files early; English + Italian first (following Blueprint's next-intl pattern)
 - [ ] RTL layout audit — replace hardcoded `left`/`right` with `start`/`end` in NativeWind styles
 - [ ] Optional manual theme override (dark/light/system)
+- [ ] Android dynamic colors (Material You) — adopt the user's wallpaper palette on Android 12+ via `@react-native-material/dynamic-colors` or Expo config plugin
 - [ ] MMKV encryption for stored preferences
 - [ ] Verified Android App Links (`https://tempo.guidotto.dev/...`) for sharing rhythms
 - [ ] Interval timer mode (work/break phases, Pomodoro-style)
