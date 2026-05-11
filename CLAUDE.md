@@ -2,40 +2,39 @@
 
 Repeating alarm & productivity time-audit app for Android, built with Expo.
 
-## Quickstart
+Run `eval "$(mise activate zsh)"` if the toolchain is not on PATH. Use Bun, not npm.
 
-- **Package manager:** Bun (`bun install`, not npm)
-- **Runtime setup:** `mise install` (node, bun, java 17)
-- **Dev:** `cd app && bun start`
-- **Android build:** `cd app && bun run android`
-- **Lint:** `bun run lint` — **Format:** `bun run format`
-- **Typecheck:** `bun run typecheck` — **Test:** `bun run test`
+Verify code quality with `bun run lint` and `bun run typecheck`.
 
-## Structure
+## Collaboration
 
-- `app/` — Expo mobile app (Bun workspace)
-  - `src/app/` — Expo Router file-based routes
-  - `src/features/` — domain modules (rhythm, beat)
-  - `src/components/ui/` — design system primitives
-  - `src/lib/` — database, storage, utilities
-  - `src/constants/` — brand tokens, config
-- `site/` — placeholder for future marketing site
+Jack tests on-device after each change — feedback comes as annotated screenshots. If something "feels off," treat it as a bug. Expect multiple passes per feature: ship the simplest version, let Jack react, then refine.
 
 ## Commits
 
-Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`.
+Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`). See [conventions](docs/agents/conventions.md) for release-trigger details.
 
-`fix:` and `feat:` **trigger a release** via semantic-release — only use them when the change genuinely warrants one. For internal changes (refactors, docs, tests, CI, config, site tweaks), use `chore:`, `docs:`, `refactor:`, or `test:`.
+**Always ask before using `fix:` or `feat:`** — these trigger a release via semantic-release.
 
-**Always ask before using `fix:` or `feat:`** — these trigger a release. Confirm with the user before committing with a release-triggering prefix.
+**Never** use `BREAKING CHANGE` or the `!` suffix — only with explicit user authorization.
 
-**Never** use `BREAKING CHANGE` or the `!` suffix (e.g. `feat!:`, `fix!:`) — these trigger a major release. Only use with explicit user authorization.
+## Docs
 
-## Agent guidelines
-
-- [Manifesto](docs/agents/manifesto.md) - cross-project working principles
-- [Conventions](docs/agents/conventions.md) — commits, naming, feature folders
-- [Frontend](docs/agents/frontend.md) — NativeWind, theme, components, animations
+- [Conventions](docs/agents/conventions.md) — naming, feature folders, build gotchas, version pins
+- [Frontend](docs/agents/frontend.md) — NativeWind, brand, design system
 - [Data](docs/agents/data.md) — Drizzle, MMKV, Jotai, Zod
 - [Alarms](docs/agents/alarms.md) — Notifee, intensity levels, permissions
-- [Working with Jack](docs/agents/working-with-jack.md) - Tempo-specific collaboration, stack traps, and brand rules
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on `giacomoguidotto/tempo`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary (needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (one `CONTEXT.md` + `docs/adr/` at the repo root). See `docs/agents/domain.md`.
