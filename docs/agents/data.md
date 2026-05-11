@@ -6,6 +6,8 @@ Rhythm configs and beat logs are stored in SQLite via Drizzle ORM. Setup in `src
 
 Schemas are defined with Drizzle's schema builder in the feature that owns the table. Migrations managed by `drizzle-kit`.
 
+Run migrations inside `useEffect` on mount, not at module scope — Metro hot reload can re-evaluate modules before the SQLite bridge is ready. Guard with `try/catch` and an idempotency flag. `ALTER TABLE ADD COLUMN` can be wrapped in `try/catch` as it fails harmlessly when the column already exists.
+
 ## Preferences — MMKV
 
 Fast key-value store for user preferences (e.g. onboarding state). Setup in `src/lib/storage.ts`. Not for structured/queryable data — use SQLite for that.
@@ -16,11 +18,4 @@ Atoms live in `src/features/[feature]/store/`. Derived atoms wrap DB query resul
 
 ## Validation — Zod
 
-Schemas colocated in `src/features/[feature]/schemas.ts`. Export both the Zod schema and the inferred TypeScript type:
-
-```ts
-export const rhythmSchema = z.object({ ... });
-export type Rhythm = z.infer<typeof rhythmSchema>;
-```
-
-Validate at boundaries (user input, DB reads). Trust internal code.
+Schemas colocated in `src/features/[feature]/schemas.ts`. See [conventions](conventions.md) for export pattern.
