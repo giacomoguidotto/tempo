@@ -34,7 +34,8 @@ jobs:
         run: bunx expo install --fix
       - name: Commit if changed (via API for verified signature)
         env:
-          GH_TOKEN: ${{ secrets.PAT }}
+          GH_TOKEN: ${{ github.token }}
+          PAT: ${{ secrets.PAT }}
         run: |
           git add app/package.json bun.lock
           if git diff --staged --quiet; then
@@ -47,7 +48,7 @@ jobs:
           HEAD_SHA=$(git rev-parse HEAD)
           BASE_TREE=$(git rev-parse HEAD^{tree})
 
-          # Upload changed files as blobs
+          # Upload changed files as blobs (GITHUB_TOKEN → verified signature)
           TREE_ENTRIES="[]"
           while IFS= read -r file; do
             BLOB_SHA=$(base64 -w 0 < "$file" \
@@ -64,16 +65,16 @@ jobs:
             '{"base_tree": $base, "tree": $tree}' \
             | gh api "repos/${REPO}/git/trees" --input - --jq '.sha')
 
-          # Create commit (GitHub auto-signs → verified)
+          # Create commit (GITHUB_TOKEN auto-signs → verified)
           COMMIT_SHA=$(jq -n \
             --arg msg "chore: fix expo doctor version mismatches" \
             --arg tree "$TREE_SHA" --arg parent "$HEAD_SHA" \
             '{"message": $msg, "tree": $tree, "parents": [$parent]}' \
             | gh api "repos/${REPO}/git/commits" --input - --jq '.sha')
 
-          # Fast-forward the branch
+          # Fast-forward the branch (PAT so the push triggers CI workflows)
           jq -n --arg sha "$COMMIT_SHA" '{"sha": $sha}' \
-            | gh api "repos/${REPO}/git/refs/heads/${BRANCH}" \
+            | GH_TOKEN="$PAT" gh api "repos/${REPO}/git/refs/heads/${BRANCH}" \
               --method PATCH --input -
 
           echo "Created verified commit ${COMMIT_SHA:0:7}"
