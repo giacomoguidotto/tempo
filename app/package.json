@@ -33,7 +33,7 @@
     "expo-status-bar": "~55.0.5",
     "expo-system-ui": "~55.0.19",
     "jotai": "^2.20.1",
-    "lucide-react-native": "^1.21.0",
+    "lucide-react-native": "^1.23.0",
     "nativewind": "preview",
     "react": "19.2.0",
     "react-native": "0.83.6",
@@ -49,11 +49,11 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.1",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/react": "~19.2.14",
     "drizzle-kit": "^0.31.10",
-    "postcss": "^8.5.15",
-    "tailwindcss": "^4.3.1",
+    "postcss": "^8.5.16",
+    "tailwindcss": "^4.3.2",
     "typescript": "~5.9.2",
     "vitest": "^4.1.9"
   },
